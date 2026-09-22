@@ -37,6 +37,26 @@ npm test
 
 Open http://localhost:3000. Landing, calendar, the Best Barrel board (`/board/best-barrel`), the purse (`/purse`) and a hashtag view (`/t/ipanema`) are public. Sign in to open a profile and submit a wave.
 
+## Production (Vercel)
+
+The production build script is `prisma generate && prisma migrate deploy && next build`. `postinstall` also runs `prisma generate`. Each Vercel deploy applies committed migrations before `next build`. `DATABASE_URL` must already be set in the Vercel Production environment (Neon). It is not stored in this repo.
+
+Seed does not run on deploy. `npm run db:seed` deletes users, entries, and the season, then loads the 2027 demo, so it must be run once against the empty production database and not again after real signups.
+
+From a checkout of this branch, with the Vercel CLI logged in, inject the Production env without writing it to disk:
+
+```bash
+npx vercel env run -e production -- npx prisma db seed
+```
+
+The same command with the URL only in the shell, copied from Vercel or Neon and never committed:
+
+```bash
+DATABASE_URL='postgresql://…' npx prisma db seed
+```
+
+Demo passwords stay `wave-2027`, as in `prisma/seed.ts`.
+
 ## What the seed contains
 
 Season vintage 2027, ranking window 1 Oct 2026 → 30 Sep 2027, age taken on 30 Sep 2027. All twelve Open events, with the category cuts from the paper: Junior has the same twelve, 40+ has eleven (no Best Small Wave), 50+ has ten (also no Best Air). Best Surf Pool is one event — Air for Open and Junior, Wave for 40+ and 50+. Best Air's 30 Nov date is marked proposed.
