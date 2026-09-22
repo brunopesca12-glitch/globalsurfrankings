@@ -7,7 +7,7 @@ export function Footer() {
         <p>
           GSR · {SEASON_2027.name} · gala {SEASON_2027.galaLabel}, {SEASON_2027.galaVenue}
         </p>
-        <p>Bruno Amaral · Fundador · gsr.surf · globalsurfrankings.com</p>
+        <p>Bruno Pesca · Fundador · gsr.surf · globalsurfrankings.com</p>
       </div>
     </footer>
   );

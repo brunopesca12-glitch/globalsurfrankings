@@ -4,7 +4,7 @@ MVP v0.1 of the athlete and ranking product described in the Founding Edition wh
 
 The interface is in Portuguese. Money on the purse page is a labeled demonstration of the published arithmetic. Nothing is charged and nothing is paid.
 
-Founder, as named in that edition: Bruno Amaral. Domains: gsr.surf and globalsurfrankings.com.
+Founder: Bruno Pesca. The Founding Edition v9 masthead prints Bruno Amaral; this build uses the name given for the product. Domains: gsr.surf and globalsurfrankings.com.
 
 ## Stack
 
