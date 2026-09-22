@@ -42,7 +42,7 @@ export function payoutCents(tableCents: number, paidPlaces: number): number[] {
 
 export type EditionTable = {
   id: (typeof EDITIONS)[number]["id"];
-  labelPt: string;
+  label: string;
   shareBps: number;
   seasonTableCents: number;
   winnerCents: number;
@@ -55,7 +55,7 @@ export function foundingEditionTables(seasonTableCents: number): EditionTable[] 
     const amounts = payoutCents(table, 6);
     return {
       id: edition.id,
-      labelPt: edition.labelPt,
+      label: edition.label,
       shareBps: edition.shareBps,
       seasonTableCents: table,
       winnerCents: amounts[0] ?? 0,

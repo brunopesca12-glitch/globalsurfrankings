@@ -19,15 +19,15 @@ export function LoginForm() {
     <form action={action} className="space-y-4">
       <ErrorNote message={state.error} />
       <label className="block text-sm">
-        E-mail
+        Email
         <input className={field} name="email" type="email" autoComplete="email" required />
       </label>
       <label className="block text-sm">
-        Senha
+        Password
         <input className={field} name="password" type="password" autoComplete="current-password" required />
       </label>
       <button className={button} type="submit" disabled={pending}>
-        {pending ? "Entrando…" : "Entrar"}
+        {pending ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );
@@ -39,46 +39,46 @@ export function RegisterForm() {
     <form action={action} className="space-y-4">
       <ErrorNote message={state.error} />
       <label className="block text-sm">
-        Nome
+        Name
         <input className={field} name="displayName" required minLength={2} maxLength={80} />
       </label>
       <label className="block text-sm">
-        E-mail
+        Email
         <input className={field} name="email" type="email" autoComplete="email" required />
       </label>
       <label className="block text-sm">
-        Senha
+        Password
         <input className={field} name="password" type="password" autoComplete="new-password" minLength={8} required />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm">
-          Edição
+          Edition
           <select className={field} name="sex" defaultValue="M">
-            <option value="M">Homens</option>
-            <option value="W">Mulheres</option>
+            <option value="M">Men</option>
+            <option value="W">Women</option>
           </select>
         </label>
         <label className="block text-sm">
-          Nascimento
+          Date of birth
           <input className={field} name="birthDate" type="date" required />
         </label>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm">
-          País
+          Country
           <input className={field} name="country" defaultValue="BR" maxLength={2} required />
         </label>
         <label className="block text-sm">
-          Cidade
+          City
           <input className={field} name="city" maxLength={80} />
         </label>
       </div>
       <label className="flex items-start gap-2 text-sm">
         <input className="mt-1" type="checkbox" name="pro" />
-        <span>Verified Pro — stub, sem checagem de credencial. A porta continua aberta para todo mundo.</span>
+        <span>Verified Pro — a stub, with no credential check. The door stays open to everyone.</span>
       </label>
       <button className={button} type="submit" disabled={pending}>
-        {pending ? "Criando…" : "Criar conta"}
+        {pending ? "Creating…" : "Create account"}
       </button>
     </form>
   );
@@ -103,35 +103,35 @@ export function ProfileForm({
   return (
     <form action={action} className="space-y-4">
       <ErrorNote message={state.error} />
-      {state.saved ? <p className="text-sm text-ocean">Perfil salvo.</p> : null}
+      {state.saved ? <p className="text-sm text-ocean">Profile saved.</p> : null}
       <label className="block text-sm">
-        Nome
+        Name
         <input className={field} name="displayName" defaultValue={displayName} required />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm">
-          Cidade
+          City
           <input className={field} name="city" defaultValue={city} />
         </label>
         <label className="block text-sm">
-          Clube
+          Club
           <input className={field} name="club" defaultValue={club} />
         </label>
       </div>
       <label className="block text-sm">
-        País
+        Country
         <input className={field} name="country" defaultValue={country} maxLength={2} required />
       </label>
       <label className="block text-sm">
         Hashtags
-        <input className={field} name="hashtags" defaultValue={hashtags} placeholder="ipanema, brasil" />
+        <input className={field} name="hashtags" defaultValue={hashtags} placeholder="ipanema, brazil" />
       </label>
       <label className="block text-sm">
-        Nota
+        Note
         <textarea className={field} name="bio" defaultValue={bio} rows={3} maxLength={280} />
       </label>
       <button className={button} type="submit" disabled={pending}>
-        {pending ? "Salvando…" : "Salvar perfil"}
+        {pending ? "Saving…" : "Save profile"}
       </button>
     </form>
   );
@@ -139,7 +139,6 @@ export function ProfileForm({
 
 export type ThemeOption = {
   slug: string;
-  namePt: string;
   name: string;
   poolOnly: boolean;
   oceanOnly: boolean;
@@ -160,47 +159,48 @@ export function EntryForm({
       <ErrorNote message={state.error} />
       {!dutyCurrent ? (
         <p className="border border-stamp/40 bg-white px-3 py-2 text-sm">
-          Seu dever de julgar não está em dia. A inscrição será recusada até a mesa marcar a fila como corrente.
+          Judging duty is not current. The entry will be refused until the desk marks the queue as current.
         </p>
       ) : null}
       {oceanUsed ? (
         <p className="border border-line bg-white px-3 py-2 text-sm">
-          A onda de oceano desta semana ISO já entrou. Piscina ainda pode, com o pedágio de demonstração de US$ 20 — sem cobrança.
+          This ISO week&apos;s ocean wave is already in. A pool wave can still enter, with the US$ 20 demonstration toll —
+          nothing is charged.
         </p>
       ) : null}
       <label className="block text-sm">
-        Evento da sua categoria
+        Event in your category
         <select className={field} name="theme" required defaultValue={themes[0]?.slug}>
           {themes.map((theme) => (
             <option key={theme.slug} value={theme.slug}>
-              {theme.namePt} — {theme.name}
-              {theme.poolOnly ? " · piscina" : ""}
-              {theme.oceanOnly ? " · só oceano" : ""}
+              {theme.name}
+              {theme.poolOnly ? " · pool" : ""}
+              {theme.oceanOnly ? " · ocean only" : ""}
             </option>
           ))}
         </select>
       </label>
       <fieldset className="text-sm">
-        <legend className="mb-2">Ambiente</legend>
+        <legend className="mb-2">Environment</legend>
         <label className="mr-4">
           <input className="mr-2" type="radio" name="environment" value="OCEAN" defaultChecked />
-          Oceano · US$ 0
+          Ocean · US$ 0
         </label>
         <label>
           <input className="mr-2" type="radio" name="environment" value="POOL" />
-          Piscina · US$ 20 DEMO
+          Pool · US$ 20 DEMO
         </label>
       </fieldset>
       <label className="block text-sm">
-        URL do vídeo
+        Video URL
         <input className={field} name="videoUrl" type="url" placeholder="https://" required />
       </label>
       <label className="block text-sm">
-        Pico
+        Break
         <input className={field} name="spot" maxLength={80} />
       </label>
       <button className={button} type="submit" disabled={pending || themes.length === 0}>
-        {pending ? "Enviando…" : "Inscrever onda"}
+        {pending ? "Sending…" : "Enter wave"}
       </button>
     </form>
   );

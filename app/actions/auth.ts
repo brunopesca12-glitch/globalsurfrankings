@@ -20,16 +20,16 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     email: formData.get("email"),
     password: formData.get("password"),
   });
-  if (!parsed.success) return { error: "E-mail ou senha inválidos." };
+  if (!parsed.success) return { error: "Invalid email or password." };
 
   try {
     await signIn("credentials", {
       email: parsed.data.email.toLowerCase(),
       password: parsed.data.password,
-      redirectTo: "/perfil",
+      redirectTo: "/profile",
     });
   } catch (error) {
-    if (error instanceof AuthError) return { error: "E-mail ou senha inválidos." };
+    if (error instanceof AuthError) return { error: "Invalid email or password." };
     throw error;
   }
   return { error: null };
@@ -64,17 +64,17 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
     city: String(formData.get("city") ?? ""),
     pro: formData.get("pro") === "on",
   });
-  if (!parsed.success) return { error: "Confira os campos. A senha precisa de 8 caracteres." };
+  if (!parsed.success) return { error: "Check the fields. The password needs 8 characters." };
 
   const birthDate = parseDateOnly(parsed.data.birthDate);
   const today = new Date().toISOString().slice(0, 10);
   if (!birthDate || parsed.data.birthDate >= today) {
-    return { error: "Informe uma data de nascimento válida." };
+    return { error: "Enter a valid date of birth." };
   }
 
   const email = parsed.data.email.toLowerCase();
   const taken = await prisma.user.findUnique({ where: { email } });
-  if (taken) return { error: "Já existe uma conta com esse e-mail." };
+  if (taken) return { error: "An account with that email already exists." };
 
   const passwordHash = await hash(parsed.data.password, 10);
   const slug = await uniqueSlug(parsed.data.displayName);
@@ -104,11 +104,11 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
     await signIn("credentials", {
       email,
       password: parsed.data.password,
-      redirectTo: "/perfil",
+      redirectTo: "/profile",
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Conta criada, mas a entrada falhou. Tente entrar." };
+      return { error: "Account created, but sign-in failed. Try signing in." };
     }
     throw error;
   }

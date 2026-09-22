@@ -3,14 +3,14 @@ import type { NextAuthConfig } from "next-auth";
 export const authConfig = {
   trustHost: true,
   session: { strategy: "jwt" },
-  pages: { signIn: "/entrar" },
+  pages: { signIn: "/sign-in" },
   providers: [],
   callbacks: {
     authorized({ auth, request }) {
       const { pathname } = request.nextUrl;
       const signedIn = Boolean(auth?.user);
       if (pathname.startsWith("/admin")) return signedIn;
-      if (pathname.startsWith("/perfil") || pathname.startsWith("/inscrever") || pathname.startsWith("/minhas")) {
+      if (pathname.startsWith("/profile") || pathname.startsWith("/enter") || pathname.startsWith("/my-waves")) {
         return signedIn;
       }
       return true;

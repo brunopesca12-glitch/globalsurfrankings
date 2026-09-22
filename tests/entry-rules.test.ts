@@ -18,7 +18,7 @@ const base = {
   isoYear: 2026,
   isoWeek: 39,
   today: "2026-09-22",
-  videoUrl: "https://video.gsr.surf/demo/onda",
+  videoUrl: "https://video.gsr.surf/demo/wave",
 };
 
 describe("catalogue", () => {

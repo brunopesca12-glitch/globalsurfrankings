@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { SEASON_2027 } from "@/lib/catalogue";
 import { CATEGORY_LABEL, categoryFor, parseDateOnly } from "@/lib/category";
 import { getPublicAthlete } from "@/lib/data";
-import { sexLabel, verificationLabel } from "@/lib/format";
+import { ordinal, sexLabel, verificationLabel } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Atleta" };
+export const metadata: Metadata = { title: "Athlete" };
 
 export default async function AthletePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -34,15 +34,19 @@ export default async function AthletePage({ params }: { params: Promise<{ slug: 
           ))}
         </p>
       ) : null}
-      <h2 className="mt-10 font-serif text-3xl">Colocações</h2>
+      <h2 className="mt-10 font-serif text-3xl">Placements</h2>
       <ul className="mt-4 space-y-2">
         {athlete.entries.length === 0 ? (
-          <li className="text-sm text-ink/60">Ainda sem lugar publicado.</li>
+          <li className="text-sm text-ink/60">No published place yet.</li>
         ) : (
           athlete.entries.map((entry) => (
             <li key={entry.id} className="border border-line bg-white px-3 py-3 text-sm">
-              <Link href={`/quadro/${entry.theme.slug}?categoria=${entry.category}&sexo=${athlete.sex}`} className="hover:text-ocean">
-                {entry.placement?.place}º · {entry.theme.namePt}
+              <Link
+                href={`/board/${entry.theme.slug}?category=${entry.category}&sex=${athlete.sex}`}
+                className="hover:text-ocean"
+              >
+                {entry.placement ? `${ordinal(entry.placement.place)} · ` : ""}
+                {entry.theme.name}
               </Link>
               <span className="text-ink/60"> · {CATEGORY_LABEL[entry.category]}</span>
             </li>

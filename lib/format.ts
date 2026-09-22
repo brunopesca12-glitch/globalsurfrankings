@@ -21,26 +21,45 @@ export function formatUsdAmount(amount: number): string {
 }
 
 export function formatPoints(points: number): string {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: Number.isInteger(points) ? 0 : 2,
     maximumFractionDigits: 2,
   }).format(points);
 }
 
-export function formatDatePt(iso: string): string {
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
+export function formatDate(iso: string): string {
   const [year, month, day] = iso.split("-");
   if (!year || !month || !day) return iso;
-  return `${day}/${month}/${year}`;
+  const name = MONTHS[Number(month) - 1];
+  if (!name) return iso;
+  return `${name} ${Number(day)}, ${year}`;
 }
 
 export function sexLabel(sex: "M" | "W"): string {
-  return sex === "M" ? "Homens" : "Mulheres";
+  return sex === "M" ? "Men" : "Women";
 }
 
 export function verificationLabel(tier: "VERIFIED" | "VERIFIED_PRO"): string {
-  return tier === "VERIFIED_PRO" ? "Verificado Pro" : "Verificado";
+  return tier === "VERIFIED_PRO" ? "Verified Pro" : "Verified";
 }
 
 export function environmentLabel(environment: "OCEAN" | "POOL"): string {
-  return environment === "OCEAN" ? "Oceano" : "Piscina";
+  return environment === "OCEAN" ? "Ocean" : "Pool";
+}
+
+export function ordinal(place: number): string {
+  const mod100 = place % 100;
+  const suffix =
+    mod100 >= 11 && mod100 <= 13
+      ? "th"
+      : place % 10 === 1
+        ? "st"
+        : place % 10 === 2
+          ? "nd"
+          : place % 10 === 3
+            ? "rd"
+            : "th";
+  return `${place}${suffix}`;
 }

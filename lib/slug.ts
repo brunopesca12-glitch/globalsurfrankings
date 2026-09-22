@@ -6,5 +6,5 @@ export function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
-  return base || "atleta";
+  return base || "athlete";
 }

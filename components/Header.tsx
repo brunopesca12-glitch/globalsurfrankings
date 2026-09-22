@@ -3,10 +3,10 @@ import { signOut } from "@/lib/auth";
 import { auth } from "@/lib/auth";
 
 const links = [
-  { href: "/calendario", label: "Calendário" },
-  { href: "/quadro/best-barrel", label: "Quadro" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/board/best-barrel", label: "Board" },
   { href: "/ranking", label: "Rankings" },
-  { href: "/bolsa", label: "Bolsa" },
+  { href: "/purse", label: "Purse" },
   { href: "/t/ipanema", label: "#ipanema" },
 ];
 
@@ -31,18 +31,18 @@ export async function Header() {
         <div className="flex items-center gap-3 text-sm">
           {signedIn ? (
             <>
-              <Link href="/inscrever" className="hover:text-ocean">
-                Inscrever
+              <Link href="/enter" className="hover:text-ocean">
+                Enter a wave
               </Link>
-              <Link href="/minhas" className="hover:text-ocean">
-                Minhas ondas
+              <Link href="/my-waves" className="hover:text-ocean">
+                My waves
               </Link>
-              <Link href="/perfil" className="hover:text-ocean">
-                Perfil
+              <Link href="/profile" className="hover:text-ocean">
+                Profile
               </Link>
               {session?.user.role === "ADMIN" ? (
-                <Link href="/admin/julgar" className="hover:text-ocean">
-                  Mesa
+                <Link href="/admin/judge" className="hover:text-ocean">
+                  Desk
                 </Link>
               ) : null}
               <form
@@ -52,17 +52,17 @@ export async function Header() {
                 }}
               >
                 <button type="submit" className="text-ink/60 hover:text-ink">
-                  Sair
+                  Sign out
                 </button>
               </form>
             </>
           ) : (
             <>
-              <Link href="/entrar" className="hover:text-ocean">
-                Entrar
+              <Link href="/sign-in" className="hover:text-ocean">
+                Sign in
               </Link>
-              <Link href="/cadastrar" className="bg-ocean px-3 py-1.5 text-paper">
-                Cadastrar
+              <Link href="/sign-up" className="bg-ocean px-3 py-1.5 text-paper">
+                Sign up
               </Link>
             </>
           )}

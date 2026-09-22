@@ -19,9 +19,9 @@ const profileSchema = z.object({
 
 export async function updateProfile(_prev: ProfileState, formData: FormData): Promise<ProfileState> {
   const session = await auth();
-  if (!session?.user) return { error: "Entre para editar o perfil.", saved: false };
+  if (!session?.user) return { error: "Sign in to edit your profile.", saved: false };
   const athlete = await prisma.athlete.findUnique({ where: { userId: session.user.id } });
-  if (!athlete) return { error: "A casa não compete.", saved: false };
+  if (!athlete) return { error: "The house does not compete.", saved: false };
 
   const parsed = profileSchema.safeParse({
     displayName: formData.get("displayName"),
@@ -31,7 +31,7 @@ export async function updateProfile(_prev: ProfileState, formData: FormData): Pr
     bio: String(formData.get("bio") ?? ""),
     hashtags: String(formData.get("hashtags") ?? ""),
   });
-  if (!parsed.success) return { error: "Confira os campos.", saved: false };
+  if (!parsed.success) return { error: "Check the fields.", saved: false };
 
   const hashtags = [...new Set(parsed.data.hashtags.split(",").map(normalizeHashtag).filter(Boolean))].slice(0, 8);
 
@@ -51,7 +51,7 @@ export async function updateProfile(_prev: ProfileState, formData: FormData): Pr
     data: { name: parsed.data.displayName },
   });
 
-  revalidatePath("/perfil");
-  revalidatePath(`/atleta/${athlete.slug}`);
+  revalidatePath("/profile");
+  revalidatePath(`/athlete/${athlete.slug}`);
   return { error: null, saved: true };
 }

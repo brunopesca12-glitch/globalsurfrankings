@@ -4,7 +4,7 @@ import { SEASON_2027, THEMES } from "../lib/catalogue";
 import { isoWeek } from "../lib/iso-week";
 
 const prisma = new PrismaClient();
-const PASSWORD = "onda-2027";
+const PASSWORD = "wave-2027";
 
 type SeedAthlete = {
   email: string;
@@ -30,7 +30,7 @@ const athletes: SeedAthlete[] = [
     birthDate: "1995-01-20",
     country: "BR",
     city: "Saquarema",
-    hashtags: ["brasil", "saquarema"],
+    hashtags: ["brazil", "saquarema"],
     verification: "VERIFIED_PRO",
     duty: true,
   },
@@ -53,23 +53,23 @@ const athletes: SeedAthlete[] = [
     sex: "M",
     birthDate: "2000-11-02",
     country: "BR",
-    city: "Florianópolis",
-    hashtags: ["brasil", "floripa"],
+    city: "Florianopolis",
+    hashtags: ["brazil", "florianopolis"],
     verification: "VERIFIED",
     duty: true,
   },
   {
     email: "joao.vasques@gsr.surf",
-    displayName: "João Vasques",
+    displayName: "Joao Vasques",
     slug: "joao-vasques",
     sex: "M",
     birthDate: "1998-04-12",
     country: "BR",
     city: "Rio de Janeiro",
-    hashtags: ["ipanema", "brasil"],
+    hashtags: ["ipanema", "brazil"],
     verification: "VERIFIED",
     duty: true,
-    bio: "Onda da semana, filmada no pico.",
+    bio: "This week's wave, filmed at the break.",
   },
   {
     email: "kenji.aoki@gsr.surf",
@@ -103,10 +103,10 @@ const athletes: SeedAthlete[] = [
     birthDate: "1997-12-01",
     country: "BR",
     city: "Recife",
-    hashtags: ["brasil", "recife"],
+    hashtags: ["brazil", "recife"],
     verification: "VERIFIED",
     duty: false,
-    bio: "Dever de julgar em atraso — a próxima onda não entra.",
+    bio: "Judging duty is overdue — the next wave does not enter.",
   },
   {
     email: "noah.keller@gsr.surf",
@@ -143,7 +143,7 @@ const athletes: SeedAthlete[] = [
     hashtags: ["ipanema"],
     verification: "VERIFIED",
     duty: true,
-    bio: "Júnior. Consentimento do responsável fica para a verificação real.",
+    bio: "Junior. A guardian's consent waits for real verification.",
   },
   {
     email: "helena.prado@gsr.surf",
@@ -152,9 +152,9 @@ const athletes: SeedAthlete[] = [
     sex: "W",
     birthDate: "1981-01-30",
     country: "BR",
-    city: "São Paulo",
-    club: "São Paulo Surf Club",
-    hashtags: ["associadosjhsf"],
+    city: "Sao Paulo",
+    club: "Sao Paulo Surf Club",
+    hashtags: ["jhsf"],
     verification: "VERIFIED",
     duty: true,
   },
@@ -201,8 +201,8 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: "mesa@gsr.surf",
-      name: "Mesa GSR",
+      email: "desk@gsr.surf",
+      name: "GSR Desk",
       passwordHash,
       role: "ADMIN",
     },
@@ -285,7 +285,7 @@ async function main() {
         seasonId: season.id,
         environment: "OCEAN",
         videoUrl: `https://video.gsr.surf/demo/best-barrel/${String(index + 1).padStart(2, "0")}`,
-        spot: "pico de demonstração",
+        spot: "demo break",
         isoYear: week.isoYear,
         isoWeek: week.isoWeek,
         tollCents: 0,
@@ -318,7 +318,7 @@ async function main() {
       tollCents: 2000,
       spot: "Boa Vista",
     },
-    { slug: "sergio-bahia", theme: "big-wave", environment: "OCEAN", category: "MASTERS_50", tollCents: 0, spot: "Nazaré" },
+    { slug: "sergio-bahia", theme: "big-wave", environment: "OCEAN", category: "MASTERS_50", tollCents: 0, spot: "Nazare" },
   ];
 
   for (const extra of extras) {

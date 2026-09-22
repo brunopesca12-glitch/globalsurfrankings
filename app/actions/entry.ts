@@ -6,27 +6,27 @@ import { auth } from "@/lib/auth";
 import { SEASON_2027, themeBySlug } from "@/lib/catalogue";
 import { categoryFor } from "@/lib/category";
 import { prisma } from "@/lib/db";
-import { decideEntry, ENTRY_REJECTION_PT, parseVideoUrl } from "@/lib/entry-rules";
+import { decideEntry, ENTRY_REJECTION, parseVideoUrl } from "@/lib/entry-rules";
 import { isoWeek } from "@/lib/iso-week";
 
 export type EntryState = { error: string | null };
 
 export async function submitEntry(_prev: EntryState, formData: FormData): Promise<EntryState> {
   const session = await auth();
-  if (!session?.user) return { error: "Entre para inscrever uma onda." };
+  if (!session?.user) return { error: "Sign in to enter a wave." };
 
   const athlete = await prisma.athlete.findUnique({ where: { userId: session.user.id } });
-  if (!athlete) return { error: "A casa não compete nos próprios rankings." };
+  if (!athlete) return { error: "The house does not compete in its own rankings." };
 
   const season = await prisma.season.findUnique({
     where: { vintage: SEASON_2027.vintage },
     include: { themes: true },
   });
-  if (!season) return { error: "A temporada 2027 ainda não está no banco. Rode o seed." };
+  if (!season) return { error: "Season 2027 is not in the database yet. Run the seed." };
 
   const theme = season.themes.find((item) => item.slug === String(formData.get("theme") ?? ""));
   const catalogue = theme ? themeBySlug(theme.slug) : undefined;
-  if (!theme || !catalogue) return { error: "Escolha um evento da temporada." };
+  if (!theme || !catalogue) return { error: "Choose an event from the season." };
 
   const environment = formData.get("environment") === "POOL" ? "POOL" : "OCEAN";
   const videoUrl = String(formData.get("videoUrl") ?? "");
@@ -55,10 +55,10 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
     today: now.toISOString().slice(0, 10),
     videoUrl,
   });
-  if (!decision.ok) return { error: ENTRY_REJECTION_PT[decision.code] };
+  if (!decision.ok) return { error: ENTRY_REJECTION[decision.code] };
 
   const canonical = parseVideoUrl(videoUrl);
-  if (!canonical) return { error: ENTRY_REJECTION_PT.VIDEO };
+  if (!canonical) return { error: ENTRY_REJECTION.VIDEO };
 
   await prisma.entry.create({
     data: {
@@ -77,8 +77,8 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
     },
   });
 
-  revalidatePath("/minhas");
-  revalidatePath(`/quadro/${theme.slug}`);
+  revalidatePath("/my-waves");
+  revalidatePath(`/board/${theme.slug}`);
   revalidatePath("/ranking");
-  redirect("/minhas");
+  redirect("/my-waves");
 }

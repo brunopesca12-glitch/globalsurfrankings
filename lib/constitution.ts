@@ -63,20 +63,19 @@ export type Edition = {
   category: "OPEN" | "JUNIOR" | "MASTERS_40" | "MASTERS_50";
   sex: "M" | "W";
   label: string;
-  labelPt: string;
   /** Basis points of the theme's season table. The eight editions sum to 10_000. */
   shareBps: number;
 };
 
 export const EDITIONS: readonly Edition[] = [
-  { id: "OPEN_M", category: "OPEN", sex: "M", label: "Open — Men", labelPt: "Open — Homens", shareBps: 4_000 },
-  { id: "MASTERS_40_M", category: "MASTERS_40", sex: "M", label: "Masters 40+ — Men", labelPt: "Masters 40+ — Homens", shareBps: 1_500 },
-  { id: "MASTERS_50_M", category: "MASTERS_50", sex: "M", label: "Masters 50+ — Men", labelPt: "Masters 50+ — Homens", shareBps: 1_200 },
-  { id: "OPEN_W", category: "OPEN", sex: "W", label: "Open — Women", labelPt: "Open — Mulheres", shareBps: 1_000 },
-  { id: "JUNIOR_M", category: "JUNIOR", sex: "M", label: "Junior — Men", labelPt: "Júnior — Homens", shareBps: 1_000 },
-  { id: "JUNIOR_W", category: "JUNIOR", sex: "W", label: "Junior — Women", labelPt: "Júnior — Mulheres", shareBps: 500 },
-  { id: "MASTERS_50_W", category: "MASTERS_50", sex: "W", label: "Masters 50+ — Women", labelPt: "Masters 50+ — Mulheres", shareBps: 500 },
-  { id: "MASTERS_40_W", category: "MASTERS_40", sex: "W", label: "Masters 40+ — Women", labelPt: "Masters 40+ — Mulheres", shareBps: 300 },
+  { id: "OPEN_M", category: "OPEN", sex: "M", label: "Open — Men", shareBps: 4_000 },
+  { id: "MASTERS_40_M", category: "MASTERS_40", sex: "M", label: "Masters 40+ — Men", shareBps: 1_500 },
+  { id: "MASTERS_50_M", category: "MASTERS_50", sex: "M", label: "Masters 50+ — Men", shareBps: 1_200 },
+  { id: "OPEN_W", category: "OPEN", sex: "W", label: "Open — Women", shareBps: 1_000 },
+  { id: "JUNIOR_M", category: "JUNIOR", sex: "M", label: "Junior — Men", shareBps: 1_000 },
+  { id: "JUNIOR_W", category: "JUNIOR", sex: "W", label: "Junior — Women", shareBps: 500 },
+  { id: "MASTERS_50_W", category: "MASTERS_50", sex: "W", label: "Masters 50+ — Women", shareBps: 500 },
+  { id: "MASTERS_40_W", category: "MASTERS_40", sex: "W", label: "Masters 40+ — Women", shareBps: 300 },
 ] as const;
 
 /**

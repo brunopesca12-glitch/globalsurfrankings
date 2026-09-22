@@ -3,7 +3,7 @@ export type CategoryCode = (typeof CATEGORY_CODES)[number];
 
 export const CATEGORY_LABEL: Record<CategoryCode, string> = {
   OPEN: "Open",
-  JUNIOR: "Júnior",
+  JUNIOR: "Junior",
   MASTERS_40: "Masters 40+",
   MASTERS_50: "Masters 50+",
 };

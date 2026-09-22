@@ -67,11 +67,11 @@ export function decideEntry(input: {
   };
 }
 
-export const ENTRY_REJECTION_PT: Record<Exclude<EntryDecision, { ok: true }>["code"], string> = {
-  DUTY: "O dever de julgar não está em dia. A onda só entra na liturgia de segunda com a fila corrente.",
-  QUOTA: "A cota do oceano desta semana ISO já foi usada. Não há banco nem acumulação — uma onda por semana.",
-  THEME_CLOSED: "Este evento já fechou. O final passou.",
-  CATEGORY: "Este evento não constitui o ranking da sua categoria.",
-  ENVIRONMENT: "O ambiente desta onda não cabe neste evento.",
-  VIDEO: "Informe uma URL http(s) do vídeo. O envio de arquivo chega depois.",
+export const ENTRY_REJECTION: Record<Exclude<EntryDecision, { ok: true }>["code"], string> = {
+  DUTY: "Judging duty is not current. A wave joins Monday's verdict only when the queue is up to date.",
+  QUOTA: "This ISO week's ocean wave has already been used. There is no banking and no rollover — one wave a week.",
+  THEME_CLOSED: "This event has closed. The finale has passed.",
+  CATEGORY: "This event does not constitute your category's ranking.",
+  ENVIRONMENT: "This wave's environment does not belong in this event.",
+  VIDEO: "Enter an http(s) URL for the video. File upload comes later.",
 };

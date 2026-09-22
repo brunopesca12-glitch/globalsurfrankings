@@ -2,7 +2,7 @@
 
 MVP v0.1 of the athlete and ranking product described in the Founding Edition white paper (v9, September 2026). The circuit is asynchronous: an athlete enters one ocean wave a week into a themed event, the wave receives an ordinal place, and event places mint season points.
 
-The interface is in Portuguese. Money on the purse page is a labeled demonstration of the published arithmetic. Nothing is charged and nothing is paid.
+The interface is in English. Money on the purse page is a labeled demonstration of the published arithmetic. Nothing is charged and nothing is paid.
 
 Founder: Bruno Pesca. The Founding Edition v9 masthead prints Bruno Amaral; this build uses the name given for the product. Domains: gsr.surf and globalsurfrankings.com.
 
@@ -27,15 +27,15 @@ Tests, without a database:
 npm test
 ```
 
-`npm run db:seed` wipes users, entries and the season, then loads the 2027 demo. Every demo password is `onda-2027`.
+`npm run db:seed` wipes users, entries and the season, then loads the 2027 demo. Every demo password is `wave-2027`.
 
 | Account | Who |
 | --- | --- |
-| joao.vasques@gsr.surf | Open athlete, 4th on the Best Barrel board, hashtags `ipanema` and `brasil` |
+| joao.vasques@gsr.surf | Open athlete, 4th on the Best Barrel board, hashtags `ipanema` and `brazil` |
 | pedro.lima@gsr.surf | Same board, judging duty deliberately not current — a new entry is refused |
-| mesa@gsr.surf | Admin desk. The house has no athlete profile and does not compete |
+| desk@gsr.surf | Admin desk. The house has no athlete profile and does not compete |
 
-Open http://localhost:3000. Landing, calendar, the Best Barrel board (`/quadro/best-barrel`), the purse (`/bolsa`) and a hashtag view (`/t/ipanema`) are public. Sign in to open a profile and submit a wave.
+Open http://localhost:3000. Landing, calendar, the Best Barrel board (`/board/best-barrel`), the purse (`/purse`) and a hashtag view (`/t/ipanema`) are public. Sign in to open a profile and submit a wave.
 
 ## What the seed contains
 
@@ -63,14 +63,14 @@ The calendar follows Section 3 (1 Oct → 30 Sep), not the March 2027 operationa
 ## Routes
 
 - `/` circuit thesis
-- `/calendario` twelve themes
-- `/quadro/best-barrel` demo world board; other theme slugs work the same way
+- `/calendar` twelve themes
+- `/board/best-barrel` demo world board; other theme slugs work the same way
 - `/ranking` eight world rankings
-- `/bolsa` public purse, marked DEMO
+- `/purse` public purse, marked DEMO
 - `/t/ipanema` derived hashtag board
-- `/cadastrar`, `/entrar`, `/perfil`, `/inscrever`, `/minhas`
-- `/atleta/[slug]` public placements
-- `/admin/julgar` ordinal insertion and the duty flag
+- `/sign-up`, `/sign-in`, `/profile`, `/enter`, `/my-waves`
+- `/athlete/[slug]` public placements
+- `/admin/judge` ordinal insertion and the duty flag
 
 ## Tests
 

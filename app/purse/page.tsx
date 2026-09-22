@@ -10,7 +10,7 @@ import {
 import { formatUsd, formatUsdAmount } from "@/lib/format";
 import { foundingEditionTables } from "@/lib/payout";
 
-export const metadata: Metadata = { title: "Bolsa" };
+export const metadata: Metadata = { title: "Purse" };
 
 export default function PursePage() {
   const tables = foundingEditionTables(FOUNDING.seasonTableUsd * 100);
@@ -20,19 +20,20 @@ export default function PursePage() {
     <div className="mx-auto max-w-5xl px-5 py-12">
       <div className="flex flex-wrap items-center gap-4">
         <span className="stamp">Demo</span>
-        <p className="text-sm text-ink/70">Nenhum valor nesta página é dinheiro. Não há cobrança, escrow nem saque.</p>
+        <p className="text-sm text-ink/70">No figure on this page is money. There is no charge, no escrow, and no payout.</p>
       </div>
-      <h1 className="mt-4 font-serif text-5xl">Bolsa afixada</h1>
+      <h1 className="mt-4 font-serif text-5xl">Affixed purse</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-        Espelho de demonstração da aritmética publicada na edição fundadora. O aplicativo não incrementa saldos: quando existir
-        escrow, o número na tela será uma leitura do extrato, não um contador interno. Até lá, o que se vê é a lei.
+        A demonstration mirror of the arithmetic published in the founding edition. The application does not increment
+        balances: when escrow exists, the number on screen will be a reading of the statement. Until then, what you see is
+        the law.
       </p>
 
       <section className="mt-10 grid gap-4 md:grid-cols-3">
         {[
-          ["Ingresso do tema", formatUsdAmount(FOUNDING.ticketUsd)],
-          ["Atletas · 84%", formatUsdAmount(FOUNDING.athleteUsd)],
-          ["Plataforma · 16%", formatUsdAmount(FOUNDING.platformUsd)],
+          ["Theme ticket", formatUsdAmount(FOUNDING.ticketUsd)],
+          ["Athletes · 84%", formatUsdAmount(FOUNDING.athleteUsd)],
+          ["Platform · 16%", formatUsdAmount(FOUNDING.platformUsd)],
         ].map(([label, value]) => (
           <article key={label} className="border border-line bg-white px-4 py-5">
             <p className="text-xs uppercase tracking-widest text-ink/55">{label}</p>
@@ -42,12 +43,12 @@ export default function PursePage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-3xl">Como os US$ 336.000 se repartem</h2>
+        <h2 className="font-serif text-3xl">How the {formatUsdAmount(FOUNDING.athleteUsd)} is split</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-3">
           {[
-            ["Tabelas da temporada", FOUNDING.seasonTableUsd],
-            ["Corrida semanal", FOUNDING.weeklyUsd],
-            ["Fundo dos campeões", FOUNDING.overallUsd],
+            ["Season tables", FOUNDING.seasonTableUsd],
+            ["Weekly race", FOUNDING.weeklyUsd],
+            ["Champions' fund", FOUNDING.overallUsd],
           ].map(([label, amount]) => (
             <li key={String(label)} className="border border-line px-4 py-4">
               <p className="text-sm text-ink/70">{label}</p>
@@ -56,29 +57,29 @@ export default function PursePage() {
           ))}
         </ul>
         <p className="mt-3 text-sm text-ink/65">
-          Doze temas: {formatUsdAmount(FOUNDING.seasonAthleteUsd)} em bolsas e {formatUsdAmount(FOUNDING.seasonPlatformUsd)} de
-          comissão. A corrida semanal soma cerca de {formatUsd(Math.round(FOUNDING.weeklyPerMondayUsd * 100))} por segunda, se
-          o ano tiver 52 segundas.
+          Twelve themes: {formatUsdAmount(FOUNDING.seasonAthleteUsd)} in purses and{" "}
+          {formatUsdAmount(FOUNDING.seasonPlatformUsd)} in commission. The weekly race is about{" "}
+          {formatUsd(Math.round(FOUNDING.weeklyPerMondayUsd * 100))} each Monday, if the year has 52 Mondays.
         </p>
       </section>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">Tabelas por edição</h2>
+        <h2 className="font-serif text-3xl">Tables by edition</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink/75">
-          A tabela da temporada (US$ 250.000) reparte-se pelas oito edições segundo a fatia de campo do cenário fundador. A
-          curva exata dos seis primeiros lugares é 35 / 20 / 14 / 12 / 10 / 9. A v9 imprime alguns desses valores arredondados;
-          a coluna da lei é a que esta página usa.
+          The season table ({formatUsdAmount(FOUNDING.seasonTableUsd)}) is shared across the eight editions by the founding
+          field share. The exact curve of the first six places is 35 / 20 / 14 / 12 / 10 / 9. v9 prints some of those
+          dollars rounded; this page uses the column of the law.
         </p>
         <div className="mt-4 overflow-x-auto border border-line bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/55">
               <tr>
-                <th className="px-3 py-2">Edição</th>
-                <th className="px-3 py-2">Fatia</th>
-                <th className="px-3 py-2">Tabela</th>
-                <th className="px-3 py-2">1º exato</th>
-                <th className="px-3 py-2">6º exato</th>
-                <th className="px-3 py-2">1º impresso</th>
+                <th className="px-3 py-2">Edition</th>
+                <th className="px-3 py-2">Share</th>
+                <th className="px-3 py-2">Table</th>
+                <th className="px-3 py-2">Exact 1st</th>
+                <th className="px-3 py-2">Exact 6th</th>
+                <th className="px-3 py-2">Printed 1st</th>
               </tr>
             </thead>
             <tbody>
@@ -86,7 +87,7 @@ export default function PursePage() {
                 const printed = PRINTED_EDITION_HEADLINES[table.id];
                 return (
                   <tr key={table.id} className="border-b border-line last:border-b-0">
-                    <td className="px-3 py-2">{table.labelPt}</td>
+                    <td className="px-3 py-2">{table.label}</td>
                     <td className="px-3 py-2">{table.shareBps / 100}%</td>
                     <td className="px-3 py-2">{formatUsd(table.seasonTableCents)}</td>
                     <td className="px-3 py-2">{formatUsd(table.winnerCents)}</td>
@@ -99,28 +100,28 @@ export default function PursePage() {
           </table>
         </div>
         <p className="mt-3 text-sm text-ink/65">
-          Os 20% de cima de cada edição são pagos. Com seis lugares, a curva acima é a lei inteira. Com mais lugares, o resto
-          divide um peso de cauda e o vetor volta a somar 100%. As tabelas de uma temporada real ficam fixas na abertura; o
-          campo realizado só recalibra a temporada seguinte.
+          The top 20% of each edition is paid. With six places, the curve above is the whole law. With more places, the
+          rest shares a tail weight and the vector sums to 100% again. A real season&apos;s tables are fixed at the opening;
+          the field that actually raced recalibrates only the next season.
         </p>
       </section>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">Campeões no cenário impresso</h2>
+        <h2 className="font-serif text-3xl">Champions in the printed scenario</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink/75">
-          Quatro vitórias de evento, o Overall em dinheiro e uma estimativa de semanais — os números do Anexo B.2, não uma
-          projeção calculada a partir das ondas deste banco. O fundo de Overall exato, antes do arredondamento impresso, é a
-          fatia de campo sobre {formatUsd(overallPoolCents)}.
+          Four event wins, the Overall in cash, and an estimate of weeklies — the Annex B.2 figures, not a projection from
+          the waves in this database. The exact Overall fund, before the printed rounding, is the field share of{" "}
+          {formatUsd(overallPoolCents)}.
         </p>
         <div className="mt-4 overflow-x-auto border border-line bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/55">
               <tr>
-                <th className="px-3 py-2">Campeão</th>
-                <th className="px-3 py-2">4 eventos</th>
+                <th className="px-3 py-2">Champion</th>
+                <th className="px-3 py-2">4 events</th>
                 <th className="px-3 py-2">Overall</th>
-                <th className="px-3 py-2">Semanais</th>
-                <th className="px-3 py-2">Caixa</th>
+                <th className="px-3 py-2">Weeklies</th>
+                <th className="px-3 py-2">Cash</th>
               </tr>
             </thead>
             <tbody>
@@ -128,7 +129,7 @@ export default function PursePage() {
                 const row = PRINTED_CHAMPION_SEASON[edition.id];
                 return (
                   <tr key={edition.id} className="border-b border-line last:border-b-0">
-                    <td className="px-3 py-2">{edition.labelPt}</td>
+                    <td className="px-3 py-2">{edition.label}</td>
                     <td className="px-3 py-2">{formatUsdAmount(row.eventWinsUsd)}</td>
                     <td className="px-3 py-2">{formatUsdAmount(row.overallUsd)}</td>
                     <td className="px-3 py-2">{formatUsdAmount(row.weekliesUsd)}</td>
@@ -142,16 +143,22 @@ export default function PursePage() {
       </section>
 
       <section className="mt-12 border border-line bg-foam px-5 py-6">
-        <h2 className="font-serif text-3xl">O livro fundador, somado</h2>
+        <h2 className="font-serif text-3xl">The founding book, summed</h2>
         <ul className="mt-4 space-y-1 text-sm">
-          <li>Bolsas afixadas, 12 × US$ 336.000 = {formatUsdAmount(FOUNDING.seasonAthleteUsd)}</li>
-          <li>Plataforma, 12 × US$ 64.000 = {formatUsdAmount(FOUNDING.seasonPlatformUsd)}</li>
-          <li>Livro em caixa = {formatUsdAmount(FOUNDING.seasonBookCashUsd)}</li>
-          <li>Face do apresentador, em créditos = {formatUsdAmount(FOUNDING.presenterFaceUsd)}</li>
           <li>
-            Pedágios de piscina, {FOUNDING_POOL_ENTRIES.toLocaleString("en-US")} × US$ 20 = {formatUsdAmount(FOUNDING.poolTollUsd)}
+            Affixed purses, 12 × {formatUsdAmount(FOUNDING.athleteUsd)} = {formatUsdAmount(FOUNDING.seasonAthleteUsd)}
           </li>
-          <li>O sistema move US$ 7.050.000 nesse cenário. Continua sendo uma conta, não um caixa.</li>
+          <li>
+            Platform, 12 × {formatUsdAmount(FOUNDING.platformUsd)} = {formatUsdAmount(FOUNDING.seasonPlatformUsd)}
+          </li>
+          <li>Book in cash = {formatUsdAmount(FOUNDING.seasonBookCashUsd)}</li>
+          <li>Presenter face, in credits = {formatUsdAmount(FOUNDING.presenterFaceUsd)}</li>
+          <li>
+            Pool tolls, {FOUNDING_POOL_ENTRIES.toLocaleString("en-US")} × US$ 20 = {formatUsdAmount(FOUNDING.poolTollUsd)}
+          </li>
+          <li>
+            The system moves {formatUsdAmount(7_050_000)} in that scenario. It remains an account, not a cash drawer.
+          </li>
         </ul>
       </section>
     </div>

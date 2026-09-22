@@ -12,14 +12,14 @@ export const metadata: Metadata = {
     default: "GSR — Global Surf Rankings",
     template: "%s · GSR",
   },
-  description: "A melhor onda vence. Circuito mundial assíncrono. Entrada no oceano gratuita.",
+  description: "The best wave wins. An asynchronous world circuit. Ocean entry is free.",
 };
 
 export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="en">
       <body className={`${outfit.variable} ${fraunces.variable} min-h-screen font-sans antialiased`}>
         <Header />
         <main>{children}</main>

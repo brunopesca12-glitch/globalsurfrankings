@@ -10,13 +10,13 @@ export function DutyForm({ athleteId, current }: { athleteId: string; current: b
       <input type="hidden" name="athleteId" value={athleteId} />
       <label className="flex items-center gap-2">
         <input type="checkbox" name="duty" defaultChecked={current} />
-        Dever em dia
+        Duty current
       </label>
       <button className="border border-line px-2 py-1" type="submit" disabled={pending}>
-        Salvar
+        Save
       </button>
       {state.error ? <span className="text-stamp">{state.error}</span> : null}
-      {state.saved ? <span className="text-ocean">Atualizado.</span> : null}
+      {state.saved ? <span className="text-ocean">Updated.</span> : null}
     </form>
   );
 }

@@ -14,11 +14,11 @@ async function requireAdmin() {
 
 export async function insertAtPlace(_prev: JudgeState, formData: FormData): Promise<JudgeState> {
   const session = await requireAdmin();
-  if (!session) return { error: "Somente a mesa publica colocações.", saved: false };
+  if (!session) return { error: "Only the desk publishes placements.", saved: false };
 
   const entryId = String(formData.get("entryId") ?? "");
   const place = Number(formData.get("place"));
-  if (!entryId || !Number.isInteger(place)) return { error: "Colocação inválida.", saved: false };
+  if (!entryId || !Number.isInteger(place)) return { error: "Invalid placement.", saved: false };
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -63,27 +63,27 @@ export async function insertAtPlace(_prev: JudgeState, formData: FormData): Prom
       await tx.entry.update({ where: { id: entry.id }, data: { status: "PLACED" } });
     });
   } catch {
-    return { error: "Não foi possível inserir essa onda nesse lugar.", saved: false };
+    return { error: "That wave could not be inserted at that place.", saved: false };
   }
 
-  revalidatePath("/admin/julgar");
-  revalidatePath("/quadro", "layout");
+  revalidatePath("/admin/judge");
+  revalidatePath("/board", "layout");
   revalidatePath("/ranking");
   return { error: null, saved: true };
 }
 
 export async function setJudgingDuty(_prev: JudgeState, formData: FormData): Promise<JudgeState> {
   const session = await requireAdmin();
-  if (!session) return { error: "Somente a mesa altera o dever de julgar.", saved: false };
+  if (!session) return { error: "Only the desk changes judging duty.", saved: false };
 
   const athleteId = String(formData.get("athleteId") ?? "");
   const current = formData.get("duty") === "on";
-  if (!athleteId) return { error: "Atleta ausente.", saved: false };
+  if (!athleteId) return { error: "Athlete missing.", saved: false };
 
   await prisma.athlete.update({
     where: { id: athleteId },
     data: { judgingDutyCurrent: current },
   });
-  revalidatePath("/admin/julgar");
+  revalidatePath("/admin/judge");
   return { error: null, saved: true };
 }
