@@ -22,7 +22,7 @@ export default function CalendarPage() {
         The ranking runs from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. An event is not a
         meet: it is a board that stays open until the finale. Most Elegant, on October 31, is the first finale of the
         vintage. Best Barrel closes the year on the same day as the Overall. The gala, in {SEASON_2027.galaLabel}, is the
-        only live ceremony — {SEASON_2027.galaVenue}.
+        only live ceremony.
       </p>
       <ol className="mt-10 space-y-8">
         {[...groups.entries()].map(([date, themes]) => (

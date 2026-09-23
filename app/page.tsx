@@ -20,8 +20,8 @@ export default function HomePage() {
             <Link href="/sign-up" className="bg-paper px-5 py-3 text-ocean">
               Create an athlete account
             </Link>
-            <Link href="/board/best-barrel" className="border border-paper/40 px-5 py-3">
-              See the demo board
+            <Link href="/videos" className="border border-paper/40 px-5 py-3">
+              Watch the waves
             </Link>
           </div>
         </div>

@@ -52,9 +52,9 @@ export default async function MyEntriesPage() {
             </p>
             <p className="mt-1 text-sm">
               {entry.placement ? "Placement published." : "Waiting for Monday's liturgy."}{" "}
-              <a className="text-ocean" href={entry.videoUrl}>
-                video
-              </a>
+              <Link className="text-ocean" href={`/videos/${entry.id}`}>
+                Watch
+              </Link>
             </p>
           </li>
         ))}

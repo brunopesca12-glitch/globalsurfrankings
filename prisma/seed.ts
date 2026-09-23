@@ -316,7 +316,7 @@ async function main() {
       environment: "POOL",
       category: "MASTERS_40",
       tollCents: 2000,
-      spot: "Boa Vista",
+      spot: "demo pool",
     },
     { slug: "sergio-bahia", theme: "big-wave", environment: "OCEAN", category: "MASTERS_50", tollCents: 0, spot: "Nazare" },
   ];

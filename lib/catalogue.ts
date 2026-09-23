@@ -164,7 +164,6 @@ export const SEASON_2027 = {
   endsOn: "2027-09-30",
   ageAsOf: "2027-09-30",
   galaLabel: "November 2027",
-  galaVenue: "Boa Vista Village",
 } as const;
 
 export const DEMO_THEME_SLUG = "best-barrel";

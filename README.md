@@ -4,7 +4,7 @@ MVP v0.1 of the athlete and ranking product described in the Founding Edition wh
 
 The interface is in English. Money on the purse page is a labeled demonstration of the published arithmetic. Nothing is charged and nothing is paid.
 
-Founder: Bruno Pesca. The Founding Edition v9 masthead prints Bruno Amaral; this build uses the name given for the product. Domains: gsr.surf and globalsurfrankings.com.
+Domains: gsr.surf and globalsurfrankings.com. The public site does not print a personal founder credit.
 
 ## Stack
 
@@ -35,7 +35,7 @@ npm test
 | pedro.lima@gsr.surf | Same board, judging duty deliberately not current — a new entry is refused |
 | desk@gsr.surf | Admin desk. The house has no athlete profile and does not compete |
 
-Open http://localhost:3000. Landing, calendar, the Best Barrel board (`/board/best-barrel`), the purse (`/purse`) and a hashtag view (`/t/ipanema`) are public. Sign in to open a profile and submit a wave.
+Open http://localhost:3000. Landing, the video gallery (`/videos`), the calendar, the Best Barrel world board (`/board/best-barrel`), the purse (`/purse`) and hashboards (`/hashboards`) are public. Sign in to open a profile and submit a wave.
 
 ## Production (Vercel)
 
@@ -77,7 +77,7 @@ Constitutional constants live in `lib/constitution.ts`.
 - Event points: podium 100 / 60 / 45 / 35 / 28 / 22 percent of the event base, then 12% through the rest of the top fifth (`floor(S/5)`), then 4% to every other entrant. The winner's base is `100 × √(S/100)`. A field of 400 pays twice a field of 100. The world ranking is the sum of those event points. Points stay provisional until a finale because S is the current entry count.
 - Ordinal placement is binary insertion (index 0 is best). The final verdict of the real tribunal is the median of five colleges; the Ranked college abstains below three ballots; an even median resolves toward the Chamber of Champions. The desk in this MVP publishes the place directly. Colleges are not seated.
 - An entry is refused when judging duty is not current. Duty is a boolean the desk can flip. There is no drawn queue yet.
-- Derived leaderboards filter a world board by hashtag and renumber. They do not judge or pay.
+- Hashboards filter a world board by hashtag and renumber. They do not judge or pay.
 - Verification is Verified or Verified Pro. Pro is a checkbox with no credential check. Tiers gate nothing at the door. Age bands are exclusive.
 
 The calendar follows Section 3 (1 Oct → 30 Sep), not the March 2027 operational opening in the roadmap. Themes close on their finale date. Entries are not yet rejected for being ridden outside the vintage, so the scaffold can be used before opening day.
@@ -85,11 +85,12 @@ The calendar follows Section 3 (1 Oct → 30 Sep), not the March 2027 operationa
 ## Routes
 
 - `/` circuit thesis
-- `/calendar` twelve themes
-- `/board/best-barrel` demo world board; other theme slugs work the same way
+- `/videos` watch every uploaded wave; `/videos/[id]` plays one
+- `/calendar` twelve themes, each linking to its world board
+- `/board/best-barrel` demo world board (ordinal places); other theme slugs work the same way
 - `/ranking` eight world rankings
 - `/purse` public purse, marked DEMO
-- `/t/ipanema` derived hashtag board
+- `/hashboards` an athlete's hashtag rankings; `/hashboards/[tag]` is one tag. `/t/[tag]` redirects there
 - `/sign-up`, `/sign-in`, `/profile`, `/enter`, `/my-waves`
 - `/athlete/[slug]` public placements
 - `/admin/judge` ordinal insertion and the duty flag

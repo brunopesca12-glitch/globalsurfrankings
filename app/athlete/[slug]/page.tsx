@@ -28,7 +28,7 @@ export default async function AthletePage({ params }: { params: Promise<{ slug: 
       {athlete.hashtags.length > 0 ? (
         <p className="mt-4 flex flex-wrap gap-2 text-sm">
           {athlete.hashtags.map((tag) => (
-            <Link key={tag} href={`/t/${tag}`} className="border border-line px-2 py-1 hover:border-ocean">
+            <Link key={tag} href={`/hashboards/${tag}`} className="border border-line px-2 py-1 hover:border-ocean">
               #{tag}
             </Link>
           ))}

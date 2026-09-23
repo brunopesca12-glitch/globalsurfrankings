@@ -109,6 +109,9 @@ export default async function BoardPage({
                       <td className="px-3 py-3">
                         <span className="block">{environmentLabel(row.environment)}</span>
                         <span className="text-ink/60">{row.spot}</span>
+                        <Link href={`/videos/${row.entryId}`} className="mt-1 block text-ocean">
+                          Watch
+                        </Link>
                       </td>
                     </tr>
                   ))
@@ -123,7 +126,10 @@ export default async function BoardPage({
                 {board.pending.map((entry) => (
                   <li key={entry.id} className="border border-line bg-white px-3 py-2">
                     {entry.athlete.displayName} · {environmentLabel(entry.environment)}
-                    {entry.spot ? ` · ${entry.spot}` : ""} · no place yet
+                    {entry.spot ? ` · ${entry.spot}` : ""} · no place yet ·{" "}
+                    <Link href={`/videos/${entry.id}`} className="text-ocean">
+                      Watch
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -132,8 +138,9 @@ export default async function BoardPage({
         </>
       )}
       <p className="mt-8 text-sm text-ink/60">
-        Demo hashtag: <Link href="/t/ipanema" className="text-ocean">#ipanema</Link> renumbers this board without a new
-        judgment. Catalogue editions: {CATEGORY_CODES.length} categories, each for men and for women.
+        <Link href="/hashboards" className="text-ocean">Hashboards</Link> renumber this board by hashtag without a new
+        judgment. <Link href="/videos" className="text-ocean">Videos</Link> plays the waves. Catalogue editions:{" "}
+        {CATEGORY_CODES.length} categories, each for men and for women.
       </p>
     </div>
   );

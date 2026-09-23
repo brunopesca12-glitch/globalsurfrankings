@@ -113,6 +113,21 @@ export async function getHashtagBoard(tag: string, category: CategoryCode, sex: 
   };
 }
 
+export async function listVideos() {
+  return prisma.entry.findMany({
+    where: { season: { vintage: SEASON_2027.vintage } },
+    include: { athlete: true, theme: true, placement: true },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getVideo(id: string) {
+  return prisma.entry.findUnique({
+    where: { id },
+    include: { athlete: true, theme: true, placement: true },
+  });
+}
+
 export async function listHashtags() {
   const athletes = await prisma.athlete.findMany({ select: { hashtags: true } });
   const tags = new Set<string>();

@@ -3,11 +3,11 @@ import { signOut } from "@/lib/auth";
 import { auth } from "@/lib/auth";
 
 const links = [
+  { href: "/videos", label: "Videos" },
   { href: "/calendar", label: "Calendar" },
-  { href: "/board/best-barrel", label: "Board" },
   { href: "/ranking", label: "Rankings" },
+  { href: "/hashboards", label: "Hashboards" },
   { href: "/purse", label: "Purse" },
-  { href: "/t/ipanema", label: "#ipanema" },
 ];
 
 export async function Header() {
