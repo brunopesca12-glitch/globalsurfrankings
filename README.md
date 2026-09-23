@@ -57,6 +57,8 @@ DATABASE_URL='postgresql://…' npx prisma db seed
 
 Demo passwords stay `wave-2027`, as in `prisma/seed.ts`.
 
+Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Auth before any page (the user defaults to `gsr`). Remove `SITE_GATE_PASSWORD` to disable the gate. The password is not stored in this repo. Athlete sign-in still happens after the gate.
+
 ## What the seed contains
 
 Season vintage 2027, ranking window 1 Oct 2026 → 30 Sep 2027, age taken on 30 Sep 2027. All twelve Open events, with the category cuts from the paper: Junior has the same twelve, 40+ has eleven (no Best Small Wave), 50+ has ten (also no Best Air). Best Surf Pool is one event — Air for Open and Junior, Wave for 40+ and 50+. Best Air's 30 Nov date is marked proposed.
