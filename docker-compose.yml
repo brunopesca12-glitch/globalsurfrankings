@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gsr
+      POSTGRES_PASSWORD: gsr
+      POSTGRES_DB: gsr
+    ports:
+      - "5432:5432"
+    volumes:
+      - gsr_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gsr -d gsr"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  gsr_pgdata:

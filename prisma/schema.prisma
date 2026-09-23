@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ATHLETE
+  ADMIN
+}
+
+enum VerificationTier {
+  VERIFIED
+  VERIFIED_PRO
+}
+
+enum Sex {
+  M
+  W
+}
+
+enum CategoryCode {
+  OPEN
+  JUNIOR
+  MASTERS_40
+  MASTERS_50
+}
+
+enum Environment {
+  OCEAN
+  POOL
+}
+
+enum EntryStatus {
+  SUBMITTED
+  PLACED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(ATHLETE)
+  createdAt    DateTime @default(now())
+  athlete      Athlete?
+}
+
+model Athlete {
+  id                 String           @id @default(cuid())
+  userId             String           @unique
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName        String
+  slug               String           @unique
+  verification       VerificationTier @default(VERIFIED)
+  sex                Sex
+  birthDate          DateTime         @db.Date
+  country            String           @default("BR")
+  city               String?
+  club               String?
+  hashtags           String[]
+  bio                String?
+  judgingDutyCurrent Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  entries            Entry[]
+  placements         Placement[]
+}
+
+model Season {
+  id       String   @id @default(cuid())
+  vintage  Int      @unique
+  name     String
+  startsOn DateTime @db.Date
+  endsOn   DateTime @db.Date
+  ageAsOf  DateTime @db.Date
+  themes   Theme[]
+  entries  Entry[]
+}
+
+model Theme {
+  id         String   @id @default(cuid())
+  seasonId   String
+  season     Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  slug       String
+  name       String
+  namePt     String
+  finaleOn   DateTime @db.Date
+  sortOrder  Int
+  open       Boolean
+  junior     Boolean
+  masters40  Boolean
+  masters50  Boolean
+  oceanOnly  Boolean
+  poolOnly   Boolean
+  proposed   Boolean  @default(false)
+  note       String   @default("")
+  boards     Board[]
+  entries    Entry[]
+
+  @@unique([seasonId, slug])
+}
+
+model Entry {
+  id          String       @id @default(cuid())
+  athleteId   String
+  athlete     Athlete      @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  themeId     String
+  theme       Theme        @relation(fields: [themeId], references: [id])
+  seasonId    String
+  season      Season       @relation(fields: [seasonId], references: [id])
+  environment Environment
+  videoUrl    String
+  spot        String?
+  isoYear     Int
+  isoWeek     Int
+  tollCents   Int
+  status      EntryStatus  @default(SUBMITTED)
+  category    CategoryCode
+  sex         Sex
+  createdAt   DateTime     @default(now())
+  placement   Placement?
+
+  @@index([athleteId, isoYear, isoWeek, environment])
+  @@index([themeId, category, sex])
+}
+
+model Board {
+  id         String       @id @default(cuid())
+  themeId    String
+  theme      Theme        @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  category   CategoryCode
+  sex        Sex
+  placements Placement[]
+
+  @@unique([themeId, category, sex])
+}
+
+model Placement {
+  id        String   @id @default(cuid())
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  entryId   String   @unique
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  athleteId String
+  athlete   Athlete  @relation(fields: [athleteId], references: [id])
+  place     Int
+  createdAt DateTime @default(now())
+
+  @@unique([boardId, place])
+  @@index([athleteId])
+}
