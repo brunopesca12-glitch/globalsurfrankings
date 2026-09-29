@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { SEASON_2027, themeBySlug, themesFor } from "@/lib/catalogue";
 import { CATEGORY_LABEL, categoryFor, parseDateOnly } from "@/lib/category";
 import { prisma } from "@/lib/db";
+import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { isoWeek } from "@/lib/iso-week";
 import { themeIsOpen } from "@/lib/entry-rules";
 
@@ -27,6 +28,7 @@ export default async function EnterPage() {
       poolOnly: theme.poolOnly,
       oceanOnly: theme.oceanOnly,
     }));
+  const queue = await ensureWeeklyQueue(session.user.id);
   const week = isoWeek(new Date());
   const oceanUsed = Boolean(
     await prisma.entry.findFirst({
@@ -49,7 +51,7 @@ export default async function EnterPage() {
         {String(week.isoWeek).padStart(2, "0")}.
       </p>
       <div className="mt-8">
-        <EntryForm themes={themes} dutyCurrent={athlete.judgingDutyCurrent} oceanUsed={oceanUsed} />
+        <EntryForm themes={themes} pendingBallots={queue.pending} oceanUsed={oceanUsed} />
       </div>
       <p className="mt-6 text-xs text-ink/50">Reference event: {themeBySlug("best-barrel")?.name}.</p>
     </div>

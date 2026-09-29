@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import { auth } from "@/lib/auth";
+import { ensureWeeklyQueue } from "@/lib/judge-queue";
 
 const links = [
   { href: "/videos", label: "Videos" },
@@ -13,6 +14,7 @@ const links = [
 export async function Header() {
   const session = await auth();
   const signedIn = Boolean(session?.user);
+  const judge = signedIn && session?.user ? await ensureWeeklyQueue(session.user.id) : null;
 
   return (
     <header className="border-b border-line bg-paper/90">
@@ -37,6 +39,11 @@ export async function Header() {
               <Link href="/my-waves" className="hover:text-ocean">
                 My waves
               </Link>
+              {judge?.college ? (
+                <Link href="/judge" className="hover:text-ocean">
+                  Judge{judge.pending > 0 ? ` (${judge.pending})` : ""}
+                </Link>
+              ) : null}
               <Link href="/profile" className="hover:text-ocean">
                 Profile
               </Link>

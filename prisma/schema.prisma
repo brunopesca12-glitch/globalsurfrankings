@@ -47,6 +47,8 @@ model User {
   role         UserRole @default(ATHLETE)
   createdAt    DateTime @default(now())
   athlete      Athlete?
+  seats        CollegeSeat[]
+  ballots      Ballot[]
 }
 
 model Athlete {
@@ -63,6 +65,7 @@ model Athlete {
   club               String?
   hashtags           String[]
   bio                String?
+  /// Legacy desk flag. Eligibility is the weekly ballot queue. The column stays so existing rows are not rewritten.
   judgingDutyCurrent Boolean          @default(true)
   createdAt          DateTime         @default(now())
   entries            Entry[]
@@ -122,6 +125,8 @@ model Entry {
   sex         Sex
   createdAt   DateTime     @default(now())
   placement   Placement?
+  ballots     Ballot[]
+  verdicts    CollegeVerdict[]
 
   @@index([athleteId, isoYear, isoWeek, environment])
   @@index([themeId, category, sex])
@@ -151,4 +156,94 @@ model Placement {
 
   @@unique([boardId, place])
   @@index([athleteId])
+}
+
+enum College {
+  CHAMBER
+  RANKED
+  ATHLETES
+  UPPER
+  PUBLIC
+}
+
+enum BallotStatus {
+  OPEN
+  SEALED
+}
+
+enum ComparisonResult {
+  BETTER
+  WORSE
+}
+
+/** Desk seats for College 1 and College 2. The other colleges are resolved, not stored. */
+model CollegeSeat {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  college   College
+  createdAt DateTime @default(now())
+
+  @@unique([userId, college])
+}
+
+/** One drawn wave. The place stays on this row and is never selected for a public page. */
+model Ballot {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entryId       String
+  entry         Entry              @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  college       College
+  isoYear       Int
+  isoWeek       Int
+  status        BallotStatus       @default(OPEN)
+  boardEntryIds String[]
+  lo            Int                @default(0)
+  hi            Int
+  place         Int?
+  sealedAt      DateTime?
+  createdAt     DateTime           @default(now())
+  comparisons   BallotComparison[]
+
+  @@unique([userId, entryId])
+  @@index([entryId, college])
+  @@index([userId, isoYear, isoWeek])
+}
+
+model BallotComparison {
+  id           String           @id @default(cuid())
+  ballotId     String
+  ballot       Ballot           @relation(fields: [ballotId], references: [id], onDelete: Cascade)
+  probeIndex   Int
+  probeEntryId String
+  result       ComparisonResult
+  createdAt    DateTime         @default(now())
+
+  @@index([ballotId])
+}
+
+model VerdictRun {
+  id        String           @id @default(cuid())
+  isoYear   Int
+  isoWeek   Int
+  placed    Int
+  held      Int
+  createdAt DateTime         @default(now())
+  verdicts  CollegeVerdict[]
+}
+
+/** The public college line. Individual ballots are not on this table. */
+model CollegeVerdict {
+  id        String     @id @default(cuid())
+  entryId   String
+  entry     Entry      @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  college   College
+  place     Int?
+  ballots   Int
+  runId     String
+  run       VerdictRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([entryId, college])
 }

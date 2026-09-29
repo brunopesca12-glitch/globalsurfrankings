@@ -10,7 +10,12 @@ export const authConfig = {
       const { pathname } = request.nextUrl;
       const signedIn = Boolean(auth?.user);
       if (pathname.startsWith("/admin")) return signedIn;
-      if (pathname.startsWith("/profile") || pathname.startsWith("/enter") || pathname.startsWith("/my-waves")) {
+      if (
+        pathname.startsWith("/profile") ||
+        pathname.startsWith("/enter") ||
+        pathname.startsWith("/my-waves") ||
+        pathname.startsWith("/judge")
+      ) {
         return signedIn;
       }
       return true;

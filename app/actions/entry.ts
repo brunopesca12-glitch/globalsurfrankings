@@ -7,7 +7,9 @@ import { SEASON_2027, themeBySlug } from "@/lib/catalogue";
 import { categoryFor } from "@/lib/category";
 import { prisma } from "@/lib/db";
 import { decideEntry, ENTRY_REJECTION, parseVideoUrl } from "@/lib/entry-rules";
+import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { isoWeek } from "@/lib/iso-week";
+import { dutyIsCurrent } from "@/lib/tribunal";
 
 export type EntryState = { error: string | null };
 
@@ -44,8 +46,9 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
     select: { isoYear: true, isoWeek: true },
   });
 
+  const queue = await ensureWeeklyQueue(session.user.id);
   const decision = decideEntry({
-    dutyCurrent: athlete.judgingDutyCurrent,
+    dutyCurrent: dutyIsCurrent(queue.pending),
     environment,
     theme: catalogue,
     category,

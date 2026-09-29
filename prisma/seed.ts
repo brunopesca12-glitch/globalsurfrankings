@@ -106,7 +106,7 @@ const athletes: SeedAthlete[] = [
     hashtags: ["brazil", "recife"],
     verification: "VERIFIED",
     duty: false,
-    bio: "Judging duty is overdue — the next wave does not enter.",
+    bio: "The weekly judging queue gates the next wave.",
   },
   {
     email: "noah.keller@gsr.surf",
@@ -188,6 +188,11 @@ function dateOnly(iso: string): Date {
 }
 
 async function main() {
+  await prisma.ballotComparison.deleteMany();
+  await prisma.collegeVerdict.deleteMany();
+  await prisma.ballot.deleteMany();
+  await prisma.verdictRun.deleteMany();
+  await prisma.collegeSeat.deleteMany();
   await prisma.placement.deleteMany();
   await prisma.entry.deleteMany();
   await prisma.board.deleteMany();

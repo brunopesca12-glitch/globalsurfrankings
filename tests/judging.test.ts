@@ -83,10 +83,12 @@ describe("five colleges", () => {
     ).toBe(4);
   });
 
-  it("abstains the Ranked college below a quorum of three ballots", () => {
+  it("abstains every college below three ballots", () => {
     expect(collegeSeat("RANKED", [1, 4])).toBeNull();
     expect(collegeSeat("RANKED", [1, 4, 2])).toBe(2);
-    expect(collegeSeat("CHAMBER", [5])).toBe(5);
+    expect(collegeSeat("CHAMBER", [5])).toBeNull();
+    expect(collegeSeat("CHAMBER", [5, 5, 4])).toBe(5);
+    expect(collegeSeat("PUBLIC", [1, 2])).toBeNull();
     expect(ordinalMedian([1, 2, 3, 4])).toBe(3);
   });
 });

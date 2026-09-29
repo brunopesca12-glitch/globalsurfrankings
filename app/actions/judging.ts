@@ -1,10 +1,11 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
-
-export type JudgeState = { error: string | null; saved: boolean };
+import { setManualSeat } from "@/lib/desk";
+import { isManualCollege } from "@/lib/tribunal";
+import { runMondayVerdict } from "@/lib/verdict";
 
 async function requireAdmin() {
   const session = await auth();
@@ -12,78 +13,32 @@ async function requireAdmin() {
   return session;
 }
 
-export async function insertAtPlace(_prev: JudgeState, formData: FormData): Promise<JudgeState> {
+export async function seatJudge(formData: FormData) {
   const session = await requireAdmin();
-  if (!session) return { error: "Only the desk publishes placements.", saved: false };
+  if (!session) redirect("/sign-in");
+  const userId = String(formData.get("userId") ?? "");
+  const college = String(formData.get("college") ?? "");
+  const seated = formData.get("seated") === "yes";
+  if (!userId || !isManualCollege(college)) redirect("/admin/judge?error=seat");
+  await setManualSeat(userId, college, seated);
+  revalidatePath("/admin/judge");
+  revalidatePath("/judge");
+  redirect("/admin/judge?saved=1");
+}
 
-  const entryId = String(formData.get("entryId") ?? "");
-  const place = Number(formData.get("place"));
-  if (!entryId || !Number.isInteger(place)) return { error: "Invalid placement.", saved: false };
-
+export async function runVerdict() {
+  const session = await requireAdmin();
+  if (!session) redirect("/sign-in");
+  let result: { placed: number; held: number };
   try {
-    await prisma.$transaction(async (tx) => {
-      const entry = await tx.entry.findUnique({ where: { id: entryId } });
-      if (!entry || entry.status !== "SUBMITTED") throw new Error("ENTRY");
-
-      const board = await tx.board.upsert({
-        where: {
-          themeId_category_sex: {
-            themeId: entry.themeId,
-            category: entry.category,
-            sex: entry.sex,
-          },
-        },
-        create: { themeId: entry.themeId, category: entry.category, sex: entry.sex },
-        update: {},
-      });
-
-      const placements = await tx.placement.findMany({
-        where: { boardId: board.id },
-        orderBy: { place: "desc" },
-      });
-      if (place < 1 || place > placements.length + 1) throw new Error("PLACE");
-
-      for (const current of placements) {
-        if (current.place >= place) {
-          await tx.placement.update({
-            where: { id: current.id },
-            data: { place: current.place + 1 },
-          });
-        }
-      }
-
-      await tx.placement.create({
-        data: {
-          boardId: board.id,
-          entryId: entry.id,
-          athleteId: entry.athleteId,
-          place,
-        },
-      });
-      await tx.entry.update({ where: { id: entry.id }, data: { status: "PLACED" } });
-    });
+    result = await runMondayVerdict();
   } catch {
-    return { error: "That wave could not be inserted at that place.", saved: false };
+    redirect("/admin/judge?error=verdict");
   }
-
   revalidatePath("/admin/judge");
   revalidatePath("/board", "layout");
   revalidatePath("/ranking");
-  return { error: null, saved: true };
-}
-
-export async function setJudgingDuty(_prev: JudgeState, formData: FormData): Promise<JudgeState> {
-  const session = await requireAdmin();
-  if (!session) return { error: "Only the desk changes judging duty.", saved: false };
-
-  const athleteId = String(formData.get("athleteId") ?? "");
-  const current = formData.get("duty") === "on";
-  if (!athleteId) return { error: "Athlete missing.", saved: false };
-
-  await prisma.athlete.update({
-    where: { id: athleteId },
-    data: { judgingDutyCurrent: current },
-  });
-  revalidatePath("/admin/judge");
-  return { error: null, saved: true };
+  revalidatePath("/videos", "layout");
+  revalidatePath("/judge");
+  redirect(`/admin/judge?placed=${result.placed}&held=${result.held}`);
 }

@@ -2,6 +2,7 @@ import type { CategoryCode, Sex, VerificationTier } from "@prisma/client";
 import { DEMO_THEME_SLUG, SEASON_2027 } from "@/lib/catalogue";
 import { prisma } from "@/lib/db";
 import { deriveLeaderboard } from "@/lib/leaderboard";
+import type { College } from "@/lib/median";
 import { placementPoints } from "@/lib/points";
 
 export async function getEditionBoard(slug: string, category: CategoryCode, sex: Sex) {
@@ -22,6 +23,7 @@ export async function getEditionBoard(slug: string, category: CategoryCode, sex:
   });
 
   const entrants = entries.length;
+  const verdicts = await collegeVerdictMap(entries.filter((entry) => entry.placement).map((entry) => entry.id));
   const placed = entries
     .filter((entry) => entry.placement)
     .sort((a, b) => a.placement!.place - b.placement!.place)
@@ -33,6 +35,7 @@ export async function getEditionBoard(slug: string, category: CategoryCode, sex:
       spot: entry.spot,
       environment: entry.environment,
       athlete: entry.athlete,
+      verdicts: verdicts.get(entry.id) ?? [],
     }));
 
   const pending = entries.filter((entry) => !entry.placement);
@@ -119,6 +122,21 @@ export async function listVideos() {
     include: { athlete: true, theme: true, placement: true },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export async function collegeVerdictMap(entryIds: string[]) {
+  const map = new Map<string, { college: College; place: number | null }[]>();
+  if (entryIds.length === 0) return map;
+  const rows = await prisma.collegeVerdict.findMany({
+    where: { entryId: { in: entryIds } },
+    select: { entryId: true, college: true, place: true },
+  });
+  for (const row of rows) {
+    const list = map.get(row.entryId) ?? [];
+    list.push({ college: row.college, place: row.place });
+    map.set(row.entryId, list);
+  }
+  return map;
 }
 
 export async function getVideo(id: string) {

@@ -33,7 +33,17 @@ export const FOUNDING_OCEAN_ATHLETES = 8_000;
 export const FOUNDING_POOL_ENTRIES = 25_000;
 
 export const RANKED_BALLOT_USD = 6;
-export const RANKED_QUORUM = 3;
+/** Sealed ballots a college needs on a wave. Below this, that college abstains. */
+export const COLLEGE_QUORUM = 3;
+/** Annex B.3 names the same threshold for the Ranked payroll. */
+export const RANKED_QUORUM = COLLEGE_QUORUM;
+/**
+ * Ballots in one ISO week. The white paper calls the duty about fifteen minutes;
+ * eight ballots is the queue this MVP draws.
+ */
+export const WEEKLY_JUDGING_BALLOTS = 8;
+/** Automatic Upper Chamber: the top of each category ranking. */
+export const UPPER_CHAMBER_SIZE = 10;
 
 export const CLUB_SERVICE_FEE_BPS = 2_000;
 

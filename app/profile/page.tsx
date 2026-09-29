@@ -6,6 +6,8 @@ import { SEASON_2027 } from "@/lib/catalogue";
 import { CATEGORY_LABEL, categoryFor, formatDateOnly, parseDateOnly } from "@/lib/category";
 import { getAthleteByUser } from "@/lib/data";
 import { formatDate, sexLabel, verificationLabel } from "@/lib/format";
+import { ensureWeeklyQueue } from "@/lib/judge-queue";
+import { dutyStatusLine } from "@/lib/tribunal";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -25,15 +27,16 @@ export default async function ProfilePage() {
 
   const asOf = parseDateOnly(SEASON_2027.ageAsOf)!;
   const category = categoryFor(athlete.birthDate, asOf);
+  const queue = await ensureWeeklyQueue(session.user.id);
 
   return (
     <div className="mx-auto max-w-xl px-5 py-12">
       <p className="text-xs uppercase tracking-[0.22em] text-gold">{verificationLabel(athlete.verification)}</p>
       <h1 className="mt-2 font-serif text-5xl">{athlete.displayName}</h1>
       <p className="mt-3 text-sm text-ink/70">
-        {CATEGORY_LABEL[category]} · {sexLabel(athlete.sex)} · born {formatDate(formatDateOnly(athlete.birthDate))} · judging duty{" "}
-        {athlete.judgingDutyCurrent ? "current" : "overdue"}
+        {CATEGORY_LABEL[category]} · {sexLabel(athlete.sex)} · born {formatDate(formatDateOnly(athlete.birthDate))}
       </p>
+      <p className="mt-3 text-sm">{dutyStatusLine(queue.pending)}</p>
       <p className="mt-2 text-sm text-ink/60">
         Sex and date of birth stay fixed after signup. In the real version, both are checked against a document.
       </p>

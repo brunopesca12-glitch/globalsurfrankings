@@ -51,15 +51,14 @@ export default function HomePage() {
             who rode the best wave of the year.
           </p>
           <p className="mt-4 leading-relaxed text-ink/80">
-            To be judged, you judge. An entry joins Monday&apos;s verdict only if judging duty is current. In this version that
-            duty is a desk flag — the five colleges are not seated yet.
+            To be judged, you judge. An entry joins Monday&apos;s verdict only when this week&apos;s ballot queue is complete.
           </p>
         </div>
         <blockquote className="border-l-2 border-gold pl-6">
           <p className="font-serif text-3xl leading-snug">&ldquo;A wave does not receive a score. It receives a place.&rdquo;</p>
           <p className="mt-4 text-sm text-ink/70">
-            Five colleges, one verdict: the median. In this MVP the desk publishes the ordinal place, on the founding points
-            curve — 100 / 60 / 45 / 35 / 28 / 22, base × √(S/100).
+            Five colleges, one verdict: the median. The desk seats the Chamber and the Ranked, then runs Monday&apos;s verdict.
+            Points follow the founding curve — 100 / 60 / 45 / 35 / 28 / 22, base × √(S/100).
           </p>
         </blockquote>
       </section>

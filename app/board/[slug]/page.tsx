@@ -5,6 +5,7 @@ import type { CategoryCode, Sex } from "@prisma/client";
 import { themeBySlug } from "@/lib/catalogue";
 import { CATEGORY_CODES, CATEGORY_LABEL } from "@/lib/category";
 import { getEditionBoard } from "@/lib/data";
+import { CollegeVerdictLine } from "@/components/CollegeVerdict";
 import { environmentLabel, formatDate, formatPoints, sexLabel, verificationLabel } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Board" };
@@ -104,6 +105,7 @@ export default async function BoardPage({
                           {verificationLabel(row.athlete.verification)}
                           {row.athlete.city ? ` · ${row.athlete.city}` : ""}
                         </span>
+                        <CollegeVerdictLine verdicts={row.verdicts} finalPlace={row.place} />
                       </td>
                       <td className="px-3 py-3">{formatPoints(row.points)}</td>
                       <td className="px-3 py-3">

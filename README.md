@@ -32,7 +32,7 @@ npm test
 | Account | Who |
 | --- | --- |
 | joao.vasques@gsr.surf | Open athlete, 4th on the Best Barrel board, hashtags `ipanema` and `brazil` |
-| pedro.lima@gsr.surf | Same board, judging duty deliberately not current — a new entry is refused |
+| pedro.lima@gsr.surf | Same board. A new entry is refused until this week's judging queue is sealed |
 | desk@gsr.surf | Admin desk. The house has no athlete profile and does not compete |
 
 Open http://localhost:3000. Landing, the video gallery (`/videos`), the calendar, the Best Barrel world board (`/board/best-barrel`), the purse (`/purse`) and hashboards (`/hashboards`) are public. Sign in to open a profile and submit a wave.
@@ -57,6 +57,20 @@ DATABASE_URL='postgresql://…' npx prisma db seed
 
 Demo passwords stay `wave-2027`, as in `prisma/seed.ts`.
 
+Judge accounts are a separate insert-only script. It never deletes and never updates an existing user. Run it only when you want those five logins in a database that already has Season 2027:
+
+```bash
+npm run db:demo-judges
+```
+
+| Email | College |
+| --- | --- |
+| chamber@gsr.surf | Chamber of Champions, seated by the script |
+| ranked@gsr.surf | The Ranked, seated by the script |
+| athletes@gsr.surf | Athletes' College, from an unplaced entry |
+| upper@gsr.surf | Upper Chamber, placed on an empty edition |
+| public@gsr.surf | The Public |
+
 Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Auth before any page (the user defaults to `gsr`). Remove `SITE_GATE_PASSWORD` to disable the gate. The password is not stored in this repo. Athlete sign-in still happens after the gate.
 
 ## What the seed contains
@@ -75,8 +89,10 @@ Constitutional constants live in `lib/constitution.ts`.
 - Season-table field shares, founding scenario: Open M 40%, 40+ M 15%, 50+ M 12%, Open W 10%, Junior M 10%, Junior W 5%, 50+ W 5%, 40+ W 3%.
 - Paid places are the top 20% of an edition (`floor(0.2 × S)`, at least the winner). Six paid places receive exactly 35 / 20 / 14 / 12 / 10 / 9. Fewer places renormalise that podium. Further places share a tail of weight 4, then the vector is normalised so it still sums to 100%. The purse page shows this exact curve. The white paper prints a few of those dollars rounded (and prints US$ 650 where the 40+ women's sixth place is US$ 675). The printed champion campaign in Annex B.2 is shown beside the law, labeled as printed.
 - Event points: podium 100 / 60 / 45 / 35 / 28 / 22 percent of the event base, then 12% through the rest of the top fifth (`floor(S/5)`), then 4% to every other entrant. The winner's base is `100 × √(S/100)`. A field of 400 pays twice a field of 100. The world ranking is the sum of those event points. Points stay provisional until a finale because S is the current entry count.
-- Ordinal placement is binary insertion (index 0 is best). The final verdict of the real tribunal is the median of five colleges; the Ranked college abstains below three ballots; an even median resolves toward the Chamber of Champions. The desk in this MVP publishes the place directly. Colleges are not seated.
-- An entry is refused when judging duty is not current. Duty is a boolean the desk can flip. There is no drawn queue yet.
+- Ordinal placement is binary insertion (index 0 is best). A judge's ballot is sealed. Each college's public place is the median of its ballots, and the college abstains below three. The wave's place is the median of the colleges that voted; an even split resolves toward the Chamber of Champions. The desk runs that Monday verdict. It does not type a place.
+- One person sits in one college: Chamber, then Ranked, then the Upper Chamber (top 10 of a category ranking), then Athletes (anyone who entered that season), then the Public. The desk seats only the first two. A judge never draws a wave in their own category or a declared clubmate's, and the ballot does not show the athlete.
+- An entry is refused while this ISO week's ballot queue is still open. Monday holds a wave when the week it was entered still has open ballots, so the new week does not pull last week's wave back out. The queue is at most 8 ballots (the paper's "about fifteen minutes"). The old duty checkbox is unused. Waves judged in the same week are compared with the board already published, not with each other.
+- The Ranked college's US$ 6 a ballot is shown as DEMO. Nothing is paid. A judge sees their own mean deviation after Monday. Public accuracy boards, demotion, and the Golden Eye are not in this version. Upper Chamber membership is the top 10, not the paper's accuracy-promotion ladder.
 - Hashboards filter a world board by hashtag and renumber. They do not judge or pay.
 - Verification is Verified or Verified Pro. Pro is a checkbox with no credential check. Tiers gate nothing at the door. Age bands are exclusive.
 
@@ -93,7 +109,8 @@ The calendar follows Section 3 (1 Oct → 30 Sep), not the March 2027 operationa
 - `/hashboards` an athlete's hashtag rankings; `/hashboards/[tag]` is one tag. `/t/[tag]` redirects there
 - `/sign-up`, `/sign-in`, `/profile`, `/enter`, `/my-waves`
 - `/athlete/[slug]` public placements
-- `/admin/judge` ordinal insertion and the duty flag
+- `/judge` one blind ballot at a time, for an account that has a college
+- `/admin/judge` seat the Chamber and the Ranked, and run Monday's verdict
 
 ## Tests
 
@@ -101,4 +118,4 @@ The calendar follows Section 3 (1 Oct → 30 Sep), not the March 2027 operationa
 
 ## Not in v0.1
 
-Real escrow, Pix, cards, KYC, video upload or transcoding, the five live colleges, ballot draw, Monday payroll, the media house, sponsor checkout, Chamber or patron tools, WhatsApp, crypto, and any balance the application increments. The purse display is a mirror of the published founding scenario, not of a processor statement.
+Real escrow, Pix, cards, KYC, video upload or transcoding, Ranked payroll, public accuracy boards, the Golden Eye, accuracy promotion into the Upper Chamber, Monday payroll, the media house, sponsor checkout, patron tools, WhatsApp, crypto, and any balance the application increments. The purse display, and the Ranked US$ 6, are a mirror of the published arithmetic, not a payment.

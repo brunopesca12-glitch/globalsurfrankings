@@ -1,10 +1,18 @@
-import { RANKED_QUORUM } from "@/lib/constitution";
+import { COLLEGE_QUORUM } from "@/lib/constitution";
 
 export const COLLEGES = ["CHAMBER", "RANKED", "ATHLETES", "UPPER", "PUBLIC"] as const;
 export type College = (typeof COLLEGES)[number];
 
+/** Every college abstains below three sealed ballots on that wave. */
 export function collegeQuorum(college: College): number {
-  return college === "RANKED" ? RANKED_QUORUM : 1;
+  switch (college) {
+    case "CHAMBER":
+    case "RANKED":
+    case "ATHLETES":
+    case "UPPER":
+    case "PUBLIC":
+      return COLLEGE_QUORUM;
+  }
 }
 
 /**

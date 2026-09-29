@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { login, register, type FormState } from "@/app/actions/auth";
 import { submitEntry, type EntryState } from "@/app/actions/entry";
 import { updateProfile, type ProfileState } from "@/app/actions/profile";
+import { dutyStatusLine } from "@/lib/tribunal";
 
 const field = "mt-1 w-full border border-line bg-white px-3 py-2 outline-none focus:border-ocean";
 const button = "bg-ocean px-4 py-2 text-paper disabled:opacity-60";
@@ -146,20 +148,23 @@ export type ThemeOption = {
 
 export function EntryForm({
   themes,
-  dutyCurrent,
+  pendingBallots,
   oceanUsed,
 }: {
   themes: ThemeOption[];
-  dutyCurrent: boolean;
+  pendingBallots: number;
   oceanUsed: boolean;
 }) {
   const [state, action, pending] = useActionState(submitEntry, { error: null } satisfies EntryState);
   return (
     <form action={action} className="space-y-4">
       <ErrorNote message={state.error} />
-      {!dutyCurrent ? (
+      {pendingBallots > 0 ? (
         <p className="border border-stamp/40 bg-white px-3 py-2 text-sm">
-          Judging duty is not current. The entry will be refused until the desk marks the queue as current.
+          {dutyStatusLine(pendingBallots)}{" "}
+          <Link href="/judge" className="text-ocean">
+            Open the queue
+          </Link>
         </p>
       ) : null}
       {oceanUsed ? (

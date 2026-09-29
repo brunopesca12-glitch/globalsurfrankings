@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CollegeVerdictLine } from "@/components/CollegeVerdict";
 import { WavePlayer } from "@/components/WavePlayer";
 import { CATEGORY_LABEL } from "@/lib/category";
-import { getVideo } from "@/lib/data";
+import { collegeVerdictMap, getVideo } from "@/lib/data";
 import { environmentLabel, ordinal, verificationLabel } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Watch" };
@@ -12,6 +13,7 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const video = await getVideo(id);
   if (!video) notFound();
+  const verdicts = video.placement ? await collegeVerdictMap([video.id]) : null;
   const title = `${video.athlete.displayName} · ${video.theme.name}`;
 
   return (
@@ -44,6 +46,9 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
           World board
         </Link>
       </p>
+      {video.placement ? (
+        <CollegeVerdictLine verdicts={verdicts?.get(video.id) ?? []} finalPlace={video.placement.place} />
+      ) : null}
     </div>
   );
 }
