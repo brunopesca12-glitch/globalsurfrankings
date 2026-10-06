@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { signOut } from "@/lib/auth";
-import { auth } from "@/lib/auth";
-import { ensureWeeklyQueue } from "@/lib/judge-queue";
+import { auth, signOut } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { ensureWeeklyQueue, type JudgeSession } from "@/lib/judge-queue";
 
 const links = [
   { href: "/videos", label: "Videos" },
@@ -11,10 +11,46 @@ const links = [
   { href: "/purse", label: "Purse" },
 ];
 
+type HeaderViewer =
+  | { signedIn: false }
+  | { signedIn: true; role: "ADMIN" | "ATHLETE"; judge: JudgeSession | null };
+
+async function readSession() {
+  try {
+    return await auth();
+  } catch {
+    return null;
+  }
+}
+
+async function loadViewer(): Promise<HeaderViewer> {
+  const session = await readSession();
+  const userId = session?.user?.id;
+  if (!userId) return { signedIn: false };
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    // A cookie for a deleted account is not a session we can render.
+    if (!user) return { signedIn: false };
+    try {
+      return { signedIn: true, role: user.role, judge: await ensureWeeklyQueue(userId) };
+    } catch {
+      return { signedIn: true, role: user.role, judge: null };
+    }
+  } catch {
+    return {
+      signedIn: true,
+      role: session?.user?.role === "ADMIN" ? "ADMIN" : "ATHLETE",
+      judge: null,
+    };
+  }
+}
+
 export async function Header() {
-  const session = await auth();
-  const signedIn = Boolean(session?.user);
-  const judge = signedIn && session?.user ? await ensureWeeklyQueue(session.user.id) : null;
+  const viewer = await loadViewer();
 
   return (
     <header className="border-b border-line bg-paper/90">
@@ -31,7 +67,7 @@ export async function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-3 text-sm">
-          {signedIn ? (
+          {viewer.signedIn ? (
             <>
               <Link href="/enter" className="hover:text-ocean">
                 Enter a wave
@@ -39,15 +75,15 @@ export async function Header() {
               <Link href="/my-waves" className="hover:text-ocean">
                 My waves
               </Link>
-              {judge?.college ? (
+              {viewer.judge?.college ? (
                 <Link href="/judge" className="hover:text-ocean">
-                  Judge{judge.pending > 0 ? ` (${judge.pending})` : ""}
+                  Judge{viewer.judge.pending > 0 ? ` (${viewer.judge.pending})` : ""}
                 </Link>
               ) : null}
               <Link href="/profile" className="hover:text-ocean">
                 Profile
               </Link>
-              {session?.user.role === "ADMIN" ? (
+              {viewer.role === "ADMIN" ? (
                 <Link href="/admin/judge" className="hover:text-ocean">
                   Desk
                 </Link>
