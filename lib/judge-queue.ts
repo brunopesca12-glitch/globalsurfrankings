@@ -81,7 +81,7 @@ export const ensureWeeklyQueue = cache(async (userId: string): Promise<JudgeSess
     });
 
     const existing = await tx.ballot.findMany({
-      where: { userId, isoYear: week.isoYear, isoWeek: week.isoWeek },
+      where: { userId },
       include: { entry: { select: { id: true, status: true, athleteId: true, category: true, sex: true } } },
     });
 
@@ -104,8 +104,12 @@ export const ensureWeeklyQueue = cache(async (userId: string): Promise<JudgeSess
     if (!college || !ctx.seasonId) return;
 
     const kept = existing.filter((ballot) => !dropIds.includes(ballot.id));
+    // One ballot per wave for the life of the entry. A later week must not draw it again.
     const heldIds = new Set(kept.map((ballot) => ballot.entryId));
-    const need = Math.max(0, WEEKLY_JUDGING_BALLOTS - kept.length);
+    const thisWeekCount = kept.filter(
+      (ballot) => ballot.isoYear === week.isoYear && ballot.isoWeek === week.isoWeek,
+    ).length;
+    const need = Math.max(0, WEEKLY_JUDGING_BALLOTS - thisWeekCount);
     if (need === 0) return;
 
     const submitted = await tx.entry.findMany({
@@ -147,25 +151,24 @@ export const ensureWeeklyQueue = cache(async (userId: string): Promise<JudgeSess
       ]),
     );
 
-    for (const entry of picked) {
-      const boardEntryIds = boardByKey.get(`${entry.themeId}:${entry.category}:${entry.sex}`) ?? [];
-      try {
-        await tx.ballot.create({
-          data: {
-            userId,
-            entryId: entry.id,
-            college,
-            isoYear: week.isoYear,
-            isoWeek: week.isoWeek,
-            boardEntryIds,
-            lo: 0,
-            hi: boardEntryIds.length,
-          },
-        });
-      } catch (error) {
-        if (!isUnique(error)) throw error;
-      }
-    }
+    if (picked.length === 0) return;
+    // ON CONFLICT DO NOTHING. A unique violation must not abort the transaction.
+    await tx.ballot.createMany({
+      data: picked.map((entry) => {
+        const boardEntryIds = boardByKey.get(`${entry.themeId}:${entry.category}:${entry.sex}`) ?? [];
+        return {
+          userId,
+          entryId: entry.id,
+          college,
+          isoYear: week.isoYear,
+          isoWeek: week.isoWeek,
+          boardEntryIds,
+          lo: 0,
+          hi: boardEntryIds.length,
+        };
+      }),
+      skipDuplicates: true,
+    });
   });
 
   return readJudgeSession(userId, week.isoYear, week.isoWeek);
@@ -187,9 +190,19 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
     enteredThisSeason: athleteId != null && ctx.enteredAthleteIds.has(athleteId),
   });
 
-  const [weekBallots, rankedSealed, sealedFinal] = await Promise.all([
+  const [weekBallots, earlierOpen, rankedSealed, sealedFinal] = await Promise.all([
     prisma.ballot.findMany({
       where: { userId, isoYear, isoWeek: isoWeekNumber },
+      include: { entry: { select: { videoUrl: true, status: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.ballot.findMany({
+      where: {
+        userId,
+        status: "OPEN",
+        entry: { status: "SUBMITTED" },
+        NOT: { AND: [{ isoYear }, { isoWeek: isoWeekNumber }] },
+      },
       include: { entry: { select: { videoUrl: true, status: true } } },
       orderBy: { createdAt: "asc" },
     }),
@@ -200,7 +213,10 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
     }),
   ]);
 
-  const open = weekBallots.filter((ballot) => ballot.status === "OPEN" && ballot.entry.status === "SUBMITTED");
+  const open = [
+    ...earlierOpen,
+    ...weekBallots.filter((ballot) => ballot.status === "OPEN" && ballot.entry.status === "SUBMITTED"),
+  ];
   const sealed = weekBallots.filter((ballot) => ballot.status === "SEALED").length;
   const pairs = sealedFinal
     .filter((ballot) => ballot.place != null && ballot.entry.placement)
@@ -370,6 +386,3 @@ async function ballotStillAllowed(userId: string, ballotId: string): Promise<boo
   return true;
 }
 
-function isUnique(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code === "P2002";
-}
