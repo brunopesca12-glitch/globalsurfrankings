@@ -5,7 +5,6 @@ import { BlindWave } from "@/components/BlindWave";
 import { castComparison, sealPlacement } from "@/app/actions/ballot";
 import { auth } from "@/lib/auth";
 import { RANKED_BALLOT_USD } from "@/lib/constitution";
-import { formatUsdAmount } from "@/lib/format";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { accuracyLine, ballotProgressLine, COLLEGE_SEAT_LABEL, dutyStatusLine } from "@/lib/tribunal";
 
@@ -48,8 +47,7 @@ export default async function JudgePage({
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <span className="stamp">Demo</span>
           <p className="text-sm text-ink/70">
-            US$ {RANKED_BALLOT_USD} per ballot. {queue.rankedSealed} sealed ·{" "}
-            {formatUsdAmount(queue.rankedSealed * RANKED_BALLOT_USD)} recorded. Nothing is paid.
+            Capped at US$ {RANKED_BALLOT_USD} a ballot. {queue.rankedSealed} sealed. Nothing is paid through this site.
           </p>
         </div>
       ) : null}

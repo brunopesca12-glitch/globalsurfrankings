@@ -24,26 +24,32 @@ describe("constitutional rails", () => {
     expect(POOL_TOLL_CENTS).toBe(2_000);
   });
 
-  it("splits every ticket 84 / 16 and the parts sum to the ticket", () => {
+  it("splits every ticket 78 / 6 / 16, with 84% still to surfers", () => {
     expect(ATHLETE_RAIL_BPS + PLATFORM_RAIL_BPS).toBe(10_000);
     for (const cents of [0, 1, 99, 100, 20_000, THEME_TICKET_USD * 100, 123_456_789]) {
       const split = splitTicketCents(cents);
       expect(split.athleteCents + split.platformCents).toBe(cents);
+      expect(split.competitorCents + split.judgeCents).toBe(split.athleteCents);
+      expect(split.chamberCents + split.rankedCents).toBe(split.judgeCents);
     }
     const founding = splitTicketCents(THEME_TICKET_USD * 100);
     expect(founding.athleteCents).toBe(33_600_000);
+    expect(founding.competitorCents).toBe(31_200_000);
+    expect(founding.judgeCents).toBe(2_400_000);
+    expect(founding.chamberCents).toBe(1_200_000);
+    expect(founding.rankedCents).toBe(1_200_000);
     expect(founding.platformCents).toBe(6_400_000);
   });
 
-  it("splits the affixed purse 250 / 50 / 36, summing to the athlete rail", () => {
-    expect(PURSE_WEIGHTS.seasonTable + PURSE_WEIGHTS.weekly + PURSE_WEIGHTS.overall).toBe(336);
-    const purse = splitAffixedPurse(33_600_000);
+  it("splits the prize money 232 / 46.5 / 33.5, summing to the 78%", () => {
+    expect(PURSE_WEIGHTS.seasonTable + PURSE_WEIGHTS.weekly + PURSE_WEIGHTS.overall).toBe(312_000);
+    const purse = splitAffixedPurse(31_200_000);
     expect(purse).toEqual({
-      seasonTableCents: 25_000_000,
-      weeklyCents: 5_000_000,
-      overallCents: 3_600_000,
+      seasonTableCents: 23_200_000,
+      weeklyCents: 4_650_000,
+      overallCents: 3_350_000,
     });
-    for (const cents of [0, 1, 336, 10_000, 33_600_000]) {
+    for (const cents of [0, 1, 312_000, 10_000, 31_200_000]) {
       const split = splitAffixedPurse(cents);
       expect(split.seasonTableCents + split.weeklyCents + split.overallCents).toBe(cents);
     }
@@ -51,18 +57,24 @@ describe("constitutional rails", () => {
 
   it("reconciles the founding book in Annex B.1", () => {
     expect(FOUNDING.athleteUsd).toBe(336_000);
+    expect(FOUNDING.competitorUsd).toBe(312_000);
+    expect(FOUNDING.judgeUsd).toBe(24_000);
+    expect(FOUNDING.chamberUsd).toBe(12_000);
+    expect(FOUNDING.rankedUsd).toBe(12_000);
     expect(FOUNDING.platformUsd).toBe(64_000);
-    expect(FOUNDING.seasonTableUsd).toBe(250_000);
-    expect(FOUNDING.weeklyUsd).toBe(50_000);
-    expect(FOUNDING.overallUsd).toBe(36_000);
+    expect(FOUNDING.seasonTableUsd).toBe(232_000);
+    expect(FOUNDING.weeklyUsd).toBe(46_500);
+    expect(FOUNDING.overallUsd).toBe(33_500);
     expect(FOUNDING.seasonAthleteUsd).toBe(4_032_000);
+    expect(FOUNDING.seasonCompetitorUsd).toBe(3_744_000);
+    expect(FOUNDING.seasonJudgeUsd).toBe(288_000);
     expect(FOUNDING.seasonPlatformUsd).toBe(768_000);
     expect(FOUNDING.seasonBookCashUsd).toBe(4_800_000);
     expect(FOUNDING.poolTollUsd).toBe(FOUNDING_POOL_ENTRIES * 20);
     expect(FOUNDING.seasonAthleteUsd + FOUNDING.seasonPlatformUsd + FOUNDING.presenterFaceUsd + FOUNDING.poolTollUsd).toBe(
       7_050_000,
     );
-    expect(FOUNDING.weeklyPerMondayUsd).toBeCloseTo(11_538.46, 2);
+    expect(FOUNDING.weeklyPerMondayUsd).toBe(18_600);
   });
 
   it("splits the presenter face 76 / 8 / 16", () => {

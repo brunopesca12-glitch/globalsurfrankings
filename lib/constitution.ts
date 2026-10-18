@@ -1,24 +1,35 @@
 /**
- * Constitutional constants from GSR Founding Edition v9 (September 2026).
+ * Constitutional constants from GSR Founding Edition v10.1 (6 Oct 2026).
  * Changing these is a governance act, not a product tweak.
  * The house never competes. Ocean athletes are never charged.
+ * The platform mirrors the escrow. It does not hold or pay the purse.
  */
 
 export const OCEAN_ENTRY_TOLL_CENTS = 0;
 export const POOL_TOLL_CENTS = 2_000;
 export const OCEAN_WAVES_PER_ISO_WEEK = 1;
 
-export const ATHLETE_RAIL_BPS = 8_400;
+/** 84% of a theme ticket, all of it to surfers: competitors plus surfer-judges. */
+export const SURFER_RAIL_BPS = 8_400;
+export const ATHLETE_RAIL_BPS = SURFER_RAIL_BPS;
+/** 78% prize money. */
+export const COMPETITOR_RAIL_BPS = 7_800;
+/** 6% judges' fee, 3% to each paid college. */
+export const JUDGE_RAIL_BPS = 600;
+export const CHAMBER_RAIL_BPS = 300;
+export const RANKED_RAIL_BPS = 300;
 export const PLATFORM_RAIL_BPS = 1_600;
 
 export const THEME_TICKET_USD = 400_000;
 export const FOUNDING_THEME_COUNT = 12;
+/** Founding Season Mondays, 1 Mar – 30 Sep 2027. 12 × US$ 46,500 / 30 = US$ 18,600. */
+export const FOUNDING_WEEKS = 30;
 
-/** Of each theme's affixed purse (the athlete rail): season tables, weekly race, world champions' fund. */
+/** Of the 78% prize money: season tables, weekly race, world champions' fund. Sums to US$ 312,000. */
 export const PURSE_WEIGHTS = {
-  seasonTable: 250,
-  weekly: 50,
-  overall: 36,
+  seasonTable: 232_000,
+  weekly: 46_500,
+  overall: 33_500,
 } as const;
 
 export const PRESENTER_FACE_USD = 1_750_000;
@@ -52,10 +63,13 @@ export const PODIUM_POINT_FRACTIONS = [1, 0.6, 0.45, 0.35, 0.28, 0.22] as const;
 export const TOP_FIFTH_POINT_FRACTION = 0.12;
 export const ENTRANT_POINT_FRACTION = 0.04;
 
-/** Season-table places, as shares of the edition table. Sum is 100. */
-export const PODIUM_PAYOUT_BPS = [3_500, 2_000, 1_400, 1_200, 1_000, 900] as const;
-/** Weight of each paid place after sixth, before the shares are normalised to 100%. */
-export const TAIL_PAYOUT_WEIGHT = 4;
+/** Podium curve, shares of the six. Sum 100. On a large field this is 80% of the table. */
+export const PODIUM_CURVE = [35, 20, 14, 12, 10, 9] as const;
+/** Large-field podium, basis points of the edition table (28% … 7.2%). Sum 8_000. */
+export const LARGE_FIELD_PODIUM_BPS = [2_800, 1_600, 1_120, 960, 800, 720] as const;
+/** Places 7 through the top fifth share this slice of the table, equally, capped at sixth. */
+export const TAIL_POOL_BPS = 2_000;
+export const SIXTH_CAP_BPS = 720;
 export const PAID_FIELD_FRACTION = 0.2;
 
 export type EditionId =
@@ -89,42 +103,64 @@ export const EDITIONS: readonly Edition[] = [
 ] as const;
 
 /**
- * Figures printed in Annex B.2 / the Section 5 table, including the edition's
- * own rounding. The executable law is the exact curve in `payout.ts`.
- * Winner and sixth are the only places the paper prints per edition.
+ * Section 5 table, rounded to the dollar. The executable law is `payout.ts`:
+ * a large field pays the winner 28% and sixth 7.2% of the edition table.
  */
 export const PRINTED_EDITION_HEADLINES: Record<EditionId, { winnerUsd: number; sixthUsd: number }> = {
-  OPEN_M: { winnerUsd: 35_000, sixthUsd: 9_000 },
-  MASTERS_40_M: { winnerUsd: 13_100, sixthUsd: 3_400 },
-  MASTERS_50_M: { winnerUsd: 10_500, sixthUsd: 2_700 },
-  OPEN_W: { winnerUsd: 8_750, sixthUsd: 2_250 },
-  JUNIOR_M: { winnerUsd: 8_750, sixthUsd: 2_250 },
-  JUNIOR_W: { winnerUsd: 4_400, sixthUsd: 1_100 },
-  MASTERS_50_W: { winnerUsd: 4_400, sixthUsd: 1_100 },
-  MASTERS_40_W: { winnerUsd: 2_600, sixthUsd: 650 },
+  OPEN_M: { winnerUsd: 25_984, sixthUsd: 6_682 },
+  MASTERS_40_M: { winnerUsd: 9_744, sixthUsd: 2_506 },
+  MASTERS_50_M: { winnerUsd: 7_795, sixthUsd: 2_004 },
+  OPEN_W: { winnerUsd: 6_496, sixthUsd: 1_670 },
+  JUNIOR_M: { winnerUsd: 6_496, sixthUsd: 1_670 },
+  JUNIOR_W: { winnerUsd: 3_248, sixthUsd: 835 },
+  MASTERS_50_W: { winnerUsd: 3_248, sixthUsd: 835 },
+  MASTERS_40_W: { winnerUsd: 1_949, sixthUsd: 501 },
 };
 
-/** Annex B.2 modelled campaign: 4 theme wins + Overall cash + weekly estimates. */
+/** Annex B.2: four theme wins + Overall cash + estimated weeklies. Credits sit beside the cash. */
 export const PRINTED_CHAMPION_SEASON: Record<
   EditionId,
   { eventWinsUsd: number; overallUsd: number; weekliesUsd: number; totalCashUsd: number; creditsUsd: number }
 > = {
-  OPEN_M: { eventWinsUsd: 140_000, overallUsd: 172_800, weekliesUsd: 15_000, totalCashUsd: 327_800, creditsUsd: 133_000 },
-  MASTERS_40_M: { eventWinsUsd: 52_400, overallUsd: 64_800, weekliesUsd: 5_600, totalCashUsd: 122_800, creditsUsd: 50_000 },
-  MASTERS_50_M: { eventWinsUsd: 42_000, overallUsd: 51_800, weekliesUsd: 4_500, totalCashUsd: 98_300, creditsUsd: 40_000 },
-  OPEN_W: { eventWinsUsd: 35_000, overallUsd: 43_200, weekliesUsd: 3_700, totalCashUsd: 81_900, creditsUsd: 33_300 },
-  JUNIOR_M: { eventWinsUsd: 35_000, overallUsd: 43_200, weekliesUsd: 3_700, totalCashUsd: 81_900, creditsUsd: 33_300 },
-  JUNIOR_W: { eventWinsUsd: 17_600, overallUsd: 21_600, weekliesUsd: 1_900, totalCashUsd: 41_100, creditsUsd: 16_600 },
-  MASTERS_50_W: { eventWinsUsd: 17_600, overallUsd: 21_600, weekliesUsd: 1_900, totalCashUsd: 41_100, creditsUsd: 16_600 },
-  MASTERS_40_W: { eventWinsUsd: 10_400, overallUsd: 13_000, weekliesUsd: 1_100, totalCashUsd: 24_500, creditsUsd: 10_000 },
+  OPEN_M: { eventWinsUsd: 103_936, overallUsd: 160_800, weekliesUsd: 13_900, totalCashUsd: 278_636, creditsUsd: 133_000 },
+  MASTERS_40_M: { eventWinsUsd: 38_976, overallUsd: 60_300, weekliesUsd: 5_200, totalCashUsd: 104_476, creditsUsd: 50_000 },
+  MASTERS_50_M: { eventWinsUsd: 31_180, overallUsd: 48_240, weekliesUsd: 4_200, totalCashUsd: 83_620, creditsUsd: 40_000 },
+  OPEN_W: { eventWinsUsd: 25_984, overallUsd: 40_200, weekliesUsd: 3_400, totalCashUsd: 69_584, creditsUsd: 33_300 },
+  JUNIOR_M: { eventWinsUsd: 25_984, overallUsd: 40_200, weekliesUsd: 3_400, totalCashUsd: 69_584, creditsUsd: 33_300 },
+  JUNIOR_W: { eventWinsUsd: 12_992, overallUsd: 20_100, weekliesUsd: 1_800, totalCashUsd: 34_892, creditsUsd: 16_600 },
+  MASTERS_50_W: { eventWinsUsd: 12_992, overallUsd: 20_100, weekliesUsd: 1_800, totalCashUsd: 34_892, creditsUsd: 16_600 },
+  MASTERS_40_W: { eventWinsUsd: 7_796, overallUsd: 12_060, weekliesUsd: 1_000, totalCashUsd: 20_856, creditsUsd: 10_000 },
 };
 
-export function splitTicketCents(ticketCents: number): { athleteCents: number; platformCents: number } {
+/** Annex B.3 founding scenario, printed per ballot. The US$ 6 figure is a cap, not the rate. */
+export const PRINTED_BALLOT_PAY = {
+  rankedUsd: 3.3,
+  chamberUsd: 4.8,
+  capUsd: RANKED_BALLOT_USD,
+} as const;
+
+export function splitTicketCents(ticketCents: number): {
+  athleteCents: number;
+  competitorCents: number;
+  judgeCents: number;
+  chamberCents: number;
+  rankedCents: number;
+  platformCents: number;
+} {
   if (!Number.isInteger(ticketCents) || ticketCents < 0) {
     throw new Error("ticketCents must be a non-negative integer");
   }
-  const athleteCents = Math.floor((ticketCents * ATHLETE_RAIL_BPS) / 10_000);
-  return { athleteCents, platformCents: ticketCents - athleteCents };
+  const [athleteCents, platformCents] = allocateByWeights(ticketCents, [SURFER_RAIL_BPS, PLATFORM_RAIL_BPS]);
+  const [competitorCents, judgeCents] = allocateByWeights(athleteCents!, [COMPETITOR_RAIL_BPS, JUDGE_RAIL_BPS]);
+  const [chamberCents, rankedCents] = allocateByWeights(judgeCents!, [CHAMBER_RAIL_BPS, RANKED_RAIL_BPS]);
+  return {
+    athleteCents: athleteCents!,
+    competitorCents: competitorCents!,
+    judgeCents: judgeCents!,
+    chamberCents: chamberCents!,
+    rankedCents: rankedCents!,
+    platformCents: platformCents!,
+  };
 }
 
 export function allocateByWeights(total: number, weights: readonly number[]): number[] {
@@ -150,12 +186,13 @@ export function allocateByWeights(total: number, weights: readonly number[]): nu
   return shares;
 }
 
-export function splitAffixedPurse(athleteCents: number): {
+/** Splits the 78% prize money. The 6% judges' fee is not part of this purse. */
+export function splitAffixedPurse(competitorCents: number): {
   seasonTableCents: number;
   weeklyCents: number;
   overallCents: number;
 } {
-  const [seasonTableCents, weeklyCents, overallCents] = allocateByWeights(athleteCents, [
+  const [seasonTableCents, weeklyCents, overallCents] = allocateByWeights(competitorCents, [
     PURSE_WEIGHTS.seasonTable,
     PURSE_WEIGHTS.weekly,
     PURSE_WEIGHTS.overall,
@@ -173,20 +210,26 @@ export function editionSeasonTableCents(seasonTableCents: number, shareBps: numb
 export const FOUNDING = (() => {
   const ticketCents = THEME_TICKET_USD * 100;
   const perTheme = splitTicketCents(ticketCents);
-  const purse = splitAffixedPurse(perTheme.athleteCents);
+  const purse = splitAffixedPurse(perTheme.competitorCents);
   const themes = FOUNDING_THEME_COUNT;
   return {
     ticketUsd: THEME_TICKET_USD,
     athleteUsd: perTheme.athleteCents / 100,
+    competitorUsd: perTheme.competitorCents / 100,
+    judgeUsd: perTheme.judgeCents / 100,
+    chamberUsd: perTheme.chamberCents / 100,
+    rankedUsd: perTheme.rankedCents / 100,
     platformUsd: perTheme.platformCents / 100,
     seasonTableUsd: purse.seasonTableCents / 100,
     weeklyUsd: purse.weeklyCents / 100,
     overallUsd: purse.overallCents / 100,
     seasonAthleteUsd: (perTheme.athleteCents * themes) / 100,
+    seasonCompetitorUsd: (perTheme.competitorCents * themes) / 100,
+    seasonJudgeUsd: (perTheme.judgeCents * themes) / 100,
     seasonPlatformUsd: (perTheme.platformCents * themes) / 100,
     seasonBookCashUsd: (ticketCents * themes) / 100,
     poolTollUsd: (FOUNDING_POOL_ENTRIES * POOL_TOLL_CENTS) / 100,
     presenterFaceUsd: PRESENTER_FACE_USD,
-    weeklyPerMondayUsd: (purse.weeklyCents * themes) / 100 / 52,
+    weeklyPerMondayUsd: (purse.weeklyCents * themes) / 100 / FOUNDING_WEEKS,
   };
 })();

@@ -169,8 +169,8 @@ export function EntryForm({
       ) : null}
       {oceanUsed ? (
         <p className="border border-line bg-white px-3 py-2 text-sm">
-          This ISO week&apos;s ocean wave is already in. A pool wave can still enter, with the US$ 20 demonstration toll —
-          nothing is charged.
+          This ISO week&apos;s ocean wave is already in. A pool wave can still enter. The published US$ 20 toll goes to
+          the judges. Nothing is charged here.
         </p>
       ) : null}
       <label className="block text-sm">

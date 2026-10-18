@@ -1,6 +1,7 @@
 import type { CategoryCode, Sex, VerificationTier } from "@prisma/client";
 import { DEMO_THEME_SLUG, SEASON_2027 } from "@/lib/catalogue";
 import { prisma } from "@/lib/db";
+import { isoWeek } from "@/lib/iso-week";
 import { deriveLeaderboard } from "@/lib/leaderboard";
 import type { College } from "@/lib/median";
 import { placementPoints } from "@/lib/points";
@@ -95,6 +96,19 @@ export async function getSeasonRankings() {
   }
 
   return editions;
+}
+
+export async function getHomeRankings() {
+  const editions = await getSeasonRankings();
+  const week = isoWeek(new Date());
+  const wavesThisWeek = await prisma.entry.count({
+    where: {
+      season: { vintage: SEASON_2027.vintage },
+      isoYear: week.isoYear,
+      isoWeek: week.isoWeek,
+    },
+  });
+  return { editions, week, wavesThisWeek };
 }
 
 export async function getHashtagBoard(tag: string, category: CategoryCode, sex: Sex) {

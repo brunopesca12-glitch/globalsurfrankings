@@ -9,6 +9,7 @@ const links = [
   { href: "/ranking", label: "Rankings" },
   { href: "/hashboards", label: "Hashboards" },
   { href: "/purse", label: "Purse" },
+  { href: "/about", label: "About" },
 ];
 
 type HeaderViewer =

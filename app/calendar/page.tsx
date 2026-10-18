@@ -19,10 +19,10 @@ export default function CalendarPage() {
       <p className="text-xs uppercase tracking-[0.22em] text-gold">{SEASON_2027.name}</p>
       <h1 className="mt-2 font-serif text-5xl">Calendar of the twelve events</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-        The ranking runs from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. An event is not a
-        meet: it is a board that stays open until the finale. Most Elegant, on October 31, is the first finale of the
-        vintage. Best Barrel closes the year on the same day as the Overall. The gala, in {SEASON_2027.galaLabel}, is the
-        only live ceremony.
+        The Founding Season runs from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. An event
+        is not a meet: it is a board that stays open until the finale. Best Small Wave, on April 25, is the first
+        finale. Best Barrel closes the season on the same day as the Overall. From Season 2028 the ranking year returns
+        to October 1 through September 30. The gala, in {SEASON_2027.galaLabel}, is the only live ceremony.
       </p>
       <ol className="mt-10 space-y-8">
         {[...groups.entries()].map(([date, themes]) => (

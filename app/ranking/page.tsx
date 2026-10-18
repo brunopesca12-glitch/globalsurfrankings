@@ -24,7 +24,7 @@ export default async function RankingPage() {
             (a, b) => b.points - a.points || a.displayName.localeCompare(b.displayName, "en"),
           );
           return (
-            <section key={edition.id}>
+            <section key={edition.id} id={edition.id}>
               <h2 className="font-serif text-3xl">{edition.label}</h2>
               <p className="text-sm text-ink/60">N = {rows.length}</p>
               {rows.length === 0 ? (

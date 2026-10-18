@@ -35,14 +35,16 @@ describe("catalogue", () => {
     expect(themesFor("OPEN").some((theme) => theme.slug === "best-small-wave")).toBe(true);
   });
 
-  it("dates the vintage from 1 Oct to 30 Sep, with Best Air proposed", () => {
-    expect(SEASON_2027.startsOn).toBe("2026-10-01");
+  it("dates the Founding Season from 1 Mar to 30 Sep 2027", () => {
+    expect(SEASON_2027.startsOn).toBe("2027-03-01");
     expect(SEASON_2027.endsOn).toBe("2027-09-30");
+    expect(small.finaleOn).toBe("2027-04-25");
     expect(barrel.finaleOn).toBe("2027-09-30");
-    expect(air.finaleOn).toBe("2026-11-30");
-    expect(air.proposedDate).toBe(true);
+    expect(air.finaleOn).toBe("2027-09-10");
+    expect(air.proposedDate).toBe(false);
     expect(air.oceanOnly).toBe(true);
     expect(pool.poolOnly).toBe(true);
+    expect(pool.finaleOn).toBe("2027-05-31");
   });
 });
 

@@ -1,8 +1,8 @@
 # Global Surf Rankings
 
-MVP v0.1 of the athlete and ranking product described in the Founding Edition white paper (v9, September 2026). The circuit is asynchronous: an athlete enters one ocean wave a week into a themed event, the wave receives an ordinal place, and event places mint season points.
+MVP v0.1 of the athlete and ranking product described in the Founding Edition white paper (v10.1, 6 October 2026). The circuit is asynchronous: an athlete enters one ocean wave a week into a themed event, the wave receives an ordinal place, and event places mint season points. The public competition rules are `/rules`. The white paper PDF is not published.
 
-The interface is in English. Money on the purse page is a labeled demonstration of the published arithmetic. Nothing is charged and nothing is paid.
+The interface is in English. Money on the purse page mirrors the published escrow. Nothing is charged, nothing is held, and nothing is paid through the platform.
 
 Domains: gsr.surf and globalsurfrankings.com. The public site does not print a personal founder credit.
 
@@ -75,7 +75,7 @@ Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Au
 
 ## What the seed contains
 
-Season vintage 2027, ranking window 1 Oct 2026 → 30 Sep 2027, age taken on 30 Sep 2027. All twelve Open events, with the category cuts from the paper: Junior has the same twelve, 40+ has eleven (no Best Small Wave), 50+ has ten (also no Best Air). Best Surf Pool is one event — Air for Open and Junior, Wave for 40+ and 50+. Best Air's 30 Nov date is marked proposed.
+Season vintage 2027, the Founding Season, 1 Mar 2027 → 30 Sep 2027, age taken on 30 Sep 2027. All twelve Open events, with the category cuts from the paper: Junior has the same twelve, 40+ has eleven (no Best Small Wave), 50+ has ten (also no Best Air). Best Surf Pool is one event — Air for Open and Junior, Wave for 40+ and 50+. Best Small Wave closes first, on 25 Apr. Best Barrel closes with the Overall on 30 Sep.
 
 One filled board: Best Barrel, Open, Men, places 1–8. A few other entries sit unplaced, including one pool entry with a recorded US$ 20 toll that is not collected.
 
@@ -84,23 +84,25 @@ One filled board: Best Barrel, Open, Men, places 1–8. A few other entries sit 
 Constitutional constants live in `lib/constitution.ts`.
 
 - Ocean entry is free. One ocean wave per ISO week, no banking. Pool submissions are not part of that quota.
-- Pool toll is US$ 20, retained by the platform. The app stores the toll in cents and does not charge it.
-- A theme ticket is US$ 400,000. 84% (US$ 336,000) is the affixed purse: US$ 250,000 season tables, US$ 50,000 weekly race, US$ 36,000 world champions' fund. 16% (US$ 64,000) is the platform. Those rails sum to the ticket at any whole-cent amount.
+- Pool toll is US$ 20 and passes whole to the judges. The app stores the toll in cents and does not collect it.
+- A theme ticket is US$ 400,000. 84% (US$ 336,000) goes to surfers: 78% prize money (US$ 312,000 — season tables US$ 232,000, weekly race US$ 46,500, world champions' fund US$ 33,500) and 6% judges (US$ 24,000, US$ 12,000 to each of the Chamber and the Ranked). 16% (US$ 64,000) is the platform. Those rails sum to the ticket at any whole-cent amount. The site mirrors the escrow and does not move the money.
 - Season-table field shares, founding scenario: Open M 40%, 40+ M 15%, 50+ M 12%, Open W 10%, Junior M 10%, Junior W 5%, 50+ W 5%, 40+ W 3%.
-- Paid places are the top 20% of an edition (`floor(0.2 × S)`, at least the winner). Six paid places receive exactly 35 / 20 / 14 / 12 / 10 / 9. Fewer places renormalise that podium. Further places share a tail of weight 4, then the vector is normalised so it still sums to 100%. The purse page shows this exact curve. The white paper prints a few of those dollars rounded (and prints US$ 650 where the 40+ women's sixth place is US$ 675). The printed champion campaign in Annex B.2 is shown beside the law, labeled as printed.
+- Paid places are the top 20% of an edition (`floor(0.2 × S)`, at least the winner). On a large field the podium six take 80% of the table on the curve 35 / 20 / 14 / 12 / 10 / 9, which is 28 / 16 / 11.2 / 9.6 / 8 / 7.2% of the table. Places 7 through the cutoff split the other 20% equally, and none is paid more than sixth; a short tail returns the excess to the podium. Six or fewer paid places receive the whole table on that curve. The purse page shows this law. The white paper rounds a few of those cents to the dollar. The printed champion campaign in Annex B.2 is shown beside the law, labeled as printed.
 - Event points: podium 100 / 60 / 45 / 35 / 28 / 22 percent of the event base, then 12% through the rest of the top fifth (`floor(S/5)`), then 4% to every other entrant. The winner's base is `100 × √(S/100)`. A field of 400 pays twice a field of 100. The world ranking is the sum of those event points. Points stay provisional until a finale because S is the current entry count.
 - Ordinal placement is binary insertion (index 0 is best). A judge's ballot is sealed. Each college's public place is the median of its ballots, and the college abstains below three. The wave's place is the median of the colleges that voted; an even split resolves toward the Chamber of Champions. The desk runs that Monday verdict. It does not type a place.
 - One person sits in one college: Chamber, then Ranked, then the Upper Chamber (top 10 of a category ranking), then Athletes (anyone who entered that season), then the Public. The desk seats only the first two. A judge never draws a wave in their own category or a declared clubmate's, and the ballot does not show the athlete.
 - An entry is refused while this ISO week's ballot queue is still open. Monday holds a wave when the week it was entered still has open ballots, so the new week does not pull last week's wave back out. The queue is at most 8 ballots (the paper's "about fifteen minutes"). The old duty checkbox is unused. Waves judged in the same week are compared with the board already published, not with each other.
-- The Ranked college's US$ 6 a ballot is shown as DEMO. Nothing is paid. A judge sees their own mean deviation after Monday. Public accuracy boards, demotion, and the Golden Eye are not in this version. Upper Chamber membership is the top 10, not the paper's accuracy-promotion ladder.
+- The Ranked college is capped at US$ 6 a ballot. On the founding scenario the paper prints about US$ 3.30 for The Ranked and about US$ 4.80 for the Chamber. Nothing is paid. A judge sees their own mean deviation after Monday. Public accuracy boards, demotion, and the Golden Eye are not in this version. Upper Chamber membership is the top 10, not the paper's accuracy-promotion ladder.
 - Hashboards filter a world board by hashtag and renumber. They do not judge or pay.
 - Verification is Verified or Verified Pro. Pro is a checkbox with no credential check. Tiers gate nothing at the door. Age bands are exclusive.
 
-The calendar follows Section 3 (1 Oct → 30 Sep), not the March 2027 operational opening in the roadmap. Themes close on their finale date. Entries are not yet rejected for being ridden outside the vintage, so the scaffold can be used before opening day.
+The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep 2027, and Season 2028 returns to 1 Oct → 30 Sep. Themes close on their finale date. Entries are not yet rejected for being ridden outside the vintage, so the scaffold can be used before opening day.
 
 ## Routes
 
-- `/` circuit thesis
+- `/` world rankings and the purse on each theme
+- `/about` the circuit thesis
+- `/rules` the public competition rules. The PDF is not served.
 - `/videos` watch every uploaded wave; `/videos/[id]` plays one
 - `/calendar` twelve themes, each linking to its world board
 - `/board/best-barrel` demo world board (ordinal places); other theme slugs work the same way
@@ -118,4 +120,4 @@ The calendar follows Section 3 (1 Oct → 30 Sep), not the March 2027 operationa
 
 ## Not in v0.1
 
-Real escrow, Pix, cards, KYC, video upload or transcoding, Ranked payroll, public accuracy boards, the Golden Eye, accuracy promotion into the Upper Chamber, Monday payroll, the media house, sponsor checkout, patron tools, WhatsApp, crypto, and any balance the application increments. The purse display, and the Ranked US$ 6, are a mirror of the published arithmetic, not a payment.
+Real escrow, Pix, cards, KYC, video upload or transcoding, a ride-date field, an image-rights attestation on the entry form, Ranked payroll, public accuracy boards, the Golden Eye, accuracy promotion into the Upper Chamber, Monday payroll, the media house, sponsor checkout, patron tools, WhatsApp, crypto, and any balance the application increments. The purse display, and the Ranked cap of US$ 6, are a mirror of the published arithmetic, not a payment. No money moves through the platform. `/rules` states the published competition rules, including the fields the entry form does not collect yet.

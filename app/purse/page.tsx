@@ -4,6 +4,8 @@ import {
   FOUNDING,
   FOUNDING_POOL_ENTRIES,
   FOUNDING_THEME_COUNT,
+  FOUNDING_WEEKS,
+  PRINTED_BALLOT_PAY,
   PRINTED_CHAMPION_SEASON,
   PRINTED_EDITION_HEADLINES,
 } from "@/lib/constitution";
@@ -20,20 +22,25 @@ export default function PursePage() {
     <div className="mx-auto max-w-5xl px-5 py-12">
       <div className="flex flex-wrap items-center gap-4">
         <span className="stamp">Demo</span>
-        <p className="text-sm text-ink/70">No figure on this page is money. There is no charge, no escrow, and no payout.</p>
+        <p className="text-sm text-ink/70">
+          A mirror of the published escrow. No money moves through the platform.
+        </p>
       </div>
       <h1 className="mt-4 font-serif text-5xl">Affixed purse</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-        A demonstration mirror of the arithmetic published in the founding edition. The application does not increment
-        balances: when escrow exists, the number on screen will be a reading of the statement. Until then, what you see is
-        the law.
+        Sponsors deposit the surfers&apos; share at a custodian bank, before the season opens. Competitors and judges
+        are the beneficiaries, under the tables below. This page orients that account. It does not hold it, collect
+        it, or pay it.
       </p>
 
-      <section className="mt-10 grid gap-4 md:grid-cols-3">
+      <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[
           ["Theme ticket", formatUsdAmount(FOUNDING.ticketUsd)],
-          ["Athletes · 84%", formatUsdAmount(FOUNDING.athleteUsd)],
+          ["Surfers · 84%", formatUsdAmount(FOUNDING.athleteUsd)],
           ["Platform · 16%", formatUsdAmount(FOUNDING.platformUsd)],
+          ["Competitors · 78%", formatUsdAmount(FOUNDING.competitorUsd)],
+          ["Judges · 6%", formatUsdAmount(FOUNDING.judgeUsd)],
+          ["Pool toll · to judges", formatUsdAmount(POOL_TOLL_LABEL)],
         ].map(([label, value]) => (
           <article key={label} className="border border-line bg-white px-4 py-5">
             <p className="text-xs uppercase tracking-widest text-ink/55">{label}</p>
@@ -41,9 +48,14 @@ export default function PursePage() {
           </article>
         ))}
       </section>
+      <p className="mt-3 text-sm text-ink/65">
+        84% still means &ldquo;to surfers&rdquo;: 78% prize money and 6% judges&apos; fees. The US${" "}
+        {POOL_TOLL_LABEL} pool toll is collected only so it can be passed whole to the judging fund. This site does
+        not collect it.
+      </p>
 
       <section className="mt-10">
-        <h2 className="font-serif text-3xl">How the {formatUsdAmount(FOUNDING.athleteUsd)} is split</h2>
+        <h2 className="font-serif text-3xl">How the {formatUsdAmount(FOUNDING.competitorUsd)} is split</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-3">
           {[
             ["Season tables", FOUNDING.seasonTableUsd],
@@ -57,18 +69,42 @@ export default function PursePage() {
           ))}
         </ul>
         <p className="mt-3 text-sm text-ink/65">
-          Twelve themes: {formatUsdAmount(FOUNDING.seasonAthleteUsd)} in purses and{" "}
+          Twelve themes: {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} in prize money,{" "}
+          {formatUsdAmount(FOUNDING.seasonJudgeUsd)} in judges&apos; fees, and{" "}
           {formatUsdAmount(FOUNDING.seasonPlatformUsd)} in commission. The weekly race is about{" "}
-          {formatUsd(Math.round(FOUNDING.weeklyPerMondayUsd * 100))} each Monday, if the year has 52 Mondays.
+          {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in checks every Monday across the Founding Season&apos;s{" "}
+          {FOUNDING_WEEKS} weeks.
+        </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-serif text-3xl">Judges&apos; fee</h2>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          {[
+            ["Chamber of Champions · 3%", FOUNDING.chamberUsd],
+            ["The Ranked · 3%", FOUNDING.rankedUsd],
+          ].map(([label, amount]) => (
+            <li key={String(label)} className="border border-line px-4 py-4">
+              <p className="text-sm text-ink/70">{label}</p>
+              <p className="font-serif text-3xl">{formatUsdAmount(Number(amount))}</p>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 max-w-2xl text-sm text-ink/65">
+          On the founding scenario the Chamber is about US$ {PRINTED_BALLOT_PAY.chamberUsd.toFixed(2)} a ballot, and
+          The Ranked about US$ {PRINTED_BALLOT_PAY.rankedUsd.toFixed(2)}, once the pool toll is added to their 3%. The
+          Ranked rate is capped at US$ {PRINTED_BALLOT_PAY.capUsd}. The platform may top that up and is never obliged
+          to. Nothing here is paid.
         </p>
       </section>
 
       <section className="mt-12">
         <h2 className="font-serif text-3xl">Tables by edition</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink/75">
-          The season table ({formatUsdAmount(FOUNDING.seasonTableUsd)}) is shared across the eight editions by the founding
-          field share. The exact curve of the first six places is 35 / 20 / 14 / 12 / 10 / 9. v9 prints some of those
-          dollars rounded; this page uses the column of the law.
+          The season table ({formatUsdAmount(FOUNDING.seasonTableUsd)}) is shared across the eight editions by the
+          founding field share. On a large field the podium six take 80% of an edition&apos;s table, on the curve 35 /
+          20 / 14 / 12 / 10 / 9 — that is 28% to the winner and 7.2% to sixth. The paper rounds those cents to the
+          dollar. A field of six or fewer returns the unused tail to the podium on the same curve.
         </p>
         <div className="mt-4 overflow-x-auto border border-line bg-white">
           <table className="w-full text-left text-sm">
@@ -100,18 +136,19 @@ export default function PursePage() {
           </table>
         </div>
         <p className="mt-3 text-sm text-ink/65">
-          The top 20% of each edition is paid. With six places, the curve above is the whole law. With more places, the
-          rest shares a tail weight and the vector sums to 100% again. A real season&apos;s tables are fixed at the opening;
-          the field that actually raced recalibrates only the next season.
+          The top 20% of each edition is paid. Places after sixth split the remaining 20% equally, and none of them is
+          paid more than sixth. Best Small Wave and ocean Best Air keep the same{" "}
+          {formatUsdAmount(FOUNDING.athleteUsd)} purse; their season tables concentrate in the editions they run. A
+          running season&apos;s tables stay fixed. The field that actually raced recalibrates only the next season.
         </p>
       </section>
 
       <section className="mt-12">
         <h2 className="font-serif text-3xl">Champions in the printed scenario</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink/75">
-          Four event wins, the Overall in cash, and an estimate of weeklies — the Annex B.2 figures, not a projection from
-          the waves in this database. The exact Overall fund, before the printed rounding, is the field share of{" "}
-          {formatUsd(overallPoolCents)}.
+          Four event wins, the Overall in cash, and an estimate of weeklies — Annex B.2, not a projection from the
+          waves in this database. Credits are the presenter&apos;s overlay, shown beside the cash and never added into
+          it. The exact Overall fund, before the printed rounding, is the field share of {formatUsd(overallPoolCents)}.
         </p>
         <div className="mt-4 overflow-x-auto border border-line bg-white">
           <table className="w-full text-left text-sm">
@@ -122,6 +159,7 @@ export default function PursePage() {
                 <th className="px-3 py-2">Overall</th>
                 <th className="px-3 py-2">Weeklies</th>
                 <th className="px-3 py-2">Cash</th>
+                <th className="px-3 py-2">Credits</th>
               </tr>
             </thead>
             <tbody>
@@ -134,6 +172,7 @@ export default function PursePage() {
                     <td className="px-3 py-2">{formatUsdAmount(row.overallUsd)}</td>
                     <td className="px-3 py-2">{formatUsdAmount(row.weekliesUsd)}</td>
                     <td className="px-3 py-2">{formatUsdAmount(row.totalCashUsd)}</td>
+                    <td className="px-3 py-2 text-ink/60">{formatUsdAmount(row.creditsUsd)}</td>
                   </tr>
                 );
               })}
@@ -146,7 +185,16 @@ export default function PursePage() {
         <h2 className="font-serif text-3xl">The founding book, summed</h2>
         <ul className="mt-4 space-y-1 text-sm">
           <li>
-            Affixed purses, 12 × {formatUsdAmount(FOUNDING.athleteUsd)} = {formatUsdAmount(FOUNDING.seasonAthleteUsd)}
+            Escrowed to surfers, 12 × {formatUsdAmount(FOUNDING.athleteUsd)} ={" "}
+            {formatUsdAmount(FOUNDING.seasonAthleteUsd)}
+          </li>
+          <li>
+            Of which prize money, 12 × {formatUsdAmount(FOUNDING.competitorUsd)} ={" "}
+            {formatUsdAmount(FOUNDING.seasonCompetitorUsd)}
+          </li>
+          <li>
+            Of which judges&apos; fees, 12 × {formatUsdAmount(FOUNDING.judgeUsd)} ={" "}
+            {formatUsdAmount(FOUNDING.seasonJudgeUsd)}
           </li>
           <li>
             Platform, 12 × {formatUsdAmount(FOUNDING.platformUsd)} = {formatUsdAmount(FOUNDING.seasonPlatformUsd)}
@@ -154,13 +202,16 @@ export default function PursePage() {
           <li>Book in cash = {formatUsdAmount(FOUNDING.seasonBookCashUsd)}</li>
           <li>Presenter face, in credits = {formatUsdAmount(FOUNDING.presenterFaceUsd)}</li>
           <li>
-            Pool tolls, {FOUNDING_POOL_ENTRIES.toLocaleString("en-US")} × US$ 20 = {formatUsdAmount(FOUNDING.poolTollUsd)}
+            Pool tolls, {FOUNDING_POOL_ENTRIES.toLocaleString("en-US")} × US$ 20 ={" "}
+            {formatUsdAmount(FOUNDING.poolTollUsd)}, passed whole to the judges
           </li>
           <li>
-            The system moves {formatUsdAmount(7_050_000)} in that scenario. It remains an account, not a cash drawer.
+            The published scenario moves {formatUsdAmount(7_050_000)}. This site only points at those accounts.
           </li>
         </ul>
       </section>
     </div>
   );
 }
+
+const POOL_TOLL_LABEL = 20;

@@ -1,106 +1,129 @@
 import Link from "next/link";
 import { SEASON_2027, THEMES } from "@/lib/catalogue";
-import { EDITIONS, FOUNDING, POOL_TOLL_CENTS } from "@/lib/constitution";
-import { formatDate } from "@/lib/format";
+import { EDITIONS, FOUNDING } from "@/lib/constitution";
+import { getHomeRankings, type RankingRow } from "@/lib/data";
+import { formatDate, formatPoints, formatUsdAmount } from "@/lib/format";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const board = await loadBoard();
+  const weekLabel = board
+    ? `${board.week.isoYear}-W${String(board.week.isoWeek).padStart(2, "0")}`
+    : null;
+
   return (
-    <>
-      <section className="bg-ocean text-paper">
-        <div className="mx-auto max-w-6xl px-5 py-20 md:py-28">
-          <p className="text-xs uppercase tracking-[0.28em] text-sand">
-            {SEASON_2027.name} · gala {SEASON_2027.galaLabel}
-          </p>
-          <h1 className="mt-6 max-w-4xl font-serif text-6xl leading-[0.92] md:text-8xl">The best wave wins.</h1>
-          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/85">
-            An asynchronous world circuit. Twelve themed events, eight rankings, a verdict every Monday. You film the wave,
-            you enter it, and it receives a place. Ocean entry is free.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/sign-up" className="bg-paper px-5 py-3 text-ocean">
-              Create an athlete account
-            </Link>
-            <Link href="/videos" className="border border-paper/40 px-5 py-3">
-              Watch the waves
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-line">
-        <div className="mx-auto grid max-w-6xl md:grid-cols-3">
-          {[
-            ["US$ 0", "Ocean entry. One wave per ISO week. No membership, no banked waves."],
-            ["84%", "Of every sponsor dollar goes to the athletes, in a purse affixed before the season opens."],
-            ["16%", `Stays with the platform — plus the pool toll, US$ ${POOL_TOLL_CENTS / 100}, which the platform retains.`],
-          ].map(([title, body]) => (
-            <div key={title} className="border-line px-5 py-10 md:border-r md:last:border-r-0">
-              <p className="font-serif text-5xl text-ocean">{title}</p>
-              <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink/75">{body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2">
+    <div className="mx-auto max-w-6xl px-5 py-10 md:py-14">
+      <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h2 className="font-serif text-4xl">An event is not a beach on a day.</h2>
-          <p className="mt-4 leading-relaxed text-ink/80">
-            At GSR, an event is a tournament: one dimension of surfing, with its own world board, its own purse, and its own
-            finale, open all season. The wave may have been ridden anywhere. What is measured is not who won the heat. It is
-            who rode the best wave of the year.
+          <p className="text-xs uppercase tracking-[0.22em] text-gold">
+            Founding Season · {formatDate(SEASON_2027.startsOn)} – {formatDate(SEASON_2027.endsOn)}
           </p>
-          <p className="mt-4 leading-relaxed text-ink/80">
-            To be judged, you judge. An entry joins Monday&apos;s verdict only when this week&apos;s ballot queue is complete.
-          </p>
+          <h1 className="mt-3 font-serif text-5xl leading-none md:text-7xl">World rankings</h1>
         </div>
-        <blockquote className="border-l-2 border-gold pl-6">
-          <p className="font-serif text-3xl leading-snug">&ldquo;A wave does not receive a score. It receives a place.&rdquo;</p>
-          <p className="mt-4 text-sm text-ink/70">
-            Five colleges, one verdict: the median. The desk seats the Chamber and the Ranked, then runs Monday&apos;s verdict.
-            Points follow the founding curve — 100 / 60 / 45 / 35 / 28 / 22, base × √(S/100).
-          </p>
-        </blockquote>
-      </section>
-
-      <section className="bg-foam">
-        <div className="mx-auto max-w-6xl px-5 py-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="font-serif text-4xl">Twelve finales. Eight crowns.</h2>
-            <Link href="/calendar" className="text-sm text-ocean">
-              Full calendar
+        <div className="max-w-xs text-sm leading-relaxed text-ink/70">
+          {weekLabel ? (
+            <p>
+              This week {weekLabel}. {board?.wavesThisWeek ?? 0}{" "}
+              {board?.wavesThisWeek === 1 ? "wave" : "waves"} entered. Verdicts publish Monday.
+            </p>
+          ) : (
+            <p>This week&apos;s count is unavailable. Verdicts publish Monday.</p>
+          )}
+          <p className="mt-2">
+            <Link href="/about" className="text-ocean">
+              How the circuit works
             </Link>
-          </div>
-          <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {THEMES.map((theme) => (
-              <li key={theme.slug} className="border border-line bg-paper px-4 py-3">
-                <p className="text-xs uppercase tracking-widest text-gold">{formatDate(theme.finaleOn)}</p>
-                <p className="mt-1 font-medium">{theme.name}</p>
-              </li>
-            ))}
-          </ol>
-          <ul className="mt-8 flex flex-wrap gap-2 text-sm">
-            {EDITIONS.map((edition) => (
-              <li key={edition.id} className="border border-line bg-paper px-3 py-1">
-                {edition.label}
-              </li>
-            ))}
-          </ul>
+          </p>
         </div>
-      </section>
+      </div>
 
-      <section className="mx-auto max-w-6xl px-5 py-16">
-        <h2 className="font-serif text-4xl">The purse is on the door. In this version, as a demonstration.</h2>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-          Each founding theme is a ticket of US$ {FOUNDING.ticketUsd.toLocaleString("en-US")}. Of that number, US${" "}
-          {FOUNDING.athleteUsd.toLocaleString("en-US")} stays with the athletes — season tables, the weekly race, and the
-          champions&apos; fund — and US$ {FOUNDING.platformUsd.toLocaleString("en-US")} with the platform. The public display
-          repeats the published arithmetic. There is no Pix, no escrow, and no balance.
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {EDITIONS.map((edition) => {
+          const rows = topRows(board?.editions.get(`${edition.category}:${edition.sex}`), 3);
+          return (
+            <section key={edition.id} className="border border-line bg-white">
+              <h2 className="border-b border-line px-3 py-2 font-serif text-xl">
+                <Link href={`/ranking#${edition.id}`} className="hover:text-ocean">
+                  {edition.label}
+                </Link>
+              </h2>
+              {rows.length === 0 ? (
+                <p className="px-3 py-4 text-sm text-ink/55">No places yet.</p>
+              ) : (
+                <ol>
+                  {rows.map((row, index) => (
+                    <li key={row.athleteId} className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
+                      <span className="min-w-0">
+                        <span className="mr-2 font-serif text-lg">{index + 1}</span>
+                        <Link href={`/athlete/${row.slug}`} className="hover:text-ocean">
+                          {row.displayName}
+                        </Link>
+                      </span>
+                      <span className="shrink-0 text-ink/70">{formatPoints(row.points)}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          );
+        })}
+      </div>
+
+      <section className="mt-16">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h2 className="font-serif text-4xl">Purses on the door</h2>
+          <Link href="/purse" className="text-sm text-ocean">
+            Full purse
+          </Link>
+        </div>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/75">
+          Each theme escrows {formatUsdAmount(FOUNDING.athleteUsd)} to surfers before the season opens —{" "}
+          {formatUsdAmount(FOUNDING.competitorUsd)} in prize money and {formatUsdAmount(FOUNDING.judgeUsd)} to the
+          judges. This list mirrors that account. No money moves through the platform.
         </p>
-        <Link href="/purse" className="mt-6 inline-block border border-ocean px-4 py-2 text-ocean">
-          Open the DEMO purse
-        </Link>
+        <div className="mt-6 overflow-x-auto border border-line bg-white">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/55">
+              <tr>
+                <th className="px-3 py-2">Theme</th>
+                <th className="px-3 py-2">Finale</th>
+                <th className="px-3 py-2">To surfers</th>
+              </tr>
+            </thead>
+            <tbody>
+              {THEMES.map((theme) => (
+                <tr key={theme.slug} className="border-b border-line last:border-b-0">
+                  <td className="px-3 py-2">
+                    <Link href={`/board/${theme.slug}`} className="hover:text-ocean">
+                      {theme.name}
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2 text-ink/70">{formatDate(theme.finaleOn)}</td>
+                  <td className="px-3 py-2">{formatUsdAmount(FOUNDING.athleteUsd)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-sm text-ink/60">
+          Twelve themes, {formatUsdAmount(FOUNDING.seasonAthleteUsd)} escrowed to surfers. About{" "}
+          {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in weekly checks each Monday of the Founding Season.
+        </p>
       </section>
-    </>
+    </div>
   );
+}
+
+function topRows(bucket: Map<string, RankingRow> | undefined, count: number): RankingRow[] {
+  if (!bucket) return [];
+  return [...bucket.values()]
+    .sort((a, b) => b.points - a.points || a.displayName.localeCompare(b.displayName, "en"))
+    .slice(0, count);
+}
+
+async function loadBoard() {
+  try {
+    return await getHomeRankings();
+  } catch {
+    return null;
+  }
 }
