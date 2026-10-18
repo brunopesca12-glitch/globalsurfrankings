@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SEASON_2027 } from "@/lib/catalogue";
 import {
   EDITIONS,
   FOUNDING,
@@ -9,7 +10,7 @@ import {
   PRINTED_CHAMPION_SEASON,
   PRINTED_EDITION_HEADLINES,
 } from "@/lib/constitution";
-import { formatUsd, formatUsdAmount } from "@/lib/format";
+import { formatDate, formatUsd, formatUsdAmount } from "@/lib/format";
 import { foundingEditionTables } from "@/lib/payout";
 
 export const metadata: Metadata = { title: "Purse" };
@@ -28,9 +29,10 @@ export default function PursePage() {
       </div>
       <h1 className="mt-4 font-serif text-5xl">Affixed purse</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-        Sponsors deposit the surfers&apos; share at a custodian bank, before the season opens. Competitors and judges
-        are the beneficiaries, under the tables below. This page orients that account. It does not hold it, collect
-        it, or pay it.
+        The Founding Season runs from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. Sponsors
+        deposit the surfers&apos; share at a custodian bank before that season opens. Competitors and judges are the
+        beneficiaries, under the tables below. This page orients that account. It does not hold it, collect it, or pay
+        it.
       </p>
 
       <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
