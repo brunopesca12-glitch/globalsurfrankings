@@ -1,6 +1,6 @@
 import { publicationResponse } from "@/app/api/payment-orders/respond";
 import { loadPublication } from "@/lib/payment-publish";
-import { fileByPeriod } from "@/lib/payment-orders";
+import { buildDemoSample, fileByPeriod } from "@/lib/payment-orders";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +8,10 @@ const PERIOD = /^\d{4}-W\d{2}$|^\d{4}-season$/;
 
 export async function GET(request: Request, context: { params: Promise<{ period: string }> }) {
   const { period } = await context.params;
+  if (period === "demo") {
+    const demo = buildDemoSample();
+    return publicationResponse(request, demo, demo.contentHash);
+  }
   if (!PERIOD.test(period)) {
     return Response.json({ error: "unknown_period" }, { status: 404 });
   }

@@ -7,6 +7,7 @@ import {
   SEASON_JUDGE_CENTS,
   SEASON_WEEKLY_RACE_CENTS,
   THEME_SEASON_TABLE_CENTS,
+  buildDemoSample,
   buildPublication,
   contentHashOf,
   seasonWeeks,
@@ -223,6 +224,22 @@ describe("payment orders", () => {
     expect(chamber[0]?.ruleRef).toBe(`${RULES_VERSION}#judges-champions`);
     expect(week.orders.some((order) => order.ruleRef.includes("platform"))).toBe(false);
     expect(publication.files.some((file) => file.period === "2026-W42")).toBe(false);
+  });
+
+  it("publishes a labelled demo sample that is not payable and not inside a week file", () => {
+    const demo = buildDemoSample();
+    expect(demo.demo).toBe(true);
+    expect(demo.payable).toBe(false);
+    expect(demo.period).toBe("demo");
+    expect(demo.orders.length).toBeGreaterThan(0);
+    expect(demo.orders.every((order) => order.demo)).toBe(true);
+    expect(verifyContentHash(demo)).toBe(true);
+    const publication = buildPublication({ placements: [], fields: [], ballots: [] });
+    expect(publication.index.demo.payable).toBe(false);
+    expect(publication.index.demo.label).toBe("Demo");
+    expect(publication.index.demo.href).toBe("/api/payment-orders/demo");
+    expect(publication.files.every((file) => file.orders.every((order) => order.demo === false))).toBe(true);
+    expect(publication.files.some((file) => file.period === "demo")).toBe(false);
   });
 
   it("ignores waves and ballots outside Season 1", () => {

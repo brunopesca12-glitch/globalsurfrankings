@@ -55,6 +55,7 @@ Only Season 1 events are included. A missing wallet, or an address `lib/wallet.t
 
 - `GET /api/payment-orders` — index of every week plus the season file. Each row has `payOn`, the order count, the content hash, and `href`.
 - `GET /api/payment-orders/{period}` — one file. Unknown periods return 404.
+- `GET /api/payment-orders/demo` — a sample file. `demo` is true and `payable` is false. Every order in it has `demo: true`. The executor must not pay it. It exists so a person can check the shape before the season has verdicts. Week files do not contain these rows.
 
 While the site preview password is on, these URLs ask for that same password. They do not ask for a signed-in user.
 

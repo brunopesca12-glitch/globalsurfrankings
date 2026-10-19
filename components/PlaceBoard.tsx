@@ -70,7 +70,7 @@ export function PlaceBoard({
 
       <aside className="order-2 lg:order-1">
         <p className="text-xs uppercase tracking-[0.18em] text-ink/50">Your list · {tiles.length}</p>
-        <ol className="mt-3">
+        <ol className="mt-3 max-h-[70vh] overflow-y-auto pr-1">
           <Gap
             place={1}
             active={over === 1}

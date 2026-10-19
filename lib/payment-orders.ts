@@ -66,6 +66,8 @@ export type PaymentOrder = {
   splitBasis: SplitBasis;
   ruleRef: string;
   status: OrderStatus;
+  /** True on the sample file. An executor must not pay a demo order. */
+  demo: boolean;
 };
 
 export type PeriodFile = {
@@ -103,8 +105,32 @@ export type PaymentOrderIndex = {
   calendarNote: string;
   periods: PeriodSummary[];
   execution: typeof CHAIN_EXECUTION;
+  demo: DemoSummary;
   contentHash: string;
 };
+
+export type DemoSummary = {
+  payable: false;
+  label: "Demo";
+  note: string;
+  orderCount: number;
+  amountCents: number;
+  contentHash: string;
+  href: "/api/payment-orders/demo";
+};
+
+export type DemoFile = {
+  rulesVersion: typeof RULES_VERSION;
+  period: "demo";
+  payable: false;
+  demo: true;
+  note: string;
+  orders: PaymentOrder[];
+  contentHash: string;
+};
+
+export const DEMO_ORDER_NOTE =
+  "Demo sample, computed from the rules so the file shape can be checked. Not a payout. An executor must not pay an order marked demo.";
 
 export type SeasonWeek = {
   period: string;
@@ -197,7 +223,7 @@ export function periodKey(isoYear: number, week: number): string {
   return `${isoYear}-W${String(week).padStart(2, "0")}`;
 }
 
-export function buildPublication(input: PublicationInput): Publication {
+export function buildPublication(input: PublicationInput, options?: { nestDemo?: boolean }): Publication {
   const season = input.season ?? SEASON_2027;
   const weeks = seasonWeeks(season.startsOn, season.endsOn);
   const weekSet = new Set(weeks.map((week) => week.period));
@@ -272,11 +298,91 @@ export function buildPublication(input: PublicationInput): Publication {
       "The printed purse divides the weekly race and the judges' fee by 30. This file divides both by every Monday from the season start through the season end, so the shares sum to the season totals.",
     periods,
     execution: CHAIN_EXECUTION,
+    demo: options?.nestDemo === false ? emptyDemoSummary() : demoSummary(buildDemoSample()),
   } satisfies Omit<PaymentOrderIndex, "contentHash">;
 
   return {
     files,
     index: { ...indexBody, contentHash: contentHashOf(indexBody) },
+  };
+}
+
+const DEMO_ETH = "0x1111111111111111111111111111111111111111";
+
+/** A stable sample. It is not part of a payable week file. */
+export function buildDemoSample(): DemoFile {
+  const weeks = seasonWeeks(SEASON_2027.startsOn, SEASON_2027.endsOn);
+  const first = weeks[0]!;
+  const year = Number(first.period.slice(0, 4));
+  const week = Number(first.period.slice(6));
+  const sample = buildPublication(
+    {
+      placements: [
+        {
+          entryId: "demo-entry",
+          athleteId: "demo-athlete",
+          displayName: "Demo Athlete",
+          themeSlug: "best-tube",
+          themeName: "Best Tube",
+          category: "OPEN",
+          sex: "M",
+          place: 1,
+          isoYear: year,
+          isoWeek: week,
+          walletNetwork: "ethereum",
+          walletAddress: DEMO_ETH,
+        },
+      ],
+      fields: [{ themeSlug: "best-tube", category: "OPEN", sex: "M", entrants: 1 }],
+      ballots: [
+        {
+          userId: "demo-judge",
+          displayName: "Demo Judge",
+          college: "RANKED",
+          isoYear: year,
+          isoWeek: week,
+          walletNetwork: null,
+          walletAddress: null,
+        },
+      ],
+    },
+    { nestDemo: false },
+  );
+  const orders = sample.files
+    .flatMap((file) => file.orders)
+    .map((order) => ({ ...order, demo: true }));
+  const body = {
+    rulesVersion: RULES_VERSION,
+    period: "demo" as const,
+    payable: false as const,
+    demo: true as const,
+    note: DEMO_ORDER_NOTE,
+    orders,
+  } satisfies Omit<DemoFile, "contentHash">;
+  return { ...body, contentHash: contentHashOf(body) };
+}
+
+function demoSummary(file: DemoFile): DemoSummary {
+  return {
+    payable: false,
+    label: "Demo",
+    note: file.note,
+    orderCount: file.orders.length,
+    amountCents: file.orders.reduce((sum, order) => sum + order.amountCents, 0),
+    contentHash: file.contentHash,
+    href: "/api/payment-orders/demo",
+  };
+}
+
+function emptyDemoSummary(): DemoSummary {
+  return {
+    payable: false,
+    label: "Demo",
+    note: DEMO_ORDER_NOTE,
+    orderCount: 0,
+    amountCents: 0,
+    contentHash: "",
+    href: "/api/payment-orders/demo",
   };
 }
 
@@ -588,6 +694,7 @@ function athleteOrder(input: {
     splitBasis: input.splitBasis,
     ruleRef: input.ruleRef,
     status: wallet ? "published" : "awaiting_wallet",
+    demo: false,
   };
 }
 
