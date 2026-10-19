@@ -63,7 +63,7 @@ export default async function JudgeHistoryPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 md:py-12">
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Your record</p>
-      <h1 className="mt-2 font-serif text-5xl">History</h1>
+      <h1 className="mt-2 font-serif text-5xl">Your places</h1>
       <p className="mt-3 text-sm text-ink/70">
         <Link href="/judge" className="text-ocean">
           Back to this week
@@ -91,7 +91,7 @@ export default async function JudgeHistoryPage() {
       </ul>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">College list</h2>
+        <h2 className="font-serif text-3xl">Your panel</h2>
         <p className="mt-2 text-sm text-ink/70">
           Names are opt-in. Lower deviation is closer to Monday. {queue.namePublic ? "Your name is on this list." : "Your name is hidden."}
         </p>
@@ -102,7 +102,7 @@ export default async function JudgeHistoryPage() {
           </button>
         </form>
         <ol className="mt-4 divide-y divide-line border border-line bg-white">
-          {leaders.length === 0 ? <li className="px-4 py-4 text-sm text-ink/70">No one in this college has opted in yet.</li> : null}
+          {leaders.length === 0 ? <li className="px-4 py-4 text-sm text-ink/70">No one on your panel has shown their name yet.</li> : null}
           {leaders.map((row, index) => (
             <li key={row.id} className="flex items-baseline justify-between gap-3 px-4 py-3 text-sm">
               <span>

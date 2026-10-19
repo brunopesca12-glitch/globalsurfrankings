@@ -71,6 +71,9 @@ model Athlete {
   club               String?
   hashtags           String[]
   bio                String?
+  /// Public USDC address. Never a key or a seed phrase.
+  walletNetwork      String?
+  walletAddress      String?
   /// Legacy desk flag. Eligibility is the weekly ballot queue. The column stays so existing rows are not rewritten.
   judgingDutyCurrent Boolean          @default(true)
   createdAt          DateTime         @default(now())

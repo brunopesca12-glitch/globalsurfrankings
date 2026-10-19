@@ -82,18 +82,18 @@ export function purseMirror(input: {
   if (input.today < input.startsOn || !input.college) {
     return {
       tone: "none",
-      text: "Founding season, no purse yet. When a purse is escrowed, the judges' 6% is paid from that account, not through this site.",
+      text: "Founding season, no purse yet. When USDC is in escrow, Monday pays from that account.",
     };
   }
   if (input.college === "CHAMBER" || input.college === "RANKED") {
     return {
       tone: "pending",
-      text: "Pending, escrow mirror. The Chamber and the Ranked split the judges' 6%, 3% each. The Ranked rate is also fed by pool tolls and capped at US$ 6 a ballot. Nothing here is paid.",
+      text: "Pending in escrow. Champions and the pro tour share the judges' 6%. Nothing here is paid.",
     };
   }
   return {
     tone: "unpaid",
-    text: "This college is unpaid. The judges' 6% goes to the Chamber and the Ranked. Your record is the accuracy of your ballots.",
+      text: "This panel is unpaid. The judges' 6% goes to Champions and the pro tour. Your record is how close you sat to Monday.",
   };
 }
 

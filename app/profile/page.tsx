@@ -48,6 +48,8 @@ export default async function ProfilePage() {
           country={athlete.country}
           bio={athlete.bio ?? ""}
           hashtags={athlete.hashtags.join(", ")}
+        walletNetwork={athlete.walletNetwork ?? ""}
+        walletAddress={athlete.walletAddress ?? ""}
         />
       </div>
     </div>

@@ -100,7 +100,7 @@ export default async function HomePage() {
           </table>
         </div>
         <p className="mt-3 text-sm text-ink/60">
-          Twelve themes, {formatUsdAmount(FOUNDING.seasonAthleteUsd)} escrowed to surfers. About{" "}
+          Six events, {formatUsdAmount(FOUNDING.seasonAthleteUsd)} escrowed to surfers. About{" "}
           {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in weekly checks each Monday of the Founding Season.
         </p>
       </section>

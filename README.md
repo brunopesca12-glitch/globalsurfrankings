@@ -89,7 +89,7 @@ Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Au
 
 ## What the seed contains
 
-Season vintage 2027, the Founding Season, 1 Mar 2027 → 30 Sep 2027, age taken on 30 Sep 2027. All twelve Open events, with the category cuts from the paper: Junior has the same twelve, 40+ has eleven (no Best Small Wave), 50+ has ten (also no Best Air). Best Surf Pool is one event — Air for Open and Junior, Wave for 40+ and 50+. Best Small Wave closes first, on 25 Apr. Best Barrel closes with the Overall on 30 Sep.
+Season vintage 2027, Season 1, 1 Mar 2027 → 30 Sep 2027. Six events: Frontside, Backside, Best Aerial, Best Small-Wave Performance, Best Tube, Biggest Paddle-In Wave. The other former themes are listed as coming later. Best Small-Wave Performance is Open and Junior only. Best Aerial is not on the 50+ ranking.
 
 One filled board: Best Barrel, Open, Men, places 1–8. A few other entries sit unplaced, including one pool entry with a recorded US$ 20 toll that is not collected.
 
@@ -118,14 +118,15 @@ The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep
 - `/about` the circuit thesis
 - `/rules` the public competition rules. The PDF is not served.
 - `/videos` watch every uploaded wave; `/videos/[id]` plays one
-- `/calendar` twelve themes, each linking to its world board
-- `/board/best-barrel` demo world board (ordinal places); other theme slugs work the same way
+- `/calendar` the six Season 1 events
+- `/board/best-tube` demo world board; other event slugs work the same way
+- `/escrow` the USDC escrow mirror. The contract address is a placeholder.
 - `/ranking` eight world rankings
 - `/purse` public purse, marked DEMO
 - `/hashboards` an athlete's hashtag rankings; `/hashboards/[tag]` is one tag. `/t/[tag]` redirects there
 - `/sign-up`, `/sign-in`, `/profile`, `/enter`, `/my-waves`
 - `/athlete/[slug]` public placements
-- `/judge` judge home for anyone with a college. `/judge/welcome` the first visit. `/judge/ballot` the blind comparison. `/judge/history` past ballots and the opt-in college list
+- `/judge` where you are judging. `/judge/ballot` place the new wave into your own list. `/judge/history` your places
 - `/invite/[token]` personal invite into a college
 - `/admin/judge` seat the Chamber and the Ranked, override a college, mint an invite, and run Monday's verdict
 

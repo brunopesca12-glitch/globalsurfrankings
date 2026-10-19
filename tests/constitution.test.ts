@@ -65,16 +65,16 @@ describe("constitutional rails", () => {
     expect(FOUNDING.seasonTableUsd).toBe(232_000);
     expect(FOUNDING.weeklyUsd).toBe(46_500);
     expect(FOUNDING.overallUsd).toBe(33_500);
-    expect(FOUNDING.seasonAthleteUsd).toBe(4_032_000);
-    expect(FOUNDING.seasonCompetitorUsd).toBe(3_744_000);
-    expect(FOUNDING.seasonJudgeUsd).toBe(288_000);
-    expect(FOUNDING.seasonPlatformUsd).toBe(768_000);
-    expect(FOUNDING.seasonBookCashUsd).toBe(4_800_000);
+    expect(FOUNDING.seasonAthleteUsd).toBe(2_016_000);
+    expect(FOUNDING.seasonCompetitorUsd).toBe(1_872_000);
+    expect(FOUNDING.seasonJudgeUsd).toBe(144_000);
+    expect(FOUNDING.seasonPlatformUsd).toBe(384_000);
+    expect(FOUNDING.seasonBookCashUsd).toBe(2_400_000);
     expect(FOUNDING.poolTollUsd).toBe(FOUNDING_POOL_ENTRIES * 20);
     expect(FOUNDING.seasonAthleteUsd + FOUNDING.seasonPlatformUsd + FOUNDING.presenterFaceUsd + FOUNDING.poolTollUsd).toBe(
-      7_050_000,
+      4_650_000,
     );
-    expect(FOUNDING.weeklyPerMondayUsd).toBe(18_600);
+    expect(FOUNDING.weeklyPerMondayUsd).toBe(9_300);
   });
 
   it("splits the presenter face 76 / 8 / 16", () => {

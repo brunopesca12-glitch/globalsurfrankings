@@ -4,15 +4,15 @@ import { SEASON_2027, THEMES, themesFor } from "@/lib/catalogue";
 import { decideEntry, themeIsOpen } from "@/lib/entry-rules";
 import { isoWeek } from "@/lib/iso-week";
 
-const barrel = THEMES.find((theme) => theme.slug === "best-barrel")!;
-const air = THEMES.find((theme) => theme.slug === "best-air")!;
-const pool = THEMES.find((theme) => theme.slug === "best-surf-pool")!;
+const tube = THEMES.find((theme) => theme.slug === "best-tube")!;
+const air = THEMES.find((theme) => theme.slug === "best-aerial")!;
 const small = THEMES.find((theme) => theme.slug === "best-small-wave")!;
+const pool = { ...tube, slug: "pool", poolOnly: true, oceanOnly: false, finaleOn: "2027-05-31" };
 
 const base = {
   dutyCurrent: true,
   environment: "OCEAN" as const,
-  theme: barrel,
+  theme: tube,
   category: "OPEN" as const,
   existingOceanWeeks: [] as { isoYear: number; isoWeek: number }[],
   isoYear: 2026,
@@ -22,15 +22,14 @@ const base = {
 };
 
 describe("catalogue", () => {
-  it("gives Open and Junior 12 events, 40+ eleven and 50+ ten", () => {
-    expect(THEMES).toHaveLength(12);
-    expect(new Set(THEMES.map((theme) => theme.slug)).size).toBe(12);
-    expect([...THEMES.map((theme) => theme.finaleOn)].sort()).toEqual(THEMES.map((theme) => theme.finaleOn));
-    expect(themesFor("OPEN")).toHaveLength(12);
-    expect(themesFor("JUNIOR")).toHaveLength(12);
-    expect(themesFor("MASTERS_40")).toHaveLength(11);
-    expect(themesFor("MASTERS_50")).toHaveLength(10);
-    expect(themesFor("MASTERS_50").some((theme) => theme.slug === "best-air")).toBe(false);
+  it("gives Season 1 six events, with small-wave and aerial cuts", () => {
+    expect(THEMES).toHaveLength(6);
+    expect(new Set(THEMES.map((theme) => theme.slug)).size).toBe(6);
+    expect(themesFor("OPEN")).toHaveLength(6);
+    expect(themesFor("JUNIOR")).toHaveLength(6);
+    expect(themesFor("MASTERS_40")).toHaveLength(5);
+    expect(themesFor("MASTERS_50")).toHaveLength(4);
+    expect(themesFor("MASTERS_50").some((theme) => theme.slug === "best-aerial")).toBe(false);
     expect(themesFor("MASTERS_40").some((theme) => theme.slug === "best-small-wave")).toBe(false);
     expect(themesFor("OPEN").some((theme) => theme.slug === "best-small-wave")).toBe(true);
   });
@@ -39,7 +38,7 @@ describe("catalogue", () => {
     expect(SEASON_2027.startsOn).toBe("2027-03-01");
     expect(SEASON_2027.endsOn).toBe("2027-09-30");
     expect(small.finaleOn).toBe("2027-04-25");
-    expect(barrel.finaleOn).toBe("2027-09-30");
+    expect(tube.finaleOn).toBe("2027-09-30");
     expect(air.finaleOn).toBe("2027-09-10");
     expect(air.proposedDate).toBe(false);
     expect(air.oceanOnly).toBe(true);

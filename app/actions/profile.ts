@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { normalizeHashtag } from "@/lib/leaderboard";
+import { parseWallet } from "@/lib/wallet";
 
 export type ProfileState = { error: string | null; saved: boolean };
 
@@ -15,6 +16,8 @@ const profileSchema = z.object({
   country: z.string().trim().regex(/^[A-Za-z]{2}$/),
   bio: z.string().trim().max(280),
   hashtags: z.string().max(200),
+  walletNetwork: z.string().optional(),
+  walletAddress: z.string().optional(),
 });
 
 export async function updateProfile(_prev: ProfileState, formData: FormData): Promise<ProfileState> {
@@ -30,8 +33,16 @@ export async function updateProfile(_prev: ProfileState, formData: FormData): Pr
     country: formData.get("country"),
     bio: String(formData.get("bio") ?? ""),
     hashtags: String(formData.get("hashtags") ?? ""),
+    walletNetwork: String(formData.get("walletNetwork") ?? ""),
+    walletAddress: String(formData.get("walletAddress") ?? ""),
   });
   if (!parsed.success) return { error: "Check the fields.", saved: false };
+
+  const walletText = parsed.data.walletAddress?.trim() ?? "";
+  const wallet = walletText ? parseWallet(parsed.data.walletNetwork ?? "", walletText) : null;
+  if (walletText && !wallet) {
+    return { error: "That wallet address does not match the network. Paste the public address only.", saved: false };
+  }
 
   const hashtags = [...new Set(parsed.data.hashtags.split(",").map(normalizeHashtag).filter(Boolean))].slice(0, 8);
 
@@ -44,6 +55,8 @@ export async function updateProfile(_prev: ProfileState, formData: FormData): Pr
       country: parsed.data.country.toUpperCase(),
       bio: parsed.data.bio || null,
       hashtags,
+      walletNetwork: wallet?.network ?? null,
+      walletAddress: wallet?.address ?? null,
     },
   });
   await prisma.user.update({

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { applyBallotComparison, sealFinishedBallot, undoBallotComparison } from "@/lib/judge-queue";
+import { applyBallotComparison, placeOnStack, sealFinishedBallot, undoBallotComparison, undoStackPlacement } from "@/lib/judge-queue";
 
 export async function castComparison(formData: FormData) {
   const session = await auth();
@@ -23,6 +23,25 @@ export async function sealPlacement(formData: FormData) {
   const outcome = await sealFinishedBallot(session.user.id, ballotId);
   if (outcome === "sealed") redirect("/judge/ballot?sealed=1");
   redirect("/judge/ballot?error=1");
+}
+
+export async function placeWave(formData: FormData) {
+  const session = await auth();
+  if (!session?.user) redirect("/sign-in");
+  const ballotId = String(formData.get("ballotId") ?? "");
+  const place = Number(formData.get("place"));
+  const outcome = await placeOnStack(session.user.id, ballotId, place);
+  if (outcome === "sealed") redirect(`/judge/ballot?sealed=1&place=${place}`);
+  redirect("/judge/ballot?error=1");
+}
+
+export async function undoPlacement(formData: FormData) {
+  const session = await auth();
+  if (!session?.user) redirect("/sign-in");
+  const ballotId = String(formData.get("ballotId") ?? "");
+  const outcome = await undoStackPlacement(session.user.id, ballotId);
+  if (outcome === "rejected") redirect("/judge/ballot?error=1");
+  redirect("/judge/ballot");
 }
 
 export async function undoComparison(formData: FormData) {

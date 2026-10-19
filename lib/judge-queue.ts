@@ -6,8 +6,11 @@ import { prisma } from "@/lib/db";
 import { loadJudgeContext } from "@/lib/judge-context";
 import { isoWeek } from "@/lib/iso-week";
 import { applyComparison, probeInsertion } from "@/lib/binary-insertion";
+import { SEASON_SLUGS } from "@/lib/catalogue";
 import { eligibilityFor } from "@/lib/eligibility";
+import { editionLine, panelName } from "@/lib/panel";
 import { judgingStreak } from "@/lib/season-clock";
+import { stackAfterInsert } from "@/lib/stack";
 import {
   canJudgeEntry,
   drawEntries,
@@ -37,6 +40,8 @@ export type JudgeSession = {
   streak: number;
   onboarded: boolean;
   namePublic: boolean;
+  panel: string | null;
+  destination: { event: string; edition: string } | null;
 };
 
 const EMPTY: JudgeSession = {
@@ -51,6 +56,8 @@ const EMPTY: JudgeSession = {
   streak: 0,
   onboarded: true,
   namePublic: false,
+  panel: null,
+  destination: null,
 };
 
 function randomUnit(): number {
@@ -126,7 +133,7 @@ export const ensureWeeklyQueue = cache(async (userId: string): Promise<JudgeSess
     if (need === 0) return;
 
     const submitted = await tx.entry.findMany({
-      where: { seasonId: ctx.seasonId, status: "SUBMITTED" },
+      where: { seasonId: ctx.seasonId, status: "SUBMITTED", theme: { slug: { in: [...SEASON_SLUGS] } } },
       select: { id: true, athleteId: true, category: true, sex: true, themeId: true },
     });
     const eligible = submitted.filter(
@@ -218,7 +225,7 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
     prisma.ballot.findMany({
       where: { userId, isoYear, isoWeek: isoWeekNumber },
       include: {
-        entry: { select: { status: true } },
+        entry: { select: { status: true, category: true, sex: true, theme: { select: { name: true } } } },
         comparisons: { orderBy: { createdAt: "desc" }, select: { anchored: true } },
       },
       orderBy: { createdAt: "asc" },
@@ -231,7 +238,7 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
         NOT: { AND: [{ isoYear }, { isoWeek: isoWeekNumber }] },
       },
       include: {
-        entry: { select: { status: true } },
+        entry: { select: { status: true, category: true, sex: true, theme: { select: { name: true } } } },
         comparisons: { orderBy: { createdAt: "desc" }, select: { anchored: true } },
       },
       orderBy: { createdAt: "asc" },
@@ -271,6 +278,8 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
     streak: judgingStreak(sealedWeeks, new Date()),
     onboarded: user.judgeOnboardedAt != null,
     namePublic: user.judgeNamePublic,
+    panel: college ? panelName(college) : null,
+    destination: shown.destination,
   };
 }
 
@@ -281,32 +290,31 @@ async function presentBallot(
     hi: number;
     boardEntryIds: string[];
     comparisons: { anchored: boolean }[];
+    entry: { category: string; sex: string; theme: { name: string } };
   }[],
-): Promise<{ ballot: OpenBallot | null; removed: number }> {
+): Promise<{ ballot: OpenBallot | null; removed: number; destination: { event: string; edition: string } | null }> {
   let removed = 0;
   for (const ballot of open) {
-    const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
+    const destination = { event: ballot.entry.theme.name, edition: editionLine(ballot.entry.category, ballot.entry.sex) };
     const latest = ballot.comparisons[0];
     const step = ballot.comparisons.length + 1;
     const canUndo = latest?.anchored === true;
-    if (probe.kind === "done") {
-      return { removed, ballot: { id: ballot.id, mode: "seat", step, canUndo } };
+    const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
+    if (probe.kind === "done" || ballot.boardEntryIds.length === 0) {
+      return { removed, ballot: { id: ballot.id, mode: "seat", step, canUndo }, destination };
     }
     const probeEntryId = ballot.boardEntryIds[probe.index];
-    if (!probeEntryId) {
-      await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
-      removed += 1;
-      continue;
+    if (probeEntryId) {
+      const probeEntry = await prisma.entry.findUnique({ where: { id: probeEntryId }, select: { id: true } });
+      if (!probeEntry) {
+        await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
+        removed += 1;
+        continue;
+      }
     }
-    const probeEntry = await prisma.entry.findUnique({ where: { id: probeEntryId }, select: { id: true } });
-    if (!probeEntry) {
-      await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
-      removed += 1;
-      continue;
-    }
-    return { removed, ballot: { id: ballot.id, mode: "compare", step, canUndo } };
+    return { removed, ballot: { id: ballot.id, mode: "compare", step, canUndo }, destination };
   }
-  return { ballot: null, removed };
+  return { ballot: null, removed, destination: null };
 }
 
 export async function applyBallotComparison(
@@ -379,6 +387,125 @@ export async function sealFinishedBallot(userId: string, ballotId: string): Prom
         data: { status: "SEALED", place: probe.index + 1, sealedAt: new Date() },
       });
       return updated.count === 1 ? "sealed" : "rejected";
+    });
+  } catch {
+    return "rejected";
+  }
+}
+
+export async function loadJudgeStack(userId: string, ballotId: string) {
+  const ballot = await prisma.ballot.findFirst({
+    where: { id: ballotId, userId },
+    include: { entry: { select: { themeId: true, category: true, sex: true, theme: { select: { name: true } } } } },
+  });
+  if (!ballot) return null;
+  const sealed = await prisma.ballot.findMany({
+    where: {
+      userId,
+      status: "SEALED",
+      entry: {
+        themeId: ballot.entry.themeId,
+        category: ballot.entry.category,
+        sex: ballot.entry.sex,
+      },
+    },
+    orderBy: [{ place: "asc" }, { sealedAt: "asc" }],
+    select: { entryId: true },
+  });
+  return {
+    event: ballot.entry.theme.name,
+    edition: editionLine(ballot.entry.category, ballot.entry.sex),
+    tiles: sealed.map((row, index) => ({ rank: index + 1, entryId: row.entryId })),
+  };
+}
+
+export async function placeOnStack(
+  userId: string,
+  ballotId: string,
+  place: number,
+): Promise<"sealed" | "rejected"> {
+  const allowed = await ballotStillAllowed(userId, ballotId);
+  if (!allowed) return "rejected";
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const ballot = await tx.ballot.findFirst({
+        where: { id: ballotId, userId, status: "OPEN" },
+        include: { entry: { select: { themeId: true, category: true, sex: true, status: true } } },
+      });
+      if (!ballot || ballot.entry.status !== "SUBMITTED") return "rejected";
+      const sealed = await tx.ballot.findMany({
+        where: {
+          userId,
+          status: "SEALED",
+          entry: {
+            themeId: ballot.entry.themeId,
+            category: ballot.entry.category,
+            sex: ballot.entry.sex,
+          },
+        },
+        orderBy: [{ place: "asc" }, { sealedAt: "asc" }],
+      });
+      const next = stackAfterInsert(
+        sealed.map((row) => row.id),
+        ballot.id,
+        place,
+      );
+      if (!next) return "rejected";
+      const now = new Date();
+      for (let index = 0; index < next.length; index += 1) {
+        const id = next[index]!;
+        const rank = index + 1;
+        if (id === ballot.id) {
+          await tx.ballot.update({
+            where: { id },
+            data: { status: "SEALED", place: rank, sealedAt: now },
+          });
+        } else {
+          await tx.ballot.update({ where: { id }, data: { place: rank } });
+        }
+      }
+      return "sealed";
+    });
+  } catch {
+    return "rejected";
+  }
+}
+
+export async function undoStackPlacement(userId: string, ballotId: string): Promise<"undone" | "rejected"> {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const ballot = await tx.ballot.findFirst({
+        where: { id: ballotId, userId, status: "SEALED" },
+        include: { entry: { select: { themeId: true, category: true, sex: true, status: true } } },
+      });
+      if (!ballot || ballot.entry.status !== "SUBMITTED") return "rejected";
+      const sealed = await tx.ballot.findMany({
+        where: {
+          userId,
+          status: "SEALED",
+          entry: {
+            themeId: ballot.entry.themeId,
+            category: ballot.entry.category,
+            sex: ballot.entry.sex,
+          },
+        },
+        orderBy: [{ place: "asc" }, { sealedAt: "asc" }],
+      });
+      const latest = sealed.reduce((best, row) => {
+        const bestAt = best.sealedAt?.getTime() ?? 0;
+        const rowAt = row.sealedAt?.getTime() ?? 0;
+        return rowAt >= bestAt ? row : best;
+      }, sealed[0]);
+      if (!latest || latest.id !== ballot.id) return "rejected";
+      const rest = sealed.filter((row) => row.id !== ballot.id);
+      await tx.ballot.update({
+        where: { id: ballot.id },
+        data: { status: "OPEN", place: null, sealedAt: null },
+      });
+      for (let index = 0; index < rest.length; index += 1) {
+        await tx.ballot.update({ where: { id: rest[index]!.id }, data: { place: index + 1 } });
+      }
+      return "undone";
     });
   } catch {
     return "rejected";

@@ -71,7 +71,7 @@ export default function PursePage() {
           ))}
         </ul>
         <p className="mt-3 text-sm text-ink/65">
-          Twelve themes: {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} in prize money,{" "}
+          Six events: {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} in prize money,{" "}
           {formatUsdAmount(FOUNDING.seasonJudgeUsd)} in judges&apos; fees, and{" "}
           {formatUsdAmount(FOUNDING.seasonPlatformUsd)} in commission. The weekly race is about{" "}
           {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in checks every Monday across the Founding Season&apos;s{" "}

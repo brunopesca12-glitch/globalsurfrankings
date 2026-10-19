@@ -76,6 +76,22 @@ export function RegisterForm() {
           <input className={field} name="city" maxLength={80} />
         </label>
       </div>
+      <fieldset className="space-y-3 border border-line px-3 py-3">
+        <legend className="px-1 text-sm">USDC wallet</legend>
+        <p className="text-xs text-ink/60">Public address only. Never paste a seed phrase or a private key.</p>
+        <label className="block text-sm">
+          Network
+          <select className={field} name="walletNetwork" defaultValue="ethereum">
+            <option value="ethereum">Ethereum</option>
+            <option value="solana">Solana</option>
+            <option value="other">Other USDC network</option>
+          </select>
+        </label>
+        <label className="block text-sm">
+          Address
+          <input className={field} name="walletAddress" autoComplete="off" placeholder="Optional until a payout" />
+        </label>
+      </fieldset>
       <label className="flex items-start gap-2 text-sm">
         <input className="mt-1" type="checkbox" name="pro" />
         <span>Verified Pro — a stub, with no credential check. The door stays open to everyone.</span>
@@ -94,6 +110,8 @@ export function ProfileForm({
   country,
   bio,
   hashtags,
+  walletNetwork,
+  walletAddress,
 }: {
   displayName: string;
   city: string;
@@ -101,6 +119,8 @@ export function ProfileForm({
   country: string;
   bio: string;
   hashtags: string;
+  walletNetwork: string;
+  walletAddress: string;
 }) {
   const [state, action, pending] = useActionState(updateProfile, { error: null, saved: false } satisfies ProfileState);
   return (
@@ -129,6 +149,22 @@ export function ProfileForm({
         Hashtags
         <input className={field} name="hashtags" defaultValue={hashtags} placeholder="ipanema, brazil" />
       </label>
+      <fieldset className="space-y-3 border border-line px-3 py-3">
+        <legend className="px-1 text-sm">USDC wallet</legend>
+        <p className="text-xs text-ink/60">Payouts go here. Public address only. Never paste a seed phrase or a private key.</p>
+        <label className="block text-sm">
+          Network
+          <select className={field} name="walletNetwork" defaultValue={walletNetwork || "ethereum"}>
+            <option value="ethereum">Ethereum</option>
+            <option value="solana">Solana</option>
+            <option value="other">Other USDC network</option>
+          </select>
+        </label>
+        <label className="block text-sm">
+          Address
+          <input className={field} name="walletAddress" defaultValue={walletAddress} autoComplete="off" />
+        </label>
+      </fieldset>
       <label className="block text-sm">
         Note
         <textarea className={field} name="bio" defaultValue={bio} rows={3} maxLength={280} />

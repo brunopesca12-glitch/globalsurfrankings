@@ -21,8 +21,9 @@ export const RANKED_RAIL_BPS = 300;
 export const PLATFORM_RAIL_BPS = 1_600;
 
 export const THEME_TICKET_USD = 400_000;
-export const FOUNDING_THEME_COUNT = 12;
-/** Founding Season Mondays, 1 Mar – 30 Sep 2027. 12 × US$ 46,500 / 30 = US$ 18,600. */
+/** Season 1 judges six events. The per-event ticket and the 78/6/16 split are unchanged. */
+export const FOUNDING_THEME_COUNT = 6;
+/** Founding Season Mondays, 1 Mar – 30 Sep 2027. 6 × US$ 46,500 / 30 = US$ 9,300. */
 export const FOUNDING_WEEKS = 30;
 
 /** Of the 78% prize money: season tables, weekly race, world champions' fund. Sums to US$ 312,000. */

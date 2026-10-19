@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SEASON_2027, THEMES } from "@/lib/catalogue";
+import { FUTURE_THEMES, SEASON_2027, THEMES } from "@/lib/catalogue";
 import { EDITIONS, FOUNDING, POOL_TOLL_CENTS } from "@/lib/constitution";
 import { formatDate } from "@/lib/format";
 
@@ -17,8 +17,8 @@ export default function AboutPage() {
           </p>
           <h1 className="mt-6 max-w-4xl font-serif text-6xl leading-[0.92] md:text-8xl">The best wave wins.</h1>
           <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/85">
-            An asynchronous world circuit. Twelve themed events, eight rankings, a verdict every Monday. You film the
-            wave, you enter it, and it receives a place. Ocean entry is free.
+            An asynchronous world circuit. Six events, eight rankings, a verdict every Monday. You film the wave, you
+            enter it, and it receives a place. Ocean entry is free.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link href="/ranking" className="bg-paper px-5 py-3 text-ocean">
@@ -62,8 +62,8 @@ export default function AboutPage() {
         <blockquote className="border-l-2 border-gold pl-6">
           <p className="font-serif text-3xl leading-snug">&ldquo;A wave does not receive a score. It receives a place.&rdquo;</p>
           <p className="mt-4 text-sm text-ink/70">
-            Five colleges, one verdict: the median. The desk seats the Chamber and the Ranked, then runs Monday&apos;s
-            verdict. Points follow the founding curve — 100 / 60 / 45 / 35 / 28 / 22, base × √(S/100).
+            Judges place each wave into their own list. Monday takes the median and pays in USDC. Points follow the
+            curve 100 / 60 / 45 / 35 / 28 / 22, base × √(S/100).
           </p>
         </blockquote>
       </section>
@@ -71,7 +71,7 @@ export default function AboutPage() {
       <section className="bg-foam">
         <div className="mx-auto max-w-6xl px-5 py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="font-serif text-4xl">Twelve finales. Eight crowns.</h2>
+            <h2 className="font-serif text-4xl">Six events. Eight crowns.</h2>
             <Link href="/calendar" className="text-sm text-ocean">
               Full calendar
             </Link>
@@ -104,9 +104,22 @@ export default function AboutPage() {
           {FOUNDING.platformUsd.toLocaleString("en-US")} is the platform&apos;s commission. This site only mirrors and
           orients that escrow. No money moves through the platform.
         </p>
-        <Link href="/purse" className="mt-6 inline-block border border-ocean px-4 py-2 text-ocean">
-          Open the purse
+        <Link href="/escrow" className="mt-6 inline-block border border-ocean px-4 py-2 text-ocean">
+          Open the escrow
         </Link>
+      </section>
+
+      <section className="border-t border-line">
+        <div className="mx-auto max-w-6xl px-5 py-16">
+          <h2 className="font-serif text-4xl">Coming in future seasons</h2>
+          <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+            {FUTURE_THEMES.map((name) => (
+              <li key={name} className="border border-line px-4 py-3 text-ink/70">
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </>
   );

@@ -17,115 +17,36 @@ const NOT_50 = ["OPEN", "JUNIOR", "MASTERS_40"] as const satisfies readonly Cate
 const OPEN_JUNIOR = ["OPEN", "JUNIOR"] as const satisfies readonly CategoryCode[];
 
 /**
- * Twelve events of the Open catalogue (Section 4), on the Founding Season
- * calendar (Section 3): 1 March – 30 September 2027. From Season 2028 the
- * ranking year returns to 1 October – 30 September.
- * Best Surf Pool is one event: Air in Open and Junior, Wave in 40+ and 50+.
+ * Season 1 is six events, 1 March – 30 September 2027.
+ * Events that are not in this list wait for a later season.
  */
 export const THEMES: readonly ThemeDefinition[] = [
   {
-    slug: "best-small-wave",
-    name: "Best Small Wave Surfer",
-    namePt: "Best Small Wave Surfer",
-    finaleOn: "2027-04-25",
-    categories: OPEN_JUNIOR,
-    oceanOnly: false,
-    poolOnly: false,
-    proposedDate: false,
-    note: "First finale of the Founding Season. Waist-high maximum. Open and Junior only.",
-  },
-  {
-    slug: "best-beachbreak",
-    name: "Best Beachbreak Surfer",
-    namePt: "Best Beachbreak Surfer",
-    finaleOn: "2027-05-15",
-    categories: ALL,
-    oceanOnly: false,
-    poolOnly: false,
-    proposedDate: false,
-    note: "",
-  },
-  {
-    slug: "best-surf-pool",
-    name: "Best Surf Pool",
-    namePt: "Best Surf Pool",
-    finaleOn: "2027-05-31",
-    categories: ALL,
-    oceanOnly: false,
-    poolOnly: true,
-    proposedDate: false,
-    note: "Air in Open and Junior. Wave in 40+ and 50+.",
-  },
-  {
-    slug: "best-cutback",
-    name: "Best Cutback",
-    namePt: "Best Cutback",
-    finaleOn: "2027-06-15",
-    categories: ALL,
-    oceanOnly: false,
-    poolOnly: false,
-    proposedDate: false,
-    note: "",
-  },
-  {
-    slug: "big-wave",
-    name: "Big Wave of the Year",
-    namePt: "Big Wave of the Year",
-    finaleOn: "2027-06-30",
-    categories: ALL,
-    oceanOnly: false,
-    poolOnly: false,
-    proposedDate: false,
-    note: "Heavy water, in the southern winter.",
-  },
-  {
-    slug: "big-barrel",
-    name: "Big Barrel",
-    namePt: "Big Barrel",
-    finaleOn: "2027-07-15",
-    categories: ALL,
-    oceanOnly: false,
-    poolOnly: false,
-    proposedDate: false,
-    note: "Heavy water, in the southern winter.",
-  },
-  {
-    slug: "best-frontside",
-    name: "Best Frontside (point/reef)",
-    namePt: "Best Frontside (point/reef)",
+    slug: "frontside",
+    name: "Frontside",
+    namePt: "Frontside",
     finaleOn: "2027-07-31",
     categories: ALL,
     oceanOnly: false,
     poolOnly: false,
     proposedDate: false,
-    note: "",
+    note: "Point break or reef break.",
   },
   {
-    slug: "best-backside",
-    name: "Best Backside (point/reef)",
-    namePt: "Best Backside (point/reef)",
+    slug: "backside",
+    name: "Backside",
+    namePt: "Backside",
     finaleOn: "2027-08-15",
     categories: ALL,
     oceanOnly: false,
     poolOnly: false,
     proposedDate: false,
-    note: "",
+    note: "Point break or reef break.",
   },
   {
-    slug: "most-powerful-rails",
-    name: "Most Powerful Rails",
-    namePt: "Most Powerful Rails",
-    finaleOn: "2027-08-31",
-    categories: ALL,
-    oceanOnly: false,
-    poolOnly: false,
-    proposedDate: false,
-    note: "",
-  },
-  {
-    slug: "best-air",
-    name: "Best Air",
-    namePt: "Best Air",
+    slug: "best-aerial",
+    name: "Best Aerial",
+    namePt: "Best Aerial",
     finaleOn: "2027-09-10",
     categories: NOT_50,
     oceanOnly: true,
@@ -134,28 +55,53 @@ export const THEMES: readonly ThemeDefinition[] = [
     note: "Ocean only. Not on the 50+ ranking.",
   },
   {
-    slug: "most-elegant",
-    name: "Most Elegant (Twin Fin)",
-    namePt: "Most Elegant (Twin Fin)",
-    finaleOn: "2027-09-20",
-    categories: ALL,
+    slug: "best-small-wave",
+    name: "Best Small-Wave Performance",
+    namePt: "Best Small-Wave Performance",
+    finaleOn: "2027-04-25",
+    categories: OPEN_JUNIOR,
     oceanOnly: false,
     poolOnly: false,
     proposedDate: false,
-    note: "",
+    note: "Waist-high maximum. Open and Junior only.",
   },
   {
-    slug: "best-barrel",
-    name: "Best Barrel",
-    namePt: "Best Barrel",
+    slug: "best-tube",
+    name: "Best Tube",
+    namePt: "Best Tube",
     finaleOn: "2027-09-30",
     categories: ALL,
     oceanOnly: false,
     poolOnly: false,
     proposedDate: false,
-    note: "Closes with the Overall. Double finale of the season.",
+    note: "Closes with the season.",
   },
+  {
+    slug: "biggest-paddle-in",
+    name: "Biggest Paddle-In Wave",
+    namePt: "Biggest Paddle-In Wave",
+    finaleOn: "2027-06-30",
+    categories: ALL,
+    oceanOnly: false,
+    poolOnly: false,
+    proposedDate: false,
+    note: "Paddle-in only.",
+  },
+];
+
+/** Former catalogue events. They are not judged or ranked in Season 1. */
+export const FUTURE_THEMES = [
+  "Best Beachbreak",
+  "Best Surf Pool",
+  "Best Cutback",
+  "Big Wave of the Year",
+  "Big Barrel",
+  "Most Powerful Rails",
+  "Most Elegant (Twin Fin)",
+  "Best Barrel",
 ] as const;
+
+export const SEASON_SLUGS: readonly string[] = THEMES.map((theme) => theme.slug);
 
 export const SEASON_2027 = {
   vintage: 2027,
@@ -166,7 +112,7 @@ export const SEASON_2027 = {
   galaLabel: "November 2027",
 } as const;
 
-export const DEMO_THEME_SLUG = "best-barrel";
+export const DEMO_THEME_SLUG = "best-tube";
 
 export function themeBySlug(slug: string): ThemeDefinition | undefined {
   return THEMES.find((theme) => theme.slug === slug);

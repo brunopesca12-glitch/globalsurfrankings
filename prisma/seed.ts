@@ -275,7 +275,7 @@ async function main() {
     bySlug.set(athlete.slug, { id: user.athlete!.id, sex: athlete.sex });
   }
 
-  const barrelId = themes.get("best-barrel")!;
+  const barrelId = themes.get("best-tube")!;
   const category: CategoryCode = "OPEN";
   const board = await prisma.board.create({
     data: { themeId: barrelId, category, sex: "M" },
@@ -289,7 +289,7 @@ async function main() {
         themeId: barrelId,
         seasonId: season.id,
         environment: "OCEAN",
-        videoUrl: `https://video.gsr.surf/demo/best-barrel/${String(index + 1).padStart(2, "0")}`,
+        videoUrl: `https://video.gsr.surf/demo/best-tube/${String(index + 1).padStart(2, "0")}`,
         spot: "demo break",
         isoYear: week.isoYear,
         isoWeek: week.isoWeek,
@@ -313,17 +313,17 @@ async function main() {
     tollCents: number;
     spot: string;
   }[] = [
-    { slug: "marina-alves", theme: "best-air", environment: "OCEAN", category: "OPEN", tollCents: 0, spot: "Arpoador" },
+    { slug: "marina-alves", theme: "best-aerial", environment: "OCEAN", category: "OPEN", tollCents: 0, spot: "Arpoador" },
     { slug: "ana-luz", theme: "best-small-wave", environment: "OCEAN", category: "JUNIOR", tollCents: 0, spot: "Ipanema" },
     {
       slug: "helena-prado",
-      theme: "best-surf-pool",
+      theme: "frontside",
       environment: "POOL",
       category: "MASTERS_40",
       tollCents: 2000,
       spot: "demo pool",
     },
-    { slug: "sergio-bahia", theme: "big-wave", environment: "OCEAN", category: "MASTERS_50", tollCents: 0, spot: "Nazare" },
+    { slug: "sergio-bahia", theme: "biggest-paddle-in", environment: "OCEAN", category: "MASTERS_50", tollCents: 0, spot: "Nazare" },
   ];
 
   for (const extra of extras) {

@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { CategoryCode, Sex } from "@prisma/client";
-import { SEASON_2027 } from "@/lib/catalogue";
+import { SEASON_2027, SEASON_SLUGS } from "@/lib/catalogue";
 import { categoryFor, parseDateOnly } from "@/lib/category";
 import { prisma } from "@/lib/db";
 import { placementPoints } from "@/lib/points";
@@ -46,6 +46,7 @@ export const loadJudgeContext = cache(async (): Promise<JudgeContext> => {
         category: true,
         sex: true,
         themeId: true,
+        theme: { select: { slug: true } },
         placement: { select: { place: true } },
       },
     }),
@@ -74,7 +75,7 @@ export const loadJudgeContext = cache(async (): Promise<JudgeContext> => {
   }
 
   for (const entry of entries) {
-    if (!entry.placement) continue;
+    if (!entry.placement || !SEASON_SLUGS.includes(entry.theme.slug)) continue;
     const edition = editionKey(entry.category, entry.sex);
     const entrants = field.get(`${entry.themeId}:${entry.category}:${entry.sex}`) ?? 0;
     const bucket = points.get(edition) ?? new Map<string, number>();

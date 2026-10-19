@@ -1,5 +1,5 @@
 import type { CategoryCode, Sex, VerificationTier } from "@prisma/client";
-import { DEMO_THEME_SLUG, SEASON_2027 } from "@/lib/catalogue";
+import { DEMO_THEME_SLUG, SEASON_2027, SEASON_SLUGS } from "@/lib/catalogue";
 import { prisma } from "@/lib/db";
 import { isoWeek } from "@/lib/iso-week";
 import { deriveLeaderboard } from "@/lib/leaderboard";
@@ -59,6 +59,7 @@ export async function getSeasonRankings() {
     where: {
       season: { vintage: SEASON_2027.vintage },
       status: { in: ["SUBMITTED", "PLACED"] },
+      theme: { slug: { in: [...SEASON_SLUGS] } },
     },
     include: { athlete: true, placement: true },
   });

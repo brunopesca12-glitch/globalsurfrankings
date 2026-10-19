@@ -7,6 +7,7 @@ import { parseDateOnly } from "@/lib/category";
 import { prisma } from "@/lib/db";
 import { signIn } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
+import { parseWallet } from "@/lib/wallet";
 
 export type FormState = { error: string | null };
 
@@ -47,6 +48,8 @@ const signup = z.object({
   country: z.string().trim().regex(/^[A-Za-z]{2}$/),
   city: z.string().trim().max(80).optional(),
   pro: z.boolean(),
+  walletNetwork: z.string().optional(),
+  walletAddress: z.string().optional(),
 });
 
 async function uniqueSlug(name: string): Promise<string> {
@@ -66,8 +69,16 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
     country: formData.get("country") || "BR",
     city: String(formData.get("city") ?? ""),
     pro: formData.get("pro") === "on",
+    walletNetwork: String(formData.get("walletNetwork") ?? ""),
+    walletAddress: String(formData.get("walletAddress") ?? ""),
   });
   if (!parsed.success) return { error: "Check the fields. The password needs 8 characters." };
+
+  const walletText = parsed.data.walletAddress?.trim() ?? "";
+  const wallet = walletText ? parseWallet(parsed.data.walletNetwork ?? "", walletText) : null;
+  if (walletText && !wallet) {
+    return { error: "That wallet address does not match the network. Paste the public address only." };
+  }
 
   const birthDate = parseDateOnly(parsed.data.birthDate);
   const today = new Date().toISOString().slice(0, 10);
@@ -96,6 +107,8 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
           country: parsed.data.country.toUpperCase(),
           city: parsed.data.city || null,
           verification: parsed.data.pro ? "VERIFIED_PRO" : "VERIFIED",
+          walletNetwork: wallet?.network ?? null,
+          walletAddress: wallet?.address ?? null,
           hashtags: [],
           judgingDutyCurrent: true,
         },

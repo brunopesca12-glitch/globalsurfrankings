@@ -3,7 +3,7 @@ import Link from "next/link";
 import { acceptInvite, registerFromInvite } from "@/app/actions/invite";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { COLLEGE_SEAT_LABEL } from "@/lib/tribunal";
+import { panelName } from "@/lib/panel";
 import type { College } from "@/lib/median";
 
 export const metadata: Metadata = { title: "Judge invite" };
@@ -31,14 +31,14 @@ export default async function InvitePage({
   }
 
   const session = await auth();
-  const label = COLLEGE_SEAT_LABEL[invite.college as College];
+  const label = panelName(invite.college as College);
 
   return (
     <div className="mx-auto max-w-md px-5 py-12">
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Invitation</p>
-      <h1 className="mt-3 font-serif text-5xl">{label}</h1>
+      <h1 className="mt-3 font-serif text-5xl">Your panel: {label}</h1>
       <p className="mt-4 leading-relaxed text-ink/80">
-        This link seats you in the {label}. The ballot is the same one every judge uses.
+        You&apos;ll place waves the same way everyone else does. Names stay hidden.
       </p>
       {query.error === "exists" ? (
         <p className="mt-4 text-sm text-stamp">That email already has an account. Sign in, then open this link again.</p>
@@ -54,7 +54,7 @@ export default async function InvitePage({
         <form action={acceptInvite} className="mt-8">
           <input type="hidden" name="token" value={token} />
           <button className="min-h-12 w-full bg-ocean px-4 py-3 text-paper" type="submit">
-            Join this college
+            Join this panel
           </button>
         </form>
       ) : (
