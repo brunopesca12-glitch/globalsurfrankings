@@ -73,9 +73,10 @@ export default function PursePage() {
         <p className="mt-3 text-sm text-ink/65">
           Six events: {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} in prize money,{" "}
           {formatUsdAmount(FOUNDING.seasonJudgeUsd)} in judges&apos; fees, and{" "}
-          {formatUsdAmount(FOUNDING.seasonPlatformUsd)} in commission. The weekly race is about{" "}
-          {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in checks every Monday across the Founding Season&apos;s{" "}
-          {FOUNDING_WEEKS} weeks.
+          {formatUsdAmount(FOUNDING.seasonPlatformUsd)} in commission. The printed weekly race is about{" "}
+          {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} a Monday across {FOUNDING_WEEKS} weeks. The payment-order file
+          uses every Monday from 1 March through 30 September, which is 31, and those shares still sum to the same
+          season total.
         </p>
       </section>
 

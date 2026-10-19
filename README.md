@@ -2,7 +2,7 @@
 
 MVP v0.1 of the athlete and ranking product described in the Founding Edition white paper (v10.1, 6 October 2026). The circuit is asynchronous: an athlete enters one ocean wave a week into a themed event, the wave receives an ordinal place, and event places mint season points. The public competition rules are `/rules`. The white paper PDF is not published.
 
-The interface is in English. Money on the purse page mirrors the published escrow. Nothing is charged, nothing is held, and nothing is paid through the platform.
+The interface is in English. The site publishes payment orders from the rules. Nothing is charged, nothing is held, and nothing is paid through the platform.
 
 Domains: gsr.surf and globalsurfrankings.com. The public site does not print a personal founder credit.
 
@@ -120,7 +120,7 @@ The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep
 - `/videos` watch every uploaded wave; `/videos/[id]` plays one
 - `/calendar` the six Season 1 events
 - `/board/best-tube` demo world board; other event slugs work the same way
-- `/escrow` the USDC escrow mirror. The contract address is a placeholder.
+- `/escrow` published payment orders, and an empty list of on-chain executions until a contract address exists. `/api/payment-orders` is the machine-readable file.
 - `/ranking` eight world rankings
 - `/purse` public purse, marked DEMO
 - `/hashboards` an athlete's hashtag rankings; `/hashboards/[tag]` is one tag. `/t/[tag]` redirects there
@@ -132,8 +132,8 @@ The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep
 
 ## Tests
 
-`npm test` covers the ticket split, purse rails, founding-book totals, points curve, payout shares at every depth through 200 places, binary insertion, college median, hashtag renumbering, category bands, the twelve-event catalogue, the weekly ocean quota and the judging-duty gate.
+`npm test` covers the ticket split, purse rails, founding-book totals, points curve, payout shares at every depth through 200 places, payment-order hashes, binary insertion, college median, hashtag renumbering, category bands, the six-event catalogue, the weekly ocean quota and the judging-duty gate.
 
 ## Not in v0.1
 
-Real escrow, Pix, cards, KYC, video upload or transcoding, a ride-date field, an image-rights attestation on the entry form, Ranked payroll, public accuracy boards, the Golden Eye, accuracy promotion into the Upper Chamber, Monday payroll, the media house, sponsor checkout, patron tools, WhatsApp, crypto, and any balance the application increments. The purse display, and the Ranked cap of US$ 6, are a mirror of the published arithmetic, not a payment. No money moves through the platform. `/rules` states the published competition rules, including the fields the entry form does not collect yet.
+On-chain payout execution, Pix, cards, KYC, video upload or transcoding, a ride-date field, an image-rights attestation on the entry form, public accuracy boards, the Golden Eye, accuracy promotion into the Upper Chamber, the media house, sponsor checkout, patron tools, WhatsApp, and any balance the application increments. The site publishes payment orders. An outside bot pays them. The Ranked cap of US$ 6 is applied when those orders are built. No money moves through the platform. `/rules` states the published competition rules, including the fields the entry form does not collect yet.

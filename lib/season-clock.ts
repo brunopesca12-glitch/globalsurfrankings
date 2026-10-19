@@ -82,13 +82,13 @@ export function purseMirror(input: {
   if (input.today < input.startsOn || !input.college) {
     return {
       tone: "none",
-      text: "Founding season, no purse yet. When USDC is in escrow, Monday pays from that account.",
+      text: "Founding season, no purse yet. Monday's payment orders publish from the rules.",
     };
   }
   if (input.college === "CHAMBER" || input.college === "RANKED") {
     return {
       tone: "pending",
-      text: "Pending in escrow. Champions and the pro tour share the judges' 6%. Nothing here is paid.",
+      text: "Champions and the pro tour share the judges' 6%. This site publishes the order. It does not pay it.",
     };
   }
   return {

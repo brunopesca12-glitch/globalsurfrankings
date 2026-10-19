@@ -39,7 +39,7 @@ export default async function WelcomePage() {
         {queue.destination
           ? `You're judging: ${queue.destination.event} · ${queue.destination.edition}.`
           : "When a wave is waiting, it goes into your own list."}{" "}
-        Best at the top. Names stay hidden. Monday pays the week before, in USDC.
+        Best at the top. Names stay hidden. Monday publishes the week&apos;s payment orders.
       </p>
       <form action={finishOnboarding} className="mt-8">
         <input type="hidden" name="next" value="/judge/ballot" />

@@ -12,9 +12,10 @@ export default function RulesPage() {
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Protocol</p>
       <h1 className="mt-2 font-serif text-5xl">The rules execute themselves.</h1>
       <p className="mt-4 text-lg leading-relaxed text-ink/80">
-        GSR is a mirror of a USDC escrow. The rules are public. Monday pays the week before. The season pays the annual
-        awards. No one at the desk types an amount. Surfers enter waves. Judges place them. The funding account sends
-        USDC to the wallet registered on the profile.
+        GSR runs the competition and publishes the payment orders. The rules are public. Every Monday the prior
+        week&apos;s file is published. At the end of the season the annual file is published. No one at the desk types
+        an amount. Surfers enter waves. Judges place them. A separate bot, outside this site, sends USDC on the
+        blockchain to the wallet on the profile.
       </p>
 
       <section className="mt-12">
@@ -65,11 +66,18 @@ export default function RulesPage() {
       <section className="mt-12">
         <h2 className="font-serif text-3xl">When USDC moves</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
-          Every Monday the executor pays the prior week: weekly race money to the athletes on that week&apos;s places,
-          and the judges&apos; share for the ballots sealed that week. At the end of the season it pays the season
-          tables and the world champions&apos; fund. The only destination is the USDC address on the profile — Ethereum,
-          Solana, or another USDC network. No address, no payout. The transfer goes from the funding account to that
-          wallet. This site does not hold the keys and does not take a second approval.
+          This site does not send USDC. It publishes a payment order: the period, the event and board, the place, the
+          wallet and network, the USDC amount, the split, the rule, and a status. The same orders are listed on the
+          escrow page and at /api/payment-orders, one file per week and one for the season. Each file has a content
+          hash anyone can recompute.
+        </p>
+        <p className="mt-3 leading-relaxed text-ink/80">
+          Every Monday&apos;s file covers the prior week: weekly race money for that week&apos;s places, and the
+          judges&apos; share for Champions and pro tour ballots sealed that week. The season file covers the season
+          tables and the world champions&apos; fund, and it is meant to be paid at season close. The only destination
+          is the USDC address on the profile — Ethereum, Solana, or another USDC network. A profile without one keeps
+          that order waiting. The bot that pays is not in this codebase. Until a contract address is public, the escrow
+          page has no transaction hashes.
         </p>
         <p className="mt-3">
           <Link href="/escrow" className="text-ocean">
