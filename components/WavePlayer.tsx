@@ -1,12 +1,14 @@
+import { demoClipFor, isUnplayableHost } from "@/lib/demo-clips";
 import { playbackFor } from "@/lib/playback";
 
 export function WavePlayer({ url, title }: { url: string; title: string }) {
   const playback = playbackFor(url);
+  const fileSrc = isUnplayableHost(url) ? `/demo-waves/${demoClipFor(url)}` : url;
   return (
     <div className="aspect-video overflow-hidden bg-ocean">
       {playback.kind === "file" ? (
-        <video className="h-full w-full" controls playsInline preload="metadata" src={url}>
-          <a href={url}>Play {title}</a>
+        <video className="h-full w-full" controls playsInline preload="metadata" src={fileSrc}>
+          <a href={fileSrc}>Play {title}</a>
         </video>
       ) : null}
       {playback.kind === "embed" ? (

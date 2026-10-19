@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { CATEGORY_LABEL } from "@/lib/category";
 import { getAthleteByUser } from "@/lib/data";
 import { environmentLabel, formatUsd, ordinal } from "@/lib/format";
+import { entryWeekLabel } from "@/lib/season-clock";
 
 export const metadata: Metadata = { title: "My waves" };
 
@@ -45,8 +46,8 @@ export default async function MyEntriesPage() {
               <p className="font-serif text-3xl">{entry.placement ? ordinal(entry.placement.place) : "—"}</p>
             </div>
             <p className="mt-1 text-sm text-ink/70">
-              {CATEGORY_LABEL[entry.category]} · {environmentLabel(entry.environment)} · {entry.isoYear}-W
-              {String(entry.isoWeek).padStart(2, "0")} ·{" "}
+              {CATEGORY_LABEL[entry.category]} · {environmentLabel(entry.environment)} ·{" "}
+              {entryWeekLabel(entry.isoYear, entry.isoWeek, new Date())} ·{" "}
               {entry.tollCents === 0 ? "no toll" : `${formatUsd(entry.tollCents)} DEMO, not charged`}
               {entry.spot ? ` · ${entry.spot}` : ""}
             </p>

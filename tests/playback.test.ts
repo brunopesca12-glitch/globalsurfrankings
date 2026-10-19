@@ -12,6 +12,6 @@ describe("playback", () => {
       kind: "embed",
       src: "https://player.vimeo.com/video/12345",
     });
-    expect(playbackFor("https://video.gsr.surf/demo/best-barrel/01")).toEqual({ kind: "link" });
+    expect(playbackFor("https://video.gsr.surf/demo/best-barrel/01")).toEqual({ kind: "file" });
   });
 });

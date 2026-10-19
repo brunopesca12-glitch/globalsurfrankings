@@ -22,11 +22,14 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   });
   if (!parsed.success) return { error: "Invalid email or password." };
 
+  const requested = String(formData.get("callbackUrl") ?? "");
+  const redirectTo = requested.startsWith("/invite/") || requested.startsWith("/judge") ? requested : "/judge";
+
   try {
     await signIn("credentials", {
       email: parsed.data.email.toLowerCase(),
       password: parsed.data.password,
-      redirectTo: "/profile",
+      redirectTo,
     });
   } catch (error) {
     if (error instanceof AuthError) return { error: "Invalid email or password." };
@@ -104,7 +107,7 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
     await signIn("credentials", {
       email,
       password: parsed.data.password,
-      redirectTo: "/profile",
+      redirectTo: "/judge",
     });
   } catch (error) {
     if (error instanceof AuthError) {

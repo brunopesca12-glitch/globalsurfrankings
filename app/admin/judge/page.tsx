@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { createInvite, setCollegeOverride } from "@/app/actions/invite";
 import { runVerdict, seatJudge } from "@/app/actions/judging";
 import { auth } from "@/lib/auth";
 import { getDeskOverview } from "@/lib/desk";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Desk" };
 export default async function DeskPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string; placed?: string; held?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; placed?: string; held?: string; invite?: string }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
@@ -39,6 +40,10 @@ export default async function DeskPage({
         wave is placed when you run Monday&apos;s verdict: the median of the colleges that reached three ballots.
       </p>
       {query.saved === "1" ? <p className="mt-4 text-sm text-ocean">Seat updated.</p> : null}
+      {query.invite ? (
+        <p className="mt-4 break-all text-sm text-ocean">Invite link: /invite/{query.invite}</p>
+      ) : null}
+      {query.error === "invite" ? <p className="mt-4 text-sm text-stamp">That invite could not be created.</p> : null}
       {query.error === "seat" ? <p className="mt-4 text-sm text-stamp">That seat could not be saved.</p> : null}
       {query.error === "verdict" ? <p className="mt-4 text-sm text-stamp">Monday&apos;s verdict did not run.</p> : null}
       {ran ? (
@@ -100,6 +105,53 @@ export default async function DeskPage({
                   </button>
                 </form>
               </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-serif text-3xl">Invite a judge</h2>
+        <p className="mt-2 text-sm text-ink/70">
+          A personal link creates or links an account and seats that college. Leave the email blank for anyone with the
+          link.
+        </p>
+        <form action={createInvite} className="mt-4 grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+          <input className="border border-line bg-white px-3 py-2" name="email" type="email" placeholder="Email, optional" />
+          <select className="border border-line bg-white px-3 py-2" name="college" defaultValue="CHAMBER">
+            <option value="CHAMBER">Chamber of Champions</option>
+            <option value="RANKED">The Ranked</option>
+            <option value="UPPER">Upper Chamber</option>
+            <option value="ATHLETES">Athletes&apos; College</option>
+            <option value="PUBLIC">The Public</option>
+          </select>
+          <button className="bg-ocean px-4 py-2 text-paper" type="submit">
+            Create invite
+          </button>
+        </form>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-serif text-3xl">Override</h2>
+        <p className="mt-2 text-sm text-ink/70">An override replaces the automatic college until you set it back to automatic.</p>
+        <ul className="mt-4 space-y-3">
+          {desk.people.map((person) => (
+            <li key={`${person.userId}-override`}>
+              <form action={setCollegeOverride} className="grid gap-2 border border-line bg-white px-3 py-3 sm:grid-cols-[1fr_12rem_auto] sm:items-center">
+                <p className="text-sm">{person.name}</p>
+                <input type="hidden" name="userId" value={person.userId} />
+                <select className="border border-line bg-white px-2 py-2 text-sm" name="college" defaultValue="auto">
+                  <option value="auto">Automatic</option>
+                  <option value="CHAMBER">Chamber</option>
+                  <option value="RANKED">Ranked</option>
+                  <option value="UPPER">Upper</option>
+                  <option value="ATHLETES">Athletes</option>
+                  <option value="PUBLIC">Public</option>
+                </select>
+                <button className="border border-line px-3 py-2 text-sm" type="submit">
+                  Save
+                </button>
+              </form>
             </li>
           ))}
         </ul>

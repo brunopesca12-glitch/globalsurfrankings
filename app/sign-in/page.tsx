@@ -4,15 +4,20 @@ import { LoginForm } from "@/components/Forms";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const query = await searchParams;
+  const callbackUrl = query.callbackUrl?.startsWith("/invite/") || query.callbackUrl?.startsWith("/judge") ? query.callbackUrl : "";
+
   return (
     <div className="mx-auto max-w-md px-5 py-12">
       <h1 className="font-serif text-5xl">Sign in</h1>
-      <p className="mt-3 text-sm text-ink/70">
-        Demo account: joao.vasques@gsr.surf · password wave-2027. The desk is desk@gsr.surf, with the same password.
-      </p>
+      <p className="mt-3 text-sm text-ink/70">Use the email and password for your athlete account.</p>
       <div className="mt-8">
-        <LoginForm />
+        <LoginForm callbackUrl={callbackUrl} />
       </div>
       <p className="mt-6 text-sm">
         No account?{" "}

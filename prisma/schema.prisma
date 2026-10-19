@@ -40,15 +40,21 @@ enum EntryStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         UserRole @default(ATHLETE)
-  createdAt    DateTime @default(now())
-  athlete      Athlete?
-  seats        CollegeSeat[]
-  ballots      Ballot[]
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  name             String
+  role             UserRole  @default(ATHLETE)
+  createdAt        DateTime  @default(now())
+  /// Desk override. When set, it replaces the automatic college.
+  collegeOverride  College?
+  /// Set when the judge finishes or skips the first-visit explanation.
+  judgeOnboardedAt DateTime?
+  /// Opt in to appear by name on the college judge list.
+  judgeNamePublic  Boolean   @default(false)
+  athlete          Athlete?
+  seats            CollegeSeat[]
+  ballots          Ballot[]
 }
 
 model Athlete {
@@ -218,9 +224,29 @@ model BallotComparison {
   probeIndex   Int
   probeEntryId String
   result       ComparisonResult
+  /// Bounds before this comparison, so it can be undone while the ballot is open.
+  loBefore     Int              @default(0)
+  hiBefore     Int              @default(0)
+  /// False on rows written before undo existed. Those cannot be rewound.
+  anchored     Boolean          @default(false)
   createdAt    DateTime         @default(now())
 
   @@index([ballotId])
+}
+
+/** Personal link that seats an invited judge, usually a legend, in one college. */
+model JudgeInvite {
+  id           String    @id @default(cuid())
+  token        String    @unique
+  college      College
+  email        String?
+  note         String    @default("")
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+  acceptedAt   DateTime?
+  acceptedById String?
+
+  @@index([email])
 }
 
 model VerdictRun {

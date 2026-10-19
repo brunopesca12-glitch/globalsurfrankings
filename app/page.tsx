@@ -3,12 +3,11 @@ import { SEASON_2027, THEMES } from "@/lib/catalogue";
 import { EDITIONS, FOUNDING } from "@/lib/constitution";
 import { getHomeRankings, type RankingRow } from "@/lib/data";
 import { formatDate, formatPoints, formatUsdAmount } from "@/lib/format";
+import { circuitClock } from "@/lib/season-clock";
 
 export default async function HomePage() {
   const board = await loadBoard();
-  const weekLabel = board
-    ? `${board.week.isoYear}-W${String(board.week.isoWeek).padStart(2, "0")}`
-    : null;
+  const clock = circuitClock(new Date());
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 md:py-14">
@@ -20,14 +19,10 @@ export default async function HomePage() {
           <h1 className="mt-3 font-serif text-5xl leading-none md:text-7xl">World rankings</h1>
         </div>
         <div className="max-w-xs text-sm leading-relaxed text-ink/70">
-          {weekLabel ? (
-            <p>
-              This week {weekLabel}. {board?.wavesThisWeek ?? 0}{" "}
-              {board?.wavesThisWeek === 1 ? "wave" : "waves"} entered. Verdicts publish Monday.
-            </p>
-          ) : (
-            <p>This week&apos;s count is unavailable. Verdicts publish Monday.</p>
-          )}
+          <p>
+            {clock.headline}. {clock.detail}{" "}
+            {board ? `${board.wavesThisWeek} ${board.wavesThisWeek === 1 ? "wave" : "waves"} in the calendar week.` : ""}
+          </p>
           <p className="mt-2">
             <Link href="/about" className="text-ocean">
               How the circuit works

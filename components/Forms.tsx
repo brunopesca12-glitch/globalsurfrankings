@@ -15,11 +15,12 @@ function ErrorNote({ message }: { message: string | null }) {
   return <p className="border border-stamp/40 bg-white px-3 py-2 text-sm text-stamp">{message}</p>;
 }
 
-export function LoginForm() {
+export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
   const [state, action, pending] = useActionState(login, { error: null } satisfies FormState);
   return (
     <form action={action} className="space-y-4">
       <ErrorNote message={state.error} />
+      {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
       <label className="block text-sm">
         Email
         <input className={field} name="email" type="email" autoComplete="email" required />

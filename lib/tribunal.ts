@@ -44,10 +44,16 @@ export function resolveCollege(input: {
   seatedRanked: boolean;
   upper: boolean;
   enteredThisSeason: boolean;
+  /** Desk override. Wins over every automatic claim, including no claim. */
+  override?: College | null;
+  /** A verified athlete profile. Without one, only an invited seat or an override counts. */
+  hasAthlete?: boolean;
 }): College | null {
+  if (input.override) return input.override;
   if (input.seatedChamber) return "CHAMBER";
   if (input.seatedRanked) return "RANKED";
   if (input.role === "ADMIN") return null;
+  if (input.hasAthlete === false) return null;
   if (input.upper) return "UPPER";
   if (input.enteredThisSeason) return "ATHLETES";
   return "PUBLIC";

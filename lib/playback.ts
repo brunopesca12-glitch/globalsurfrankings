@@ -16,7 +16,7 @@ function youtubeId(url: URL): string | null {
   return null;
 }
 
-/** How a stored wave URL should play. Demo links that are not files stay links. */
+/** How a stored wave URL should play. The old demo host is served as a same-origin file. */
 export function playbackFor(url: string): Playback {
   let parsed: URL;
   try {
@@ -31,6 +31,7 @@ export function playbackFor(url: string): Playback {
     const id = parsed.pathname.split("/").filter(Boolean).find((part) => /^\d+$/.test(part));
     if (id) return { kind: "embed", src: `https://player.vimeo.com/video/${id}` };
   }
+  if (host === "video.gsr.surf") return { kind: "file" };
   if (/\.(mp4|webm|ogg)$/i.test(parsed.pathname)) return { kind: "file" };
   return { kind: "link" };
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { auth, signOut } from "@/lib/auth";
+import { SignOutButton } from "@/components/SignOutButton";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ensureWeeklyQueue, type JudgeSession } from "@/lib/judge-queue";
 
@@ -89,16 +90,7 @@ export async function Header() {
                   Desk
                 </Link>
               ) : null}
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut({ redirectTo: "/" });
-                }}
-              >
-                <button type="submit" className="text-ink/60 hover:text-ink">
-                  Sign out
-                </button>
-              </form>
+              <SignOutButton />
             </>
           ) : (
             <>

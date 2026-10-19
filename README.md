@@ -71,6 +71,19 @@ npm run db:demo-judges
 | upper@gsr.surf | Upper Chamber, placed on an empty edition |
 | public@gsr.surf | The Public |
 
+A second insert-only script adds the judge-experience accounts. It never deletes.
+
+```bash
+npm run db:demo-experience
+```
+
+| Email | College |
+| --- | --- |
+| legend@gsr.surf | Chamber of Champions, by override and seat |
+| gallery@gsr.surf | The Public, a verified athlete with no entry |
+
+The password for every demo account, including joao.vasques@gsr.surf and desk@gsr.surf, is `wave-2027`. It is not printed on the sign-in page. On production, a Chamber judge can also be created from the desk with an invite link, without running a script.
+
 Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Auth before any page (the user defaults to `gsr`). Remove `SITE_GATE_PASSWORD` to disable the gate. The password is not stored in this repo. Athlete sign-in still happens after the gate.
 
 ## What the seed contains
@@ -90,7 +103,7 @@ Constitutional constants live in `lib/constitution.ts`.
 - Paid places are the top 20% of an edition (`floor(0.2 × S)`, at least the winner). On a large field the podium six take 80% of the table on the curve 35 / 20 / 14 / 12 / 10 / 9, which is 28 / 16 / 11.2 / 9.6 / 8 / 7.2% of the table. Places 7 through the cutoff split the other 20% equally, and none is paid more than sixth; a short tail returns the excess to the podium. Six or fewer paid places receive the whole table on that curve. The purse page shows this law. The white paper rounds a few of those cents to the dollar. The printed champion campaign in Annex B.2 is shown beside the law, labeled as printed.
 - Event points: podium 100 / 60 / 45 / 35 / 28 / 22 percent of the event base, then 12% through the rest of the top fifth (`floor(S/5)`), then 4% to every other entrant. The winner's base is `100 × √(S/100)`. A field of 400 pays twice a field of 100. The world ranking is the sum of those event points. Points stay provisional until a finale because S is the current entry count.
 - Ordinal placement is binary insertion (index 0 is best). A judge's ballot is sealed. Each college's public place is the median of its ballots, and the college abstains below three. The wave's place is the median of the colleges that voted; an even split resolves toward the Chamber of Champions. The desk runs that Monday verdict. It does not type a place.
-- One person sits in one college: Chamber, then Ranked, then the Upper Chamber (top 10 of a category ranking), then Athletes (anyone who entered that season), then the Public. The desk seats only the first two. A judge never draws a wave in their own category or a declared clubmate's, and the ballot does not show the athlete.
+- One person sits in one college: a desk override, then Chamber, then Ranked, then the Upper Chamber (top 10 of a category ranking), then Athletes (anyone who entered that season), then the Public. A verified athlete with no higher claim is the Public. The desk, and an account with no athlete profile, do not judge unless invited. The rules live in `lib/eligibility.ts`. A judge never draws a wave in their own category or a declared clubmate's, and the ballot does not show the athlete.
 - An entry is refused while this ISO week's ballot queue is still open. Monday holds a wave when the week it was entered still has open ballots, so the new week does not pull last week's wave back out. The queue is at most 8 ballots (the paper's "about fifteen minutes"). The old duty checkbox is unused. Waves judged in the same week are compared with the board already published, not with each other.
 - The Ranked college is capped at US$ 6 a ballot. On the founding scenario the paper prints about US$ 3.30 for The Ranked and about US$ 4.80 for the Chamber. Nothing is paid. A judge sees their own mean deviation after Monday. Public accuracy boards, demotion, and the Golden Eye are not in this version. Upper Chamber membership is the top 10, not the paper's accuracy-promotion ladder.
 - Hashboards filter a world board by hashtag and renumber. They do not judge or pay.
@@ -111,8 +124,9 @@ The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep
 - `/hashboards` an athlete's hashtag rankings; `/hashboards/[tag]` is one tag. `/t/[tag]` redirects there
 - `/sign-up`, `/sign-in`, `/profile`, `/enter`, `/my-waves`
 - `/athlete/[slug]` public placements
-- `/judge` one blind ballot at a time, for an account that has a college
-- `/admin/judge` seat the Chamber and the Ranked, and run Monday's verdict
+- `/judge` judge home for anyone with a college. `/judge/welcome` the first visit. `/judge/ballot` the blind comparison. `/judge/history` past ballots and the opt-in college list
+- `/invite/[token]` personal invite into a college
+- `/admin/judge` seat the Chamber and the Ranked, override a college, mint an invite, and run Monday's verdict
 
 ## Tests
 
