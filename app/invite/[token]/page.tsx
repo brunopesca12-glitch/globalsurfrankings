@@ -45,7 +45,12 @@ export default async function InvitePage({
       ) : null}
       {query.error === "1" ? <p className="mt-4 text-sm text-stamp">The invite could not be accepted.</p> : null}
 
-      {session?.user ? (
+      {session?.user?.role === "ADMIN" ? (
+        <p className="mt-8 leading-relaxed text-ink/80">
+          You are signed in as the desk. Sign out, then open this link again, so the invite seats the guest and not the
+          desk.
+        </p>
+      ) : session?.user ? (
         <form action={acceptInvite} className="mt-8">
           <input type="hidden" name="token" value={token} />
           <button className="min-h-12 w-full bg-ocean px-4 py-3 text-paper" type="submit">

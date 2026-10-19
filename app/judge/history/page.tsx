@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { entryWeekLabel } from "@/lib/season-clock";
 import { meanAbsoluteDeviation } from "@/lib/tribunal";
 
 export const metadata: Metadata = { title: "Judging history" };
@@ -77,7 +78,7 @@ export default async function JudgeHistoryPage() {
           return (
             <li key={ballot.id} className="px-4 py-3 text-sm">
               <p>
-                {ballot.isoYear}-W{String(ballot.isoWeek).padStart(2, "0")}
+                {entryWeekLabel(ballot.isoYear, ballot.isoWeek, new Date())}
                 {ballot.sealedAt ? ` · ${formatDate(ballot.sealedAt.toISOString().slice(0, 10))}` : ""}
               </p>
               <p className="text-ink/70">
