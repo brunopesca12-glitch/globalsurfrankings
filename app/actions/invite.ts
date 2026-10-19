@@ -62,26 +62,24 @@ async function acceptInviteFor(userId: string, token: string) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
   if (!user) return false;
   if (invite.email && invite.email !== user.email) return false;
-  await prisma.$transaction([
-    prisma.judgeInvite.update({
+  await prisma.$transaction(async (tx) => {
+    await tx.judgeInvite.update({
       where: { id: invite.id },
       data: { acceptedAt: new Date(), acceptedById: userId },
-    }),
-    ...(isManualCollege(invite.college)
-      ? [
-          prisma.collegeSeat.upsert({
-            where: { userId_college: { userId, college: invite.college } },
-            create: { userId, college: invite.college },
-            update: {},
-          }),
-        ]
-      : [
-          prisma.user.update({
-            where: { id: userId },
-            data: { collegeOverride: invite.college },
-          }),
-        ]),
-  ]);
+    });
+    if (isManualCollege(invite.college)) {
+      await tx.collegeSeat.upsert({
+        where: { userId_college: { userId, college: invite.college } },
+        create: { userId, college: invite.college },
+        update: {},
+      });
+      return;
+    }
+    await tx.user.update({
+      where: { id: userId },
+      data: { collegeOverride: invite.college },
+    });
+  });
   return true;
 }
 
