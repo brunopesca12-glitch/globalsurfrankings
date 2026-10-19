@@ -81,6 +81,7 @@ npm run db:demo-experience
 | --- | --- |
 | legend@gsr.surf | Chamber of Champions, by override and seat |
 | gallery@gsr.surf | The Public, a verified athlete with no entry |
+| chamber.guest@gsr.surf | Chamber of Champions on production, created from a desk invite. The password is `wave-2027`. Joao Vasques (joao.vasques@gsr.surf, same password) sits in the Upper Chamber. |
 
 The password for every demo account, including joao.vasques@gsr.surf and desk@gsr.surf, is `wave-2027`. It is not printed on the sign-in page. On production, a Chamber judge can also be created from the desk with an invite link, without running a script.
 

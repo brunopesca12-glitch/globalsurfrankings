@@ -67,10 +67,6 @@ async function acceptInviteFor(userId: string, token: string) {
       where: { id: invite.id },
       data: { acceptedAt: new Date(), acceptedById: userId },
     }),
-    prisma.user.update({
-      where: { id: userId },
-      data: { collegeOverride: invite.college },
-    }),
     ...(isManualCollege(invite.college)
       ? [
           prisma.collegeSeat.upsert({
@@ -79,7 +75,12 @@ async function acceptInviteFor(userId: string, token: string) {
             update: {},
           }),
         ]
-      : []),
+      : [
+          prisma.user.update({
+            where: { id: userId },
+            data: { collegeOverride: invite.college },
+          }),
+        ]),
   ]);
   return true;
 }
