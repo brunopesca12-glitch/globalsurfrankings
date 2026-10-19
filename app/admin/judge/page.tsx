@@ -1,0 +1,161 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { createInvite, setCollegeOverride } from "@/app/actions/invite";
+import { runVerdict, seatJudge } from "@/app/actions/judging";
+import { auth } from "@/lib/auth";
+import { getDeskOverview } from "@/lib/desk";
+import { formatDate } from "@/lib/format";
+import { PANEL_NAME } from "@/lib/panel";
+
+export const metadata: Metadata = { title: "Desk" };
+
+export default async function DeskPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; error?: string; placed?: string; held?: string; invite?: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user) redirect("/sign-in");
+  if (session.user.role !== "ADMIN") {
+    return (
+      <div className="mx-auto max-w-xl px-5 py-12">
+        <h1 className="font-serif text-5xl">Desk only</h1>
+        <p className="mt-4">This account does not seat the panels.</p>
+      </div>
+    );
+  }
+
+  const query = await searchParams;
+  const desk = await getDeskOverview();
+  const placed = Number(query.placed);
+  const held = Number(query.held);
+  const ran = Number.isInteger(placed) && Number.isInteger(held) && query.placed != null && query.held != null;
+
+  return (
+    <div className="mx-auto max-w-4xl px-5 py-12">
+      <p className="text-xs uppercase tracking-[0.22em] text-gold">Desk</p>
+      <h1 className="mt-2 font-serif text-5xl">Panels</h1>
+      <p className="mt-4 max-w-2xl text-ink/75">
+        Seat Champions and the pro tour. Athletes, the Top 10, and Everyone sit on their own. A wave is placed when you
+        run Monday&apos;s verdict: the median of the panels that reached three ballots.
+      </p>
+      {query.saved === "1" ? <p className="mt-4 text-sm text-ocean">Seat updated.</p> : null}
+      {query.invite ? (
+        <p className="mt-4 break-all text-sm text-ocean">Invite link: /invite/{query.invite}</p>
+      ) : null}
+      {query.error === "invite" ? <p className="mt-4 text-sm text-stamp">That invite could not be created.</p> : null}
+      {query.error === "seat" ? <p className="mt-4 text-sm text-stamp">That seat could not be saved.</p> : null}
+      {query.error === "verdict" ? <p className="mt-4 text-sm text-stamp">Monday&apos;s verdict did not run.</p> : null}
+      {ran ? (
+        <p className="mt-4 text-sm text-ocean">
+          Monday&apos;s verdict placed {placed} and held {held}.
+        </p>
+      ) : null}
+
+      <section className="mt-10">
+        <h2 className="font-serif text-3xl">Monday verdict</h2>
+        <p className="mt-2 text-sm text-ink/70">
+          {desk.waiting === 1 ? "1 wave is waiting." : `${desk.waiting} waves are waiting.`} An entry is held when its
+          athlete still has open ballots for that week, or when every panel is short of three ballots.
+        </p>
+        <form action={runVerdict} className="mt-4">
+          <button className="bg-ocean px-4 py-3 text-paper" type="submit">
+            Run Monday verdict
+          </button>
+        </form>
+        {desk.runs.length > 0 ? (
+          <ul className="mt-4 space-y-1 text-sm text-ink/70">
+            {desk.runs.map((run) => (
+              <li key={run.id}>
+                {formatDate(run.createdAt.toISOString().slice(0, 10))} · placed {run.placed} · held {run.held}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-serif text-3xl">Seats</h2>
+        <ul className="mt-4 divide-y divide-line border border-line bg-white">
+          {desk.people.map((person) => (
+            <li key={person.userId} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3">
+              <div>
+                <p>{person.name}</p>
+                <p className="text-xs text-ink/55">
+                  {person.email}
+                  <span className="mx-2 text-ink/30">·</span>
+                  {person.college ? PANEL_NAME[person.college] : "No panel"}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <form action={seatJudge}>
+                  <input type="hidden" name="userId" value={person.userId} />
+                  <input type="hidden" name="college" value="CHAMBER" />
+                  <input type="hidden" name="seated" value={person.chamber ? "no" : "yes"} />
+                  <button className="border border-line px-2 py-1 text-sm" type="submit">
+                    {person.chamber ? "Remove from Chamber" : "Seat in Chamber"}
+                  </button>
+                </form>
+                <form action={seatJudge}>
+                  <input type="hidden" name="userId" value={person.userId} />
+                  <input type="hidden" name="college" value="RANKED" />
+                  <input type="hidden" name="seated" value={person.ranked ? "no" : "yes"} />
+                  <button className="border border-line px-2 py-1 text-sm" type="submit">
+                    {person.ranked ? "Remove from Ranked" : "Seat in Ranked"}
+                  </button>
+                </form>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-serif text-3xl">Invite a judge</h2>
+        <p className="mt-2 text-sm text-ink/70">
+          A personal link creates or links an account and seats that panel. Leave the email blank for anyone with the
+          link.
+        </p>
+        <form action={createInvite} className="mt-4 grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+          <input className="border border-line bg-white px-3 py-2" name="email" type="email" placeholder="Email, optional" />
+          <select className="border border-line bg-white px-3 py-2" name="college" defaultValue="CHAMBER">
+            <option value="CHAMBER">Chamber of Champions</option>
+            <option value="RANKED">The Ranked</option>
+            <option value="UPPER">Upper Chamber</option>
+            <option value="ATHLETES">Athletes</option>
+            <option value="PUBLIC">The Public</option>
+          </select>
+          <button className="bg-ocean px-4 py-2 text-paper" type="submit">
+            Create invite
+          </button>
+        </form>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-serif text-3xl">Override</h2>
+        <p className="mt-2 text-sm text-ink/70">An override replaces the automatic panel until you set it back to automatic.</p>
+        <ul className="mt-4 space-y-3">
+          {desk.people.map((person) => (
+            <li key={`${person.userId}-override`}>
+              <form action={setCollegeOverride} className="grid gap-2 border border-line bg-white px-3 py-3 sm:grid-cols-[1fr_12rem_auto] sm:items-center">
+                <p className="text-sm">{person.name}</p>
+                <input type="hidden" name="userId" value={person.userId} />
+                <select className="border border-line bg-white px-2 py-2 text-sm" name="college" defaultValue="auto">
+                  <option value="auto">Automatic</option>
+                  <option value="CHAMBER">Chamber</option>
+                  <option value="RANKED">Ranked</option>
+                  <option value="UPPER">Upper</option>
+                  <option value="ATHLETES">Athletes</option>
+                  <option value="PUBLIC">Public</option>
+                </select>
+                <button className="border border-line px-3 py-2 text-sm" type="submit">
+                  Save
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}

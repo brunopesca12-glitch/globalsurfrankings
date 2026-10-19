@@ -1,0 +1,581 @@
+import { cache } from "react";
+import { randomInt } from "node:crypto";
+import type { Prisma } from "@prisma/client";
+import { WEEKLY_JUDGING_BALLOTS } from "@/lib/constitution";
+import { prisma } from "@/lib/db";
+import { loadJudgeContext } from "@/lib/judge-context";
+import { isoWeek } from "@/lib/iso-week";
+import { applyComparison, probeInsertion } from "@/lib/binary-insertion";
+import { SEASON_SLUGS } from "@/lib/catalogue";
+import { eligibilityFor } from "@/lib/eligibility";
+import { editionLine, panelName } from "@/lib/panel";
+import { judgingStreak } from "@/lib/season-clock";
+import { stackAfterInsert } from "@/lib/stack";
+import {
+  canJudgeEntry,
+  drawEntries,
+  editionKey,
+  forbiddenForAthlete,
+  meanAbsoluteDeviation,
+  resolveCollege,
+  type College as TribunalCollege,
+} from "@/lib/tribunal";
+
+export type OpenBallot = {
+  id: string;
+  mode: "compare" | "seat";
+  step: number;
+  canUndo: boolean;
+};
+
+export type JudgeSession = {
+  college: TribunalCollege | null;
+  why: string;
+  athlete: boolean;
+  pending: number;
+  sealed: number;
+  ballot: OpenBallot | null;
+  accuracy: { mean: number; verdicts: number } | null;
+  rankedSealed: number;
+  streak: number;
+  onboarded: boolean;
+  namePublic: boolean;
+  panel: string | null;
+  destination: { event: string; edition: string } | null;
+};
+
+const EMPTY: JudgeSession = {
+  college: null,
+  why: "Sign in to see your college.",
+  athlete: false,
+  pending: 0,
+  sealed: 0,
+  ballot: null,
+  accuracy: null,
+  rankedSealed: 0,
+  streak: 0,
+  onboarded: true,
+  namePublic: false,
+  panel: null,
+  destination: null,
+};
+
+function randomUnit(): number {
+  return randomInt(0, 1_000_000) / 1_000_000;
+}
+
+type Tx = Prisma.TransactionClient;
+
+async function lockWeek(tx: Tx, userId: string, isoYear: number, isoWeekNumber: number) {
+  const key = `gsr-judge:${userId}:${isoYear}:${isoWeekNumber}`;
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
+}
+
+export const ensureWeeklyQueue = cache(async (userId: string): Promise<JudgeSession> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { seats: true, athlete: { select: { id: true } } },
+  });
+  if (!user) return EMPTY;
+
+  const ctx = await loadJudgeContext();
+  const week = isoWeek(new Date());
+  const athleteId = user.athlete?.id ?? null;
+  const forbidden = forbiddenForAthlete(athleteId, ctx.athletes, ctx.entryEditions);
+
+  await prisma.$transaction(async (tx) => {
+    await lockWeek(tx, userId, week.isoYear, week.isoWeek);
+    const fresh = await tx.user.findUnique({
+      where: { id: userId },
+      include: { seats: true, athlete: { select: { id: true } } },
+    });
+    if (!fresh) return;
+    const college = resolveCollege({
+      role: fresh.role,
+      seatedChamber: fresh.seats.some((seat) => seat.college === "CHAMBER"),
+      seatedRanked: fresh.seats.some((seat) => seat.college === "RANKED"),
+      upper: athleteId != null && ctx.upperAthleteIds.has(athleteId),
+      enteredThisSeason: athleteId != null && ctx.enteredAthleteIds.has(athleteId),
+      override: fresh.collegeOverride,
+      hasAthlete: athleteId != null,
+    });
+
+    const existing = await tx.ballot.findMany({
+      where: { userId },
+      include: { entry: { select: { id: true, status: true, athleteId: true, category: true, sex: true } } },
+    });
+
+    const dropIds = existing
+      .filter((ballot) => {
+        if (ballot.status !== "OPEN") return false;
+        if (!college || ballot.college !== college) return true;
+        if (ballot.entry.status !== "SUBMITTED") return true;
+        return !canJudgeEntry({
+          judgeAthleteId: athleteId,
+          entryAthleteId: ballot.entry.athleteId,
+          edition: editionKey(ballot.entry.category, ballot.entry.sex),
+          forbidden,
+        });
+      })
+      .map((ballot) => ballot.id);
+    if (dropIds.length > 0) {
+      await tx.ballot.deleteMany({ where: { id: { in: dropIds } } });
+    }
+    if (!college || !ctx.seasonId) return;
+
+    const kept = existing.filter((ballot) => !dropIds.includes(ballot.id));
+    // One ballot per wave for the life of the entry. A later week must not draw it again.
+    const heldIds = new Set(kept.map((ballot) => ballot.entryId));
+    const thisWeekCount = kept.filter(
+      (ballot) => ballot.isoYear === week.isoYear && ballot.isoWeek === week.isoWeek,
+    ).length;
+    const need = Math.max(0, WEEKLY_JUDGING_BALLOTS - thisWeekCount);
+    if (need === 0) return;
+
+    const submitted = await tx.entry.findMany({
+      where: { seasonId: ctx.seasonId, status: "SUBMITTED", theme: { slug: { in: [...SEASON_SLUGS] } } },
+      select: { id: true, athleteId: true, category: true, sex: true, themeId: true },
+    });
+    const eligible = submitted.filter(
+      (entry) =>
+        !heldIds.has(entry.id) &&
+        canJudgeEntry({
+          judgeAthleteId: athleteId,
+          entryAthleteId: entry.athleteId,
+          edition: editionKey(entry.category, entry.sex),
+          forbidden,
+        }),
+    );
+    if (eligible.length === 0) return;
+
+    const counts = await tx.ballot.groupBy({
+      by: ["entryId"],
+      where: { college, entryId: { in: eligible.map((entry) => entry.id) } },
+      _count: { _all: true },
+    });
+    const countByEntry = new Map(counts.map((row) => [row.entryId, row._count._all]));
+    const picked = drawEntries(
+      eligible.map((entry) => ({ ...entry, collegeBallots: countByEntry.get(entry.id) ?? 0 })),
+      need,
+      randomUnit,
+    );
+
+    const boards = await tx.board.findMany({
+      where: { theme: { seasonId: ctx.seasonId } },
+      include: { placements: { orderBy: { place: "asc" }, select: { entryId: true } } },
+    });
+    const boardByKey = new Map(
+      boards.map((board) => [
+        `${board.themeId}:${board.category}:${board.sex}`,
+        board.placements.map((row) => row.entryId),
+      ]),
+    );
+
+    if (picked.length === 0) return;
+    // ON CONFLICT DO NOTHING. A unique violation must not abort the transaction.
+    await tx.ballot.createMany({
+      data: picked.map((entry) => {
+        const boardEntryIds = boardByKey.get(`${entry.themeId}:${entry.category}:${entry.sex}`) ?? [];
+        return {
+          userId,
+          entryId: entry.id,
+          college,
+          isoYear: week.isoYear,
+          isoWeek: week.isoWeek,
+          boardEntryIds,
+          lo: 0,
+          hi: boardEntryIds.length,
+        };
+      }),
+      skipDuplicates: true,
+    });
+  });
+
+  return readJudgeSession(userId, week.isoYear, week.isoWeek);
+});
+
+async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: number): Promise<JudgeSession> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { seats: true, athlete: { select: { id: true } } },
+  });
+  if (!user) return EMPTY;
+  const ctx = await loadJudgeContext();
+  const athleteId = user.athlete?.id ?? null;
+  const college = resolveCollege({
+    role: user.role,
+    seatedChamber: user.seats.some((seat) => seat.college === "CHAMBER"),
+    seatedRanked: user.seats.some((seat) => seat.college === "RANKED"),
+    upper: athleteId != null && ctx.upperAthleteIds.has(athleteId),
+    enteredThisSeason: athleteId != null && ctx.enteredAthleteIds.has(athleteId),
+    override: user.collegeOverride,
+    hasAthlete: athleteId != null,
+  });
+  const seat = eligibilityFor({
+    role: user.role,
+    hasAthlete: athleteId != null,
+    seatedChamber: user.seats.some((seat) => seat.college === "CHAMBER"),
+    seatedRanked: user.seats.some((seat) => seat.college === "RANKED"),
+    upper: athleteId != null && ctx.upperAthleteIds.has(athleteId),
+    enteredThisSeason: athleteId != null && ctx.enteredAthleteIds.has(athleteId),
+    override: user.collegeOverride,
+  });
+
+  const [weekBallots, earlierOpen, rankedSealed, sealedFinal, sealedWeeks] = await Promise.all([
+    prisma.ballot.findMany({
+      where: { userId, isoYear, isoWeek: isoWeekNumber },
+      include: {
+        entry: { select: { status: true, category: true, sex: true, theme: { select: { name: true } } } },
+        comparisons: { orderBy: { createdAt: "desc" }, select: { anchored: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.ballot.findMany({
+      where: {
+        userId,
+        status: "OPEN",
+        entry: { status: "SUBMITTED" },
+        NOT: { AND: [{ isoYear }, { isoWeek: isoWeekNumber }] },
+      },
+      include: {
+        entry: { select: { status: true, category: true, sex: true, theme: { select: { name: true } } } },
+        comparisons: { orderBy: { createdAt: "desc" }, select: { anchored: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.ballot.count({ where: { userId, status: "SEALED", college: "RANKED" } }),
+    prisma.ballot.findMany({
+      where: { userId, status: "SEALED", place: { not: null }, entry: { placement: { isNot: null } } },
+      select: { place: true, entry: { select: { placement: { select: { place: true } } } } },
+    }),
+    prisma.ballot.findMany({
+      where: { userId, status: "SEALED" },
+      select: { isoYear: true, isoWeek: true },
+      distinct: ["isoYear", "isoWeek"],
+    }),
+  ]);
+
+  const open = [
+    ...earlierOpen,
+    ...weekBallots.filter((ballot) => ballot.status === "OPEN" && ballot.entry.status === "SUBMITTED"),
+  ];
+  const sealed = weekBallots.filter((ballot) => ballot.status === "SEALED").length;
+  const pairs = sealedFinal
+    .filter((ballot) => ballot.place != null && ballot.entry.placement)
+    .map((ballot) => ({ ballotPlace: ballot.place!, finalPlace: ballot.entry.placement!.place }));
+  const mean = meanAbsoluteDeviation(pairs);
+  const shown = await presentBallot(open);
+
+  return {
+    college,
+    why: seat.why,
+    athlete: athleteId != null,
+    pending: Math.max(0, open.length - shown.removed),
+    sealed,
+    ballot: shown.ballot,
+    accuracy: mean == null ? null : { mean, verdicts: pairs.length },
+    rankedSealed,
+    streak: judgingStreak(sealedWeeks, new Date()),
+    onboarded: user.judgeOnboardedAt != null,
+    namePublic: user.judgeNamePublic,
+    panel: college ? panelName(college) : null,
+    destination: shown.destination,
+  };
+}
+
+async function presentBallot(
+  open: {
+    id: string;
+    lo: number;
+    hi: number;
+    boardEntryIds: string[];
+    comparisons: { anchored: boolean }[];
+    entry: { category: string; sex: string; theme: { name: string } };
+  }[],
+): Promise<{ ballot: OpenBallot | null; removed: number; destination: { event: string; edition: string } | null }> {
+  let removed = 0;
+  for (const ballot of open) {
+    const destination = { event: ballot.entry.theme.name, edition: editionLine(ballot.entry.category, ballot.entry.sex) };
+    const latest = ballot.comparisons[0];
+    const step = ballot.comparisons.length + 1;
+    const canUndo = latest?.anchored === true;
+    const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
+    if (probe.kind === "done" || ballot.boardEntryIds.length === 0) {
+      return { removed, ballot: { id: ballot.id, mode: "seat", step, canUndo }, destination };
+    }
+    const probeEntryId = ballot.boardEntryIds[probe.index];
+    if (probeEntryId) {
+      const probeEntry = await prisma.entry.findUnique({ where: { id: probeEntryId }, select: { id: true } });
+      if (!probeEntry) {
+        await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
+        removed += 1;
+        continue;
+      }
+    }
+    return { removed, ballot: { id: ballot.id, mode: "compare", step, canUndo }, destination };
+  }
+  return { ballot: null, removed, destination: null };
+}
+
+export async function applyBallotComparison(
+  userId: string,
+  ballotId: string,
+  comparison: "better" | "worse",
+): Promise<"sealed" | "next" | "rejected"> {
+  const allowed = await ballotStillAllowed(userId, ballotId);
+  if (!allowed) return "rejected";
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Ballot" WHERE "id" = ${ballotId} AND "userId" = ${userId} FOR UPDATE`;
+      const ballot = await tx.ballot.findFirst({
+        where: { id: ballotId, userId },
+        include: { entry: { select: { status: true } } },
+      });
+      if (!ballot || ballot.status !== "OPEN" || ballot.entry.status !== "SUBMITTED") return "rejected";
+      const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
+      if (probe.kind !== "probe") return "rejected";
+      const probeEntryId = ballot.boardEntryIds[probe.index];
+      if (!probeEntryId) return "rejected";
+      const next = applyComparison({ lo: ballot.lo, hi: ballot.hi }, probe.index, comparison);
+      const after = probeInsertion(next);
+      const sealed = after.kind === "done";
+      const updated = await tx.ballot.updateMany({
+        where: { id: ballot.id, status: "OPEN", lo: ballot.lo, hi: ballot.hi },
+        data: {
+          lo: next.lo,
+          hi: next.hi,
+          ...(sealed
+            ? { status: "SEALED" as const, place: after.index + 1, sealedAt: new Date() }
+            : {}),
+        },
+      });
+      if (updated.count !== 1) return "rejected";
+      await tx.ballotComparison.create({
+        data: {
+          ballotId: ballot.id,
+          probeIndex: probe.index,
+          probeEntryId,
+          result: comparison === "better" ? "BETTER" : "WORSE",
+          loBefore: ballot.lo,
+          hiBefore: ballot.hi,
+          anchored: true,
+        },
+      });
+      return sealed ? "sealed" : "next";
+    });
+  } catch {
+    return "rejected";
+  }
+}
+
+export async function sealFinishedBallot(userId: string, ballotId: string): Promise<"sealed" | "rejected"> {
+  const allowed = await ballotStillAllowed(userId, ballotId);
+  if (!allowed) return "rejected";
+  try {
+    return await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Ballot" WHERE "id" = ${ballotId} AND "userId" = ${userId} FOR UPDATE`;
+      const ballot = await tx.ballot.findFirst({
+        where: { id: ballotId, userId },
+        include: { entry: { select: { status: true } } },
+      });
+      if (!ballot || ballot.status !== "OPEN" || ballot.entry.status !== "SUBMITTED") return "rejected";
+      const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
+      if (probe.kind !== "done") return "rejected";
+      const updated = await tx.ballot.updateMany({
+        where: { id: ballot.id, status: "OPEN", lo: ballot.lo, hi: ballot.hi },
+        data: { status: "SEALED", place: probe.index + 1, sealedAt: new Date() },
+      });
+      return updated.count === 1 ? "sealed" : "rejected";
+    });
+  } catch {
+    return "rejected";
+  }
+}
+
+export async function loadJudgeStack(userId: string, ballotId: string) {
+  const ballot = await prisma.ballot.findFirst({
+    where: { id: ballotId, userId },
+    include: { entry: { select: { themeId: true, category: true, sex: true, theme: { select: { name: true } } } } },
+  });
+  if (!ballot) return null;
+  const sealed = await prisma.ballot.findMany({
+    where: {
+      userId,
+      status: "SEALED",
+      entry: {
+        themeId: ballot.entry.themeId,
+        category: ballot.entry.category,
+        sex: ballot.entry.sex,
+      },
+    },
+    orderBy: [{ place: "asc" }, { sealedAt: "asc" }],
+    select: { entryId: true },
+  });
+  return {
+    event: ballot.entry.theme.name,
+    edition: editionLine(ballot.entry.category, ballot.entry.sex),
+    tiles: sealed.map((row, index) => ({ rank: index + 1, entryId: row.entryId })),
+  };
+}
+
+export async function placeOnStack(
+  userId: string,
+  ballotId: string,
+  place: number,
+): Promise<"sealed" | "rejected"> {
+  const allowed = await ballotStillAllowed(userId, ballotId);
+  if (!allowed) return "rejected";
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const ballot = await tx.ballot.findFirst({
+        where: { id: ballotId, userId, status: "OPEN" },
+        include: { entry: { select: { themeId: true, category: true, sex: true, status: true } } },
+      });
+      if (!ballot || ballot.entry.status !== "SUBMITTED") return "rejected";
+      const sealed = await tx.ballot.findMany({
+        where: {
+          userId,
+          status: "SEALED",
+          entry: {
+            themeId: ballot.entry.themeId,
+            category: ballot.entry.category,
+            sex: ballot.entry.sex,
+          },
+        },
+        orderBy: [{ place: "asc" }, { sealedAt: "asc" }],
+      });
+      const next = stackAfterInsert(
+        sealed.map((row) => row.id),
+        ballot.id,
+        place,
+      );
+      if (!next) return "rejected";
+      const now = new Date();
+      for (let index = 0; index < next.length; index += 1) {
+        const id = next[index]!;
+        const rank = index + 1;
+        if (id === ballot.id) {
+          await tx.ballot.update({
+            where: { id },
+            data: { status: "SEALED", place: rank, sealedAt: now },
+          });
+        } else {
+          await tx.ballot.update({ where: { id }, data: { place: rank } });
+        }
+      }
+      return "sealed";
+    });
+  } catch {
+    return "rejected";
+  }
+}
+
+export async function undoStackPlacement(userId: string, ballotId: string): Promise<"undone" | "rejected"> {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const ballot = await tx.ballot.findFirst({
+        where: { id: ballotId, userId, status: "SEALED" },
+        include: { entry: { select: { themeId: true, category: true, sex: true, status: true } } },
+      });
+      if (!ballot || ballot.entry.status !== "SUBMITTED") return "rejected";
+      const sealed = await tx.ballot.findMany({
+        where: {
+          userId,
+          status: "SEALED",
+          entry: {
+            themeId: ballot.entry.themeId,
+            category: ballot.entry.category,
+            sex: ballot.entry.sex,
+          },
+        },
+        orderBy: [{ place: "asc" }, { sealedAt: "asc" }],
+      });
+      const latest = sealed.reduce((best, row) => {
+        const bestAt = best.sealedAt?.getTime() ?? 0;
+        const rowAt = row.sealedAt?.getTime() ?? 0;
+        return rowAt >= bestAt ? row : best;
+      }, sealed[0]);
+      if (!latest || latest.id !== ballot.id) return "rejected";
+      const rest = sealed.filter((row) => row.id !== ballot.id);
+      await tx.ballot.update({
+        where: { id: ballot.id },
+        data: { status: "OPEN", place: null, sealedAt: null },
+      });
+      for (let index = 0; index < rest.length; index += 1) {
+        await tx.ballot.update({ where: { id: rest[index]!.id }, data: { place: index + 1 } });
+      }
+      return "undone";
+    });
+  } catch {
+    return "rejected";
+  }
+}
+
+export async function undoBallotComparison(userId: string, ballotId: string): Promise<"undone" | "rejected"> {
+  const allowed = await ballotStillAllowed(userId, ballotId);
+  if (!allowed) return "rejected";
+  try {
+    return await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Ballot" WHERE "id" = ${ballotId} AND "userId" = ${userId} FOR UPDATE`;
+      const ballot = await tx.ballot.findFirst({ where: { id: ballotId, userId, status: "OPEN" } });
+      if (!ballot) return "rejected";
+      const last = await tx.ballotComparison.findFirst({
+        where: { ballotId, anchored: true },
+        orderBy: { createdAt: "desc" },
+      });
+      if (!last) return "rejected";
+      const updated = await tx.ballot.updateMany({
+        where: { id: ballot.id, status: "OPEN", lo: ballot.lo, hi: ballot.hi },
+        data: { lo: last.loBefore, hi: last.hiBefore },
+      });
+      if (updated.count !== 1) return "rejected";
+      await tx.ballotComparison.delete({ where: { id: last.id } });
+      return "undone";
+    });
+  } catch {
+    return "rejected";
+  }
+}
+
+async function ballotStillAllowed(userId: string, ballotId: string): Promise<boolean> {
+  const ballot = await prisma.ballot.findFirst({
+    where: { id: ballotId, userId, status: "OPEN" },
+    include: { entry: { select: { athleteId: true, category: true, sex: true, status: true } } },
+  });
+  if (!ballot || ballot.entry.status !== "SUBMITTED") {
+    if (ballot) await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
+    return false;
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { seats: true, athlete: { select: { id: true } } },
+  });
+  if (!user) return false;
+  const ctx = await loadJudgeContext();
+  const athleteId = user.athlete?.id ?? null;
+  const college = resolveCollege({
+    role: user.role,
+    seatedChamber: user.seats.some((seat) => seat.college === "CHAMBER"),
+    seatedRanked: user.seats.some((seat) => seat.college === "RANKED"),
+    upper: athleteId != null && ctx.upperAthleteIds.has(athleteId),
+    enteredThisSeason: athleteId != null && ctx.enteredAthleteIds.has(athleteId),
+    override: user.collegeOverride,
+    hasAthlete: athleteId != null,
+  });
+  const forbidden = forbiddenForAthlete(athleteId, ctx.athletes, ctx.entryEditions);
+  const ok =
+    college === ballot.college &&
+    canJudgeEntry({
+      judgeAthleteId: athleteId,
+      entryAthleteId: ballot.entry.athleteId,
+      edition: editionKey(ballot.entry.category, ballot.entry.sex),
+      forbidden,
+    });
+  if (!ok) {
+    await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
+    return false;
+  }
+  return true;
+}
+

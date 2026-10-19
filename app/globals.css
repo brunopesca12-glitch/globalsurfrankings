@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-outfit), "Liberation Sans", "Helvetica Neue", sans-serif;
+  --font-serif: var(--font-fraunces), "Liberation Serif", Georgia, serif;
+  --color-ink: #1c1915;
+  --color-paper: #f4efe6;
+  --color-ocean: #0d3a48;
+  --color-foam: #e7f2f3;
+  --color-sand: #e6d3b0;
+  --color-gold: #8a6424;
+  --color-line: #ddd4c6;
+  --color-stamp: #9f2d2d;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: #c9dde3;
+}
+
+.rule {
+  background-image: linear-gradient(to right, transparent, var(--color-line), transparent);
+  height: 1px;
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid var(--color-stamp);
+  color: var(--color-stamp);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.72rem;
+}
