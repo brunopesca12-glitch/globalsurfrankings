@@ -103,7 +103,7 @@ export function judgingStreak(
   now: Date,
 ): number {
   const have = new Set(sealedWeeks.map((week) => weekKey(week.isoYear, week.isoWeek)));
-  let cursor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const cursor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const current = isoWeek(cursor);
   if (!have.has(weekKey(current.isoYear, current.isoWeek))) {
     cursor.setUTCDate(cursor.getUTCDate() - 7);
