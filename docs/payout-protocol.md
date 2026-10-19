@@ -21,7 +21,7 @@ An order is a pure function of the current verdicts and the rules in `lib/consti
 | `walletNetwork`, `walletAddress` | Public USDC address. Ethereum, Solana, or one other token. |
 | `amountCents`, `amountUsdc`, `amountBaseUnits` | The same amount. 1 cent = 10,000 base units. 1 USDC = 1,000,000 base units. |
 | `splitBasis` | `weekly_race`, `season_table`, `champions_fund`, `judges_champions`, or `judges_pro_tour`. |
-| `ruleRef` | `gsr-orders-1` plus the rule name. |
+| `ruleRef` | `gsr-orders-1#weekly-race`, `#season-table`, `#champions-fund`, `#judges-champions`, or `#judges-pro-tour`. |
 | `status` | `published` when the wallet parses. `awaiting_wallet` when it does not. |
 
 `awaiting_wallet` still appears in the file. The amount is not given to anyone else. `executed` is not a status this app sets.

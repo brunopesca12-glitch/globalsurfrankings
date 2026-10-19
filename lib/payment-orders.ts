@@ -412,7 +412,7 @@ function judgePanelOrders(
         walletAddress: judge.row.walletAddress,
         amountCents: capped,
         splitBasis,
-        ruleRef: `${RULES_VERSION}#${splitBasis}`,
+        ruleRef: `${RULES_VERSION}#${splitBasis === "judges_champions" ? "judges-champions" : "judges-pro-tour"}`,
       }),
     );
   });

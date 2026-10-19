@@ -219,6 +219,8 @@ describe("payment orders", () => {
     ]);
     expect(ranked.reduce((sum, order) => sum + order.amountCents, 0)).toBeLessThan(rankedBudget!);
     expect(chamber.map((order) => order.amountCents).reduce((sum, cents) => sum + cents, 0)).toBe(chamberBudget);
+    expect(ranked[0]?.ruleRef).toBe(`${RULES_VERSION}#judges-pro-tour`);
+    expect(chamber[0]?.ruleRef).toBe(`${RULES_VERSION}#judges-champions`);
     expect(week.orders.some((order) => order.ruleRef.includes("platform"))).toBe(false);
     expect(publication.files.some((file) => file.period === "2026-W42")).toBe(false);
   });
