@@ -63,8 +63,8 @@ export default function PursePage() {
         <h2 className="font-serif text-3xl">Judges&apos; fee</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {[
-            ["Chamber of Champions · 3%", FOUNDING.seasonChamberUsd],
-            ["The Ranked · 3%", FOUNDING.seasonRankedUsd],
+            ["Chamber of Champions", FOUNDING.seasonChamberUsd],
+            ["The Ranked", FOUNDING.seasonRankedUsd],
           ].map(([label, amount]) => (
             <li key={String(label)} className="border border-line px-4 py-4">
               <p className="text-sm text-ink/70">{label}</p>
