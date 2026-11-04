@@ -66,8 +66,8 @@ export const THEMES: readonly ThemeDefinition[] = [
   },
   {
     slug: "frontside",
-    name: "Frontside",
-    namePt: "Frontside",
+    name: "Frontside Lines",
+    namePt: "Frontside Lines",
     finaleOn: SEASON_END,
     categories: ALL,
     oceanOnly: false,
@@ -77,8 +77,8 @@ export const THEMES: readonly ThemeDefinition[] = [
   },
   {
     slug: "backside",
-    name: "Backside",
-    namePt: "Backside",
+    name: "Backside Lines",
+    namePt: "Backside Lines",
     finaleOn: SEASON_END,
     categories: ALL,
     oceanOnly: false,

@@ -88,12 +88,12 @@ export function purseMirror(input: {
   if (input.college === "CHAMBER" || input.college === "RANKED") {
     return {
       tone: "pending",
-      text: "Champions and the pro tour share the judges' 6%. This site publishes the order. It does not pay it.",
+      text: "Champions and the pro tour share the judges' fund. This site publishes the order. It does not pay it.",
     };
   }
   return {
     tone: "unpaid",
-      text: "This panel is unpaid. The judges' 6% goes to Champions and the pro tour. Your record is how close you sat to Monday.",
+      text: "This panel is unpaid. The judges' fund goes to Champions and the pro tour. Your record is how close you sat to Monday.",
   };
 }
 

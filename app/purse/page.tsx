@@ -15,18 +15,15 @@ export default function PursePage() {
       <h1 className="mt-4 font-serif text-5xl">Affixed purse</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
         The Founding Season runs from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}, and the
-        champions are crowned in {SEASON_2027.galaLabel}. The founding sponsorship of{" "}
-        {formatUsdAmount(FOUNDING.sponsorshipUsd)} is deposited into a public escrow before the season opens.
-        Competitors and judges are the beneficiaries. This page orients that account. It does not hold it, collect it,
+        champions are crowned in {SEASON_2027.galaLabel}. Every dollar on this page goes to surfers and judges, and
+        all of it is deposited into a public escrow before the season opens. This page orients that account. It does not hold it, collect it,
         or pay it.
       </p>
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-10 grid gap-4 sm:grid-cols-2">
         {[
-          ["Founding sponsorship", formatUsdAmount(FOUNDING.sponsorshipUsd)],
-          ["Competitors · 78%", formatUsdAmount(FOUNDING.seasonCompetitorUsd)],
-          ["Judges · 6%", formatUsdAmount(FOUNDING.seasonJudgeUsd)],
-          ["Platform · 16%", formatUsdAmount(FOUNDING.seasonPlatformUsd)],
+          ["To surfers", formatUsdAmount(FOUNDING.seasonCompetitorUsd)],
+          ["To judges", formatUsdAmount(FOUNDING.seasonJudgeUsd)],
         ].map(([label, value]) => (
           <article key={label} className="border border-line bg-white px-4 py-5">
             <p className="text-xs uppercase tracking-widest text-ink/55">{label}</p>
@@ -35,7 +32,7 @@ export default function PursePage() {
         ))}
       </section>
       <p className="mt-3 text-sm text-ink/65">
-        84 cents of every sponsor dollar land in the water: 78% prize money and 6% to the surfer-judges. Wave-pool
+        Both funds are escrowed publicly before the season, and the balance stays visible all season. Wave-pool
         entries pay a US$ {POOL_TOLL_CENTS / 100} verification toll that passes whole to the judging fund. Ocean entry is
         free. This site does not collect either.
       </p>
@@ -76,7 +73,7 @@ export default function PursePage() {
           ))}
         </ul>
         <p className="mt-3 max-w-2xl text-sm text-ink/65">
-          The paid colleges are funded by the purses&apos; 6% and the pool toll. Three of the five colleges cost
+          The paid colleges are funded by the judges&apos; fund and the pool toll. Three of the five colleges cost
           nothing. Nothing here is paid.
         </p>
       </section>
@@ -84,8 +81,8 @@ export default function PursePage() {
       <section className="mt-12">
         <h2 className="font-serif text-3xl">Seven titles, four divisions</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink/75">
-          Each title holds an equal share of the purse, about {formatUsdAmount(Math.round(FOUNDING.titleCompetitorUsd))}{" "}
-          in prize money, and runs all {FOUNDING_WEEKS} weeks. Your ten best results decide the season.
+          Each title holds an equal share of the surfers&apos; purse, about{" "}
+          {formatUsdAmount(Math.round(FOUNDING.titleCompetitorUsd))}, and runs all {FOUNDING_WEEKS} weeks. Your ten best results decide the season.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ul className="border border-line bg-white">
@@ -108,11 +105,9 @@ export default function PursePage() {
       <section className="mt-12 border border-line bg-foam px-5 py-6">
         <h2 className="font-serif text-3xl">The founding book, summed</h2>
         <ul className="mt-4 space-y-1 text-sm">
-          <li>Founding sponsorship = {formatUsdAmount(FOUNDING.sponsorshipUsd)}</li>
-          <li>Competitors&apos; prize money, 78% = {formatUsdAmount(FOUNDING.seasonCompetitorUsd)}</li>
-          <li>Judges, 6% = {formatUsdAmount(FOUNDING.seasonJudgeUsd)}</li>
-          <li>Platform, 16% = {formatUsdAmount(FOUNDING.seasonPlatformUsd)}</li>
-          <li>Pool tolls pass whole to the judging fund, on top of the 6%.</li>
+          <li>To surfers = {formatUsdAmount(FOUNDING.seasonCompetitorUsd)}</li>
+          <li>To judges = {formatUsdAmount(FOUNDING.seasonJudgeUsd)}</li>
+          <li>Pool tolls pass whole to the judging fund, on top of that.</li>
           <li>This site only points at those accounts.</li>
         </ul>
       </section>

@@ -71,10 +71,9 @@ export default async function HomePage() {
           </Link>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/75">
-          The founding sponsorship of {formatUsdAmount(FOUNDING.sponsorshipUsd)} is escrowed before the season
-          opens — {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} in prize money and{" "}
-          {formatUsdAmount(FOUNDING.seasonJudgeUsd)} to the judges, split equally across seven titles. This list
-          mirrors that account. No money moves through the platform.
+          Every dollar here goes to surfers and judges: {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} to surfers
+          and {formatUsdAmount(FOUNDING.seasonJudgeUsd)} to judges, escrowed publicly before the season opens and
+          split equally across seven titles. This list mirrors that account. No money moves through the platform.
         </p>
         <div className="mt-6 overflow-x-auto border border-line bg-white">
           <table className="w-full text-left text-sm">

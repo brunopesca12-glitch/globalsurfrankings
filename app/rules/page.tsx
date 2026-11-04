@@ -50,10 +50,10 @@ export default function RulesPage() {
       <section className="mt-12">
         <h2 className="font-serif text-3xl">The split</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
-          The founding sponsorship is {formatUsdAmount(FOUNDING.sponsorshipUsd)}. Of every dollar: 78% to competitors,
-          6% to judges, 16% to the platform. The 78% splits 53% into the season tables, 36% into the weekly race and 11%
-          into the world champions&apos; fund, equally across the seven titles and pro-rata to each division&apos;s
-          field. The 6% is shared by
+          {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} goes to surfers and {formatUsdAmount(FOUNDING.seasonJudgeUsd)}{" "}
+          to judges, escrowed publicly before the season. The surfers&apos; purse splits 53% into the season tables, 36%
+          into the weekly race and 11% into the world champions&apos; fund, equally across the seven titles and
+          pro-rata to each division&apos;s field. The judges&apos; fund is shared by
           the Champions panel and the pro tour panel.
         </p>
         <p className="mt-3 leading-relaxed text-ink/80">

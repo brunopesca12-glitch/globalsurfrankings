@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FUTURE_THEMES, SEASON_2027, THEMES } from "@/lib/catalogue";
 import { EDITIONS, FOUNDING, POOL_TOLL_CENTS } from "@/lib/constitution";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatUsdAmount } from "@/lib/format";
 
 export const metadata: Metadata = { title: "About" };
 
@@ -35,8 +35,8 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-6xl md:grid-cols-3">
           {[
             ["US$ 0", "Ocean entry. No membership, no banked waves. Wave-pool entries pay a US$ 20 verification toll."],
-            ["84%", "Of every sponsor dollar goes to surfers: 78% to the competitors, 6% to the surfer-judges."],
-            ["16%", `Stays with the platform. The pool toll, US$ ${POOL_TOLL_CENTS / 100}, goes whole to the judges.`],
+            [formatUsdAmount(FOUNDING.seasonCompetitorUsd), "To surfers: season tables, a weekly race paid every Monday, and the world champions' fund."],
+            [formatUsdAmount(FOUNDING.seasonJudgeUsd), `To the surfer-judges. The pool toll, US$ ${POOL_TOLL_CENTS / 100}, goes whole to the judges too.`],
           ].map(([title, body]) => (
             <div key={title} className="border-line px-5 py-10 md:border-r md:last:border-r-0">
               <p className="font-serif text-5xl text-ocean">{title}</p>
@@ -98,11 +98,10 @@ export default function AboutPage() {
       <section className="mx-auto max-w-6xl px-5 py-16">
         <h2 className="font-serif text-4xl">The purse is on the door.</h2>
         <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-          The founding sponsorship is US$ {FOUNDING.sponsorshipUsd.toLocaleString("en-US")}, split 78 / 6 / 16: US${" "}
-          {FOUNDING.seasonCompetitorUsd.toLocaleString("en-US")} in competitors&apos; prize money, US${" "}
-          {FOUNDING.seasonJudgeUsd.toLocaleString("en-US")} to the judges, and US${" "}
-          {FOUNDING.seasonPlatformUsd.toLocaleString("en-US")} to the platform. The prize money splits 53% season
-          tables, 36% weekly race and 11% world champions&apos; fund. This site only mirrors and
+          Every dollar on the door goes to surfers and judges: US${" "}
+          {FOUNDING.seasonCompetitorUsd.toLocaleString("en-US")} to surfers and US${" "}
+          {FOUNDING.seasonJudgeUsd.toLocaleString("en-US")} to judges, escrowed publicly before the season opens. The
+          surfers&apos; purse splits 53% season tables, 36% weekly race and 11% world champions&apos; fund. This site only mirrors and
           orients that escrow. No money moves through the platform.
         </p>
         <Link href="/escrow" className="mt-6 inline-block border border-ocean px-4 py-2 text-ocean">
