@@ -40,7 +40,7 @@ export default async function BoardPage({
       <p className="text-xs uppercase tracking-[0.22em] text-gold">World board · ordinal placement</p>
       <h1 className="mt-2 font-serif text-5xl">{catalogue.name}</h1>
       <p className="mt-2 text-ink/70">
-        Finale {formatDate(catalogue.finaleOn)}
+        Season closes {formatDate(catalogue.finaleOn)}
         {catalogue.proposedDate ? " · proposed date" : ""}
       </p>
       {catalogue.note ? <p className="mt-3 max-w-2xl text-sm text-ink/75">{catalogue.note}</p> : null}
@@ -68,13 +68,13 @@ export default async function BoardPage({
 
       {!board ? (
         <p className="mt-10 border border-line bg-white px-4 py-6">
-          This event is not in the database yet. Run the migration and the seed to see the board.
+          This title is not in the database yet. Run the migration and the seed to see the board.
         </p>
       ) : (
         <>
           <p className="mt-8 text-sm text-ink/70">
             N = {board.entrants} · {CATEGORY_LABEL[category]} · {sexLabel(sex)} · provisional points, base × √(S/100), until
-            the finale. The liturgy publishes the board on Monday.
+            the season closes. The liturgy publishes the board on Monday.
           </p>
           <div className="mt-4 overflow-x-auto border border-line bg-white">
             <table className="w-full text-left text-sm">

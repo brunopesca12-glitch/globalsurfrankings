@@ -18,7 +18,7 @@ import {
 
 const ETH = "0x1111111111111111111111111111111111111111";
 
-const weeks = seasonWeeks("2027-03-01", "2027-09-30");
+const weeks = seasonWeeks("2027-03-01", "2028-02-29");
 const first = weeks[0]!;
 const firstYear = Number(first.period.slice(0, 4));
 const firstWeek = Number(first.period.slice(6));
@@ -56,10 +56,10 @@ function ballot(overrides: Partial<OrderBallot> = {}): OrderBallot {
 
 describe("payment orders", () => {
   it("uses every Monday from opening day through the finale", () => {
-    expect(weeks).toHaveLength(31);
+    expect(weeks).toHaveLength(53);
     expect(weeks).not.toHaveLength(FOUNDING_WEEKS);
     expect(weeks[0]).toMatchObject({ weekMonday: "2027-03-01", payOn: "2027-03-08" });
-    expect(weeks[weeks.length - 1]).toMatchObject({ weekMonday: "2027-09-27", payOn: "2027-10-04" });
+    expect(weeks[weeks.length - 1]).toMatchObject({ weekMonday: "2028-02-28", payOn: "2028-03-06" });
     for (const week of weeks) {
       expect(new Date(`${week.weekMonday}T00:00:00.000Z`).getUTCDay()).toBe(1);
     }
@@ -68,13 +68,15 @@ describe("payment orders", () => {
   it("splits the season weekly race and the judges' fee across those Mondays", () => {
     const publication = buildPublication({ placements: [], fields: [], ballots: [] });
     const weeklyFiles = publication.files.filter((file) => file.clock === "monday");
-    expect(weeklyFiles).toHaveLength(31);
+    expect(weeklyFiles).toHaveLength(53);
     expect(weeklyFiles.reduce((sum, file) => sum + file.weeklyRaceCents, 0)).toBe(SEASON_WEEKLY_RACE_CENTS);
     expect(weeklyFiles.reduce((sum, file) => sum + file.judgeCents, 0)).toBe(SEASON_JUDGE_CENTS);
-    expect(weeklyFiles.every((file) => file.weeklyRaceCents === 900_000)).toBe(true);
+    for (const file of weeklyFiles) {
+      expect(Math.abs(file.weeklyRaceCents - Math.floor(SEASON_WEEKLY_RACE_CENTS / 53))).toBeLessThanOrEqual(1);
+    }
     expect(publication.files.find((file) => file.period === "2027-season")).toMatchObject({
       clock: "season_close",
-      payOn: "2027-09-30",
+      payOn: "2028-02-29",
       orders: [],
     });
   });
@@ -118,17 +120,18 @@ describe("payment orders", () => {
     });
     const week = publication.files.find((file) => file.period === first.period)!;
     const weekly = week.orders.filter((order) => order.splitBasis === "weekly_race");
-    const expected = payoutCents(360_000, 6);
+    const editionCents = allocateByWeights(week.weeklyRaceCents, [2_500, 2_500, 2_500, 2_500])[0]!;
+    const expected = payoutCents(editionCents, 6);
     expect(weekly.map((order) => order.amountCents)).toEqual(expected);
-    expect(weekly.reduce((sum, order) => sum + order.amountCents, 0)).toBe(360_000);
+    expect(weekly.reduce((sum, order) => sum + order.amountCents, 0)).toBe(editionCents);
     expect(week.orders.every((order) => order.board === "Men's Open")).toBe(true);
     expect(weekly[0]).toMatchObject({
       id: `${RULES_VERSION}:${first.period}:weekly_race:entry-1`,
       event: "Best Tube",
       board: "Men's Open",
       placement: 1,
-      amountUsdc: "1260.000000",
-      amountBaseUnits: String(126_000 * 10_000),
+      amountUsdc: (expected[0]! / 100).toFixed(6),
+      amountBaseUnits: String(expected[0]! * 10_000),
       ruleRef: `${RULES_VERSION}#weekly-race`,
       status: "published",
       walletNetwork: "ethereum",
@@ -156,7 +159,7 @@ describe("payment orders", () => {
     });
     const season = publication.files.find((file) => file.period === "2027-season")!;
     const tables = season.orders.filter((order) => order.splitBasis === "season_table");
-    expect(tables.map((order) => order.amountCents)).toEqual([9_280_000, 9_280_000]);
+    expect(tables.map((order) => order.amountCents)).toEqual([7_382_143, 7_382_143]);
     expect(tables.every((order) => order.clock === "season_close")).toBe(true);
     const champion = season.orders.find((order) => order.splitBasis === "champions_fund");
     expect(champion).toMatchObject({
@@ -164,11 +167,11 @@ describe("payment orders", () => {
       recipientId: "athlete-a",
       placement: 1,
       event: "Season ranking",
-      amountCents: 8_040_000,
+      amountCents: 10_725_000,
       ruleRef: `${RULES_VERSION}#champions-fund`,
     });
-    expect(SEASON_CHAMPIONS_CENTS).toBe(20_100_000);
-    expect(THEME_SEASON_TABLE_CENTS).toBe(23_200_000);
+    expect(SEASON_CHAMPIONS_CENTS).toBe(42_900_000);
+    expect(THEME_SEASON_TABLE_CENTS).toBe(29_528_572);
   });
 
   it("publishes a missing or invalid wallet as waiting, and keeps the order id", () => {

@@ -23,7 +23,7 @@ export default async function HashboardPage({
   const theme = themeBySlug(DEMO_THEME_SLUG)!;
   const category = (query.category as CategoryCode) || "OPEN";
   const sex: Sex = query.sex === "W" ? "W" : "M";
-  const allowed = theme.categories.includes(category) ? category : "OPEN";
+  const allowed = (theme.categories as readonly string[]).includes(category) ? category : "OPEN";
   const board = tag ? await getHashtagBoard(tag, allowed, sex) : null;
   const tags = await listHashtags();
 

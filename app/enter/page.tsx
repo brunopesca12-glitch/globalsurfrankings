@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { EntryForm } from "@/components/Forms";
 import { auth } from "@/lib/auth";
-import { SEASON_2027, themeBySlug, themesFor } from "@/lib/catalogue";
+import { SEASON_2027, themesFor } from "@/lib/catalogue";
 import { CATEGORY_LABEL, categoryFor, parseDateOnly } from "@/lib/category";
 import { prisma } from "@/lib/db";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
@@ -46,14 +46,13 @@ export default async function EnterPage() {
       <p className="text-xs uppercase tracking-[0.22em] text-gold">{CATEGORY_LABEL[category]}</p>
       <h1 className="mt-2 font-serif text-5xl">Enter a wave</h1>
       <p className="mt-4 text-ink/75">
-        One ocean wave per ISO week, into an event of your category. A pool wave does not spend that shot. The published
+        One ocean wave per ISO week, into a title of your division. A pool wave does not spend that shot. The published
         rule prices it at US$ 20 and passes that toll whole to the judges. Nothing is charged here. The video is a URL.
         Current ISO week: {week.isoYear}-W{String(week.isoWeek).padStart(2, "0")}.
       </p>
       <div className="mt-8">
         <EntryForm themes={themes} pendingBallots={queue.pending} oceanUsed={oceanUsed} />
       </div>
-      <p className="mt-6 text-xs text-ink/50">Reference event: {themeBySlug("best-barrel")?.name}.</p>
     </div>
   );
 }

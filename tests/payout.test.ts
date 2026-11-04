@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FOUNDING, PRINTED_EDITION_HEADLINES } from "@/lib/constitution";
+import { FOUNDING } from "@/lib/constitution";
 import { foundingEditionTables, paidPlaceCount, payoutCents, payoutSharesBps } from "@/lib/payout";
 
 describe("season-table payout law", () => {
@@ -58,27 +58,10 @@ describe("season-table payout law", () => {
     expect(Math.max(...tail) - Math.min(...tail)).toBeLessThanOrEqual(1);
   });
 
-  it("builds the founding edition tables from field share × US$ 232,000", () => {
+  it("builds the founding division tables from field share × the season tables", () => {
     const tables = foundingEditionTables(FOUNDING.seasonTableUsd * 100);
-    expect(tables.reduce((sum, table) => sum + table.seasonTableCents, 0)).toBe(23_200_000);
-    const openMen = tables.find((table) => table.id === "OPEN_M");
-    expect(openMen?.seasonTableCents).toBe(9_280_000);
-    expect(openMen?.winnerCents).toBe(2_598_400);
-    expect(openMen?.sixthCents).toBe(668_160);
-
-    const mastersWomen = tables.find((table) => table.id === "MASTERS_40_W");
-    expect(mastersWomen?.seasonTableCents).toBe(696_000);
-    expect(mastersWomen?.winnerCents).toBe(194_880);
-    expect(mastersWomen?.sixthCents).toBe(50_112);
-  });
-
-  it("records the printed section 5 headlines, which round the exact cents", () => {
-    const tables = foundingEditionTables(FOUNDING.seasonTableUsd * 100);
-    for (const table of tables) {
-      const printed = PRINTED_EDITION_HEADLINES[table.id];
-      expect(Math.abs(table.winnerCents / 100 - printed.winnerUsd)).toBeLessThanOrEqual(1);
-      expect(Math.abs(table.sixthCents / 100 - printed.sixthUsd)).toBeLessThanOrEqual(1);
-    }
-    expect(PRINTED_EDITION_HEADLINES.MASTERS_40_W.sixthUsd).toBe(501);
+    expect(tables).toHaveLength(4);
+    expect(tables.reduce((sum, table) => sum + table.seasonTableCents, 0)).toBe(206_700_000);
+    for (const table of tables) expect(table.seasonTableCents).toBe(51_675_000);
   });
 });

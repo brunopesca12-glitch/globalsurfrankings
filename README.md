@@ -89,7 +89,7 @@ Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Au
 
 ## What the seed contains
 
-Season vintage 2027, Season 1, 1 Mar 2027 → 30 Sep 2027. Six events: Frontside, Backside, Best Aerial, Best Small-Wave Performance, Best Tube, Biggest Paddle-In Wave. The other former themes are listed as coming later. Best Small-Wave Performance is Open and Junior only. Best Aerial is not on the 50+ ranking.
+Season vintage 2027, Founding Season, 1 Mar 2027 → 29 Feb 2028, champions crowned March 2028. Seven titles: Best Tube, Best Aerial, Biggest Paddle-In Wave (big wave), Best Small-Wave Performance, Frontside, Backside, Wave Pool. Four divisions per title: Open and Masters 40+, men's and women's (28 weekly champions). Junior and Masters 50+ are retired; the enum values stay in the database so older rows still read.
 
 One filled board: Best Barrel, Open, Men, places 1–8. A few other entries sit unplaced, including one pool entry with a recorded US$ 20 toll that is not collected.
 
@@ -99,8 +99,8 @@ Constitutional constants live in `lib/constitution.ts`.
 
 - Ocean entry is free. One ocean wave per ISO week, no banking. Pool submissions are not part of that quota.
 - Pool toll is US$ 20 and passes whole to the judges. The app stores the toll in cents and does not collect it.
-- A theme ticket is US$ 400,000. 84% (US$ 336,000) goes to surfers: 78% prize money (US$ 312,000 — season tables US$ 232,000, weekly race US$ 46,500, world champions' fund US$ 33,500) and 6% judges (US$ 24,000, US$ 12,000 to each of the Chamber and the Ranked). 16% (US$ 64,000) is the platform. Those rails sum to the ticket at any whole-cent amount. The site mirrors the escrow and does not move the money.
-- Season-table field shares, founding scenario: Open M 40%, 40+ M 15%, 50+ M 12%, Open W 10%, Junior M 10%, Junior W 5%, 50+ W 5%, 40+ W 3%.
+- The founding sponsorship is US$ 5,000,000, split 78 / 6 / 16: US$ 3,900,000 competitors' prize money, US$ 300,000 judges (half Chamber, half Ranked), US$ 800,000 platform. The prize money splits 53% season tables (US$ 2,067,000), 36% weekly race (US$ 1,404,000, about US$ 27,000 every Monday over 52 weeks) and 11% world champions' fund (US$ 429,000), equally across the seven titles. The site mirrors the escrow and does not move the money.
+- Division shares: pro-rata to each division's field; until a field exists the four divisions are weighted equally (25% each).
 - Paid places are the top 20% of an edition (`floor(0.2 × S)`, at least the winner). On a large field the podium six take 80% of the table on the curve 35 / 20 / 14 / 12 / 10 / 9, which is 28 / 16 / 11.2 / 9.6 / 8 / 7.2% of the table. Places 7 through the cutoff split the other 20% equally, and none is paid more than sixth; a short tail returns the excess to the podium. Six or fewer paid places receive the whole table on that curve. The purse page shows this law. The white paper rounds a few of those cents to the dollar. The printed champion campaign in Annex B.2 is shown beside the law, labeled as printed.
 - Event points: podium 100 / 60 / 45 / 35 / 28 / 22 percent of the event base, then 12% through the rest of the top fifth (`floor(S/5)`), then 4% to every other entrant. The winner's base is `100 × √(S/100)`. A field of 400 pays twice a field of 100. The world ranking is the sum of those event points. Points stay provisional until a finale because S is the current entry count.
 - Ordinal placement is binary insertion (index 0 is best). A judge's ballot is sealed. Each college's public place is the median of its ballots, and the college abstains below three. The wave's place is the median of the colleges that voted; an even split resolves toward the Chamber of Champions. The desk runs that Monday verdict. It does not type a place.

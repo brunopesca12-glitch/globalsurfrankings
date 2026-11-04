@@ -8,6 +8,6 @@ export const CHAIN_EXECUTION = {
   source: "public-chain" as const,
   contractAddress: null as string | null,
   network: null as string | null,
-  asset: "USDC" as const,
+  asset: "US dollar (stablecoin)" as const,
   transactions: [] as readonly { orderId: string; txHash: string }[],
 };

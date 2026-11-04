@@ -71,17 +71,18 @@ export default async function HomePage() {
           </Link>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/75">
-          Each theme escrows {formatUsdAmount(FOUNDING.athleteUsd)} to surfers before the season opens —{" "}
-          {formatUsdAmount(FOUNDING.competitorUsd)} in prize money and {formatUsdAmount(FOUNDING.judgeUsd)} to the
-          judges. This list mirrors that account. No money moves through the platform.
+          The founding sponsorship of {formatUsdAmount(FOUNDING.sponsorshipUsd)} is escrowed before the season
+          opens — {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} in prize money and{" "}
+          {formatUsdAmount(FOUNDING.seasonJudgeUsd)} to the judges, split equally across seven titles. This list
+          mirrors that account. No money moves through the platform.
         </p>
         <div className="mt-6 overflow-x-auto border border-line bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/55">
               <tr>
-                <th className="px-3 py-2">Theme</th>
-                <th className="px-3 py-2">Finale</th>
-                <th className="px-3 py-2">To surfers</th>
+                <th className="px-3 py-2">Title</th>
+                <th className="px-3 py-2">Season closes</th>
+                <th className="px-3 py-2">Prize money</th>
               </tr>
             </thead>
             <tbody>
@@ -93,15 +94,15 @@ export default async function HomePage() {
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-ink/70">{formatDate(theme.finaleOn)}</td>
-                  <td className="px-3 py-2">{formatUsdAmount(FOUNDING.athleteUsd)}</td>
+                  <td className="px-3 py-2">{formatUsdAmount(Math.round(FOUNDING.titleCompetitorUsd))}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <p className="mt-3 text-sm text-ink/60">
-          Six events, {formatUsdAmount(FOUNDING.seasonAthleteUsd)} escrowed to surfers. About{" "}
-          {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in weekly checks each Monday of the Founding Season.
+          Seven titles, four divisions, 28 weekly champions. About {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in
+          weekly checks every Monday of the Founding Season.
         </p>
       </section>
     </div>

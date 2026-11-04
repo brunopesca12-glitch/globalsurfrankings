@@ -77,14 +77,14 @@ export function RegisterForm() {
         </label>
       </div>
       <fieldset className="space-y-3 border border-line px-3 py-3">
-        <legend className="px-1 text-sm">USDC wallet</legend>
+        <legend className="px-1 text-sm">US dollar (stablecoin) wallet</legend>
         <p className="text-xs text-ink/60">Public address only. Never paste a seed phrase or a private key.</p>
         <label className="block text-sm">
           Network
           <select className={field} name="walletNetwork" defaultValue="ethereum">
             <option value="ethereum">Ethereum</option>
             <option value="solana">Solana</option>
-            <option value="other">Other USDC network</option>
+            <option value="other">Other stablecoin network</option>
           </select>
         </label>
         <label className="block text-sm">
@@ -150,14 +150,14 @@ export function ProfileForm({
         <input className={field} name="hashtags" defaultValue={hashtags} placeholder="ipanema, brazil" />
       </label>
       <fieldset className="space-y-3 border border-line px-3 py-3">
-        <legend className="px-1 text-sm">USDC wallet</legend>
+        <legend className="px-1 text-sm">US dollar (stablecoin) wallet</legend>
         <p className="text-xs text-ink/60">Payouts go here. Public address only. Never paste a seed phrase or a private key.</p>
         <label className="block text-sm">
           Network
           <select className={field} name="walletNetwork" defaultValue={walletNetwork || "ethereum"}>
             <option value="ethereum">Ethereum</option>
             <option value="solana">Solana</option>
-            <option value="other">Other USDC network</option>
+            <option value="other">Other stablecoin network</option>
           </select>
         </label>
         <label className="block text-sm">
@@ -211,7 +211,7 @@ export function EntryForm({
         </p>
       ) : null}
       <label className="block text-sm">
-        Event in your category
+        Title in your division
         <select className={field} name="theme" required defaultValue={themes[0]?.slug}>
           {themes.map((theme) => (
             <option key={theme.slug} value={theme.slug}>

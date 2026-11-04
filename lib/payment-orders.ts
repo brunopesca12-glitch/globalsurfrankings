@@ -3,10 +3,10 @@ import { SEASON_2027, SEASON_SLUGS } from "@/lib/catalogue";
 import type { CategoryCode } from "@/lib/category";
 import {
   EDITIONS,
-  FOUNDING_THEME_COUNT,
   FOUNDING_WEEKS,
   RANKED_BALLOT_USD,
-  THEME_TICKET_USD,
+  SPONSORSHIP_USD,
+  THEME_TICKET_CENTS,
   allocateByWeights,
   editionSeasonTableCents,
   splitAffixedPurse,
@@ -24,17 +24,19 @@ export const RULES_VERSION = "gsr-orders-1";
 
 export const RANKED_BALLOT_CAP_CENTS = RANKED_BALLOT_USD * 100;
 
-const ticket = splitTicketCents(THEME_TICKET_USD * 100);
+const season = splitTicketCents(SPONSORSHIP_USD * 100);
+const seasonPurse = splitAffixedPurse(season.competitorCents);
+const ticket = splitTicketCents(THEME_TICKET_CENTS);
 const purse = splitAffixedPurse(ticket.competitorCents);
 
-/** Season weekly race, in cents. Split across every Monday on the calendar. */
-export const SEASON_WEEKLY_RACE_CENTS = purse.weeklyCents * FOUNDING_THEME_COUNT;
-/** Season judges' fee, in cents. Half Champions, half pro tour, each week. */
-export const SEASON_JUDGE_CENTS = ticket.judgeCents * FOUNDING_THEME_COUNT;
-/** One event's season table, in cents. */
+/** Season weekly race, in cents (36% of the prize money). Split across every Monday on the calendar. */
+export const SEASON_WEEKLY_RACE_CENTS = seasonPurse.weeklyCents;
+/** Season judges' fee, in cents (6%). Half Champions, half pro tour, each week. */
+export const SEASON_JUDGE_CENTS = season.judgeCents;
+/** One title's season table, in cents (its equal share of the 53%). */
 export const THEME_SEASON_TABLE_CENTS = purse.seasonTableCents;
-/** World champions' fund for the season, in cents. */
-export const SEASON_CHAMPIONS_CENTS = purse.overallCents * FOUNDING_THEME_COUNT;
+/** World champions' fund for the season, in cents (11%). */
+export const SEASON_CHAMPIONS_CENTS = seasonPurse.overallCents;
 
 export type SplitBasis =
   | "weekly_race"
@@ -295,7 +297,7 @@ export function buildPublication(input: PublicationInput, options?: { nestDemo?:
     weekCount: weeks.length,
     foundingWeekCount: FOUNDING_WEEKS,
     calendarNote:
-      "The printed purse divides the weekly race and the judges' fee by 30. This file divides both by every Monday from the season start through the season end, so the shares sum to the season totals.",
+      "The printed purse divides the weekly race and the judges' fee by 52. This file divides both by every Monday from the season start through the season end, so the shares sum to the season totals.",
     periods,
     execution: CHAIN_EXECUTION,
     demo: options?.nestDemo === false ? emptyDemoSummary() : demoSummary(buildDemoSample()),

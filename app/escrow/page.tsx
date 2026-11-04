@@ -36,11 +36,11 @@ export default async function EscrowPage() {
     <div className="mx-auto max-w-3xl px-5 py-12">
       <div className="flex flex-wrap items-center gap-3">
         <span className="stamp">Demo</span>
-        <p className="text-sm text-ink/70">Sample orders are labelled Demo. No USDC has moved.</p>
+        <p className="text-sm text-ink/70">Sample orders are labelled Demo. No US dollar (stablecoin) has moved.</p>
       </div>
       <h1 className="mt-4 font-serif text-5xl">Escrow</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink/80">
-        This site publishes who is owed what. A separate bot, outside this codebase, pays those orders in USDC on the
+        This site publishes who is owed what. A separate bot, outside this codebase, pays those orders in US dollars (stablecoin) on the
         blockchain. Nothing here holds a key, signs a transaction, or sends money.
       </p>
 
@@ -161,7 +161,7 @@ function OrderList({ files }: { files: PeriodFile[] }) {
   if (filled.length === 0) {
     return (
       <p className="mt-6 leading-relaxed text-ink/70">
-        Live orders: none yet. The weekly files and the season file stay empty until a Season 1 place or a sealed
+        Live orders: none yet. The weekly files and the season file stay empty until a Founding Season place or a sealed
         Champions or pro tour ballot exists. The rows above are the labelled demo sample.
       </p>
     );

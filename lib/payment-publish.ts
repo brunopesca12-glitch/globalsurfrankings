@@ -43,13 +43,15 @@ export async function loadPublication(): Promise<Publication> {
   for (const row of placed) {
     const theme = themeById.get(row.entry.themeId);
     if (!theme) continue;
+    // Junior and Masters 50+ are retired for the Founding Season; older rows are not paid.
+    if (row.entry.category !== "OPEN" && row.entry.category !== "MASTERS_40") continue;
     placements.push({
       entryId: row.entryId,
       athleteId: row.athleteId,
       displayName: row.athlete.displayName,
       themeSlug: theme.slug,
       themeName: theme.name,
-      category: row.entry.category,
+      category: row.entry.category as "OPEN" | "MASTERS_40",
       sex: row.entry.sex,
       place: row.place,
       isoYear: row.entry.isoYear,

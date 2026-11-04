@@ -14,15 +14,16 @@ export default function RulesPage() {
       <p className="mt-4 text-lg leading-relaxed text-ink/80">
         GSR runs the competition and publishes the payment orders. The rules are public. Every Monday the prior
         week&apos;s file is published. At the end of the season the annual file is published. No one at the desk types
-        an amount. Surfers enter waves. Judges place them. A separate bot, outside this site, sends USDC on the
+        an amount. Surfers enter waves. Judges place them. A separate bot, outside this site, sends US dollars (stablecoin) on the
         blockchain to the wallet on the profile.
       </p>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">Season 1</h2>
+        <h2 className="font-serif text-3xl">Founding Season</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
-          {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. Six events. Each one is a board that
-          stays open until its finale.
+          {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. Seven titles, each with four
+          divisions: Open and Masters 40+, men&apos;s and women&apos;s. Each title runs 52 weekly championships; your
+          ten best results decide the season. Champions are crowned in {SEASON_2027.galaLabel}.
         </p>
         <ol className="mt-4 list-decimal space-y-2 pl-5">
           {THEMES.map((theme) => (
@@ -49,9 +50,10 @@ export default function RulesPage() {
       <section className="mt-12">
         <h2 className="font-serif text-3xl">The split</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
-          Each event is a ticket of {formatUsdAmount(FOUNDING.ticketUsd)}. Of every dollar: 78% to athletes, 6% to
-          judges, 16% to the platform. Season 1 is six tickets, {formatUsdAmount(FOUNDING.seasonBookCashUsd)} in all.
-          The 78% splits into the season table, the weekly race, and the world champions&apos; fund. The 6% is shared by
+          The founding sponsorship is {formatUsdAmount(FOUNDING.sponsorshipUsd)}. Of every dollar: 78% to competitors,
+          6% to judges, 16% to the platform. The 78% splits 53% into the season tables, 36% into the weekly race and 11%
+          into the world champions&apos; fund, equally across the seven titles and pro-rata to each division&apos;s
+          field. The 6% is shared by
           the Champions panel and the pro tour panel.
         </p>
         <p className="mt-3 leading-relaxed text-ink/80">
@@ -64,10 +66,10 @@ export default function RulesPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">When USDC moves</h2>
+        <h2 className="font-serif text-3xl">When the money moves</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
-          This site does not send USDC. It publishes a payment order: the period, the event and board, the place, the
-          wallet and network, the USDC amount, the split, the rule, and a status. The same orders are listed on the
+          This site does not send money. It publishes a payment order: the period, the event and board, the place, the
+          wallet and network, the US dollar (stablecoin) amount, the split, the rule, and a status. The same orders are listed on the
           escrow page and at /api/payment-orders, one file per week and one for the season. Each file has a content
           hash anyone can recompute.
         </p>
@@ -75,7 +77,7 @@ export default function RulesPage() {
           Every Monday&apos;s file covers the prior week: weekly race money for that week&apos;s places, and the
           judges&apos; share for Champions and pro tour ballots sealed that week. The season file covers the season
           tables and the world champions&apos; fund, and it is meant to be paid at season close. The only destination
-          is the USDC address on the profile — Ethereum, Solana, or another USDC network. A profile without one keeps
+          is the US dollar (stablecoin) address on the profile — Ethereum, Solana, or another stablecoin network. A profile without one keeps
           that order waiting. The bot that pays is not in this codebase. Until a contract address is public, the escrow
           page has no transaction hashes.
         </p>

@@ -17,10 +17,11 @@ export default function CalendarPage() {
   return (
     <div className="mx-auto max-w-4xl px-5 py-12">
       <p className="text-xs uppercase tracking-[0.22em] text-gold">{SEASON_2027.name}</p>
-      <h1 className="mt-2 font-serif text-5xl">Six events</h1>
+      <h1 className="mt-2 font-serif text-5xl">Seven titles</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-        Season 1 runs from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. Each event is a
-        board that stays open until its finale. Best Small-Wave Performance closes first. Best Tube closes the season.
+        The Founding Season runs from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}: 52
+        weekly championships per title, verdicts every Monday. Every title stays open all season, your ten best results
+        decide it, and the champions are crowned in {SEASON_2027.galaLabel}.
       </p>
       <ol className="mt-10 space-y-8">
         {[...groups.entries()].map(([date, themes]) => (

@@ -9,8 +9,8 @@ export default function RegisterPage() {
     <div className="mx-auto max-w-lg px-5 py-12">
       <h1 className="font-serif text-5xl">Sign up</h1>
       <p className="mt-3 text-ink/75">
-        One person, one account. Category comes from age on September 30, 2027: Junior through 18, then Open, Masters 40+,
-        and Masters 50+. Document verification does not exist in this version — the badge is Verified by default, and Pro is
+        One person, one account. Division comes from age on February 29, 2028: Open, or Masters 40+ from age 40,
+        men&apos;s and women&apos;s. Document verification does not exist in this version — the badge is Verified by default, and Pro is
         a stub.
       </p>
       <div className="mt-8">

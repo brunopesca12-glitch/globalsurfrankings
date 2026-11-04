@@ -17,7 +17,7 @@ export default function AboutPage() {
           </p>
           <h1 className="mt-6 max-w-4xl font-serif text-6xl leading-[0.92] md:text-8xl">The best wave wins.</h1>
           <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/85">
-            An asynchronous world circuit. Six events, eight rankings, a verdict every Monday. You film the wave, you
+            An asynchronous world circuit. Seven titles, four divisions, 28 weekly champions, a verdict every Monday. You film the wave, you
             enter it, and it receives a place. Ocean entry is free.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
@@ -34,7 +34,7 @@ export default function AboutPage() {
       <section className="border-b border-line">
         <div className="mx-auto grid max-w-6xl md:grid-cols-3">
           {[
-            ["US$ 0", "Ocean entry. One wave per ISO week. No membership, no banked waves."],
+            ["US$ 0", "Ocean entry. No membership, no banked waves. Wave-pool entries pay a US$ 20 verification toll."],
             ["84%", "Of every sponsor dollar goes to surfers: 78% to the competitors, 6% to the surfer-judges."],
             ["16%", `Stays with the platform. The pool toll, US$ ${POOL_TOLL_CENTS / 100}, goes whole to the judges.`],
           ].map(([title, body]) => (
@@ -48,10 +48,11 @@ export default function AboutPage() {
 
       <section className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2">
         <div>
-          <h2 className="font-serif text-4xl">An event is not a beach on a day.</h2>
+          <h2 className="font-serif text-4xl">A title is not a beach on a day.</h2>
           <p className="mt-4 leading-relaxed text-ink/80">
-            At GSR, an event is a tournament: one dimension of surfing, with its own world board, its own purse, and its
-            own finale, open from {formatDate(SEASON_2027.startsOn)} until it closes. The wave may have been ridden
+            At GSR, a title is a tournament: one dimension of surfing, with its own world board and its own purse, open
+            every week from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. Your ten best
+            results decide the season. The wave may have been ridden
             anywhere. What is measured is not who won the heat. It is who rode the best wave of the year.
           </p>
           <p className="mt-4 leading-relaxed text-ink/80">
@@ -62,7 +63,7 @@ export default function AboutPage() {
         <blockquote className="border-l-2 border-gold pl-6">
           <p className="font-serif text-3xl leading-snug">&ldquo;A wave does not receive a score. It receives a place.&rdquo;</p>
           <p className="mt-4 text-sm text-ink/70">
-            Judges place each wave into their own list. Monday takes the median and pays in USDC. Points follow the
+            Judges place each wave into their own list. Monday takes the median and pays in US dollars (stablecoin). Points follow the
             curve 100 / 60 / 45 / 35 / 28 / 22, base × √(S/100).
           </p>
         </blockquote>
@@ -71,7 +72,7 @@ export default function AboutPage() {
       <section className="bg-foam">
         <div className="mx-auto max-w-6xl px-5 py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="font-serif text-4xl">Six events. Eight crowns.</h2>
+            <h2 className="font-serif text-4xl">Seven titles. Four divisions.</h2>
             <Link href="/calendar" className="text-sm text-ocean">
               Full calendar
             </Link>
@@ -79,7 +80,7 @@ export default function AboutPage() {
           <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {THEMES.map((theme) => (
               <li key={theme.slug} className="border border-line bg-paper px-4 py-3">
-                <p className="text-xs uppercase tracking-widest text-gold">{formatDate(theme.finaleOn)}</p>
+                <p className="text-xs uppercase tracking-widest text-gold">52 weeks</p>
                 <p className="mt-1 font-medium">{theme.name}</p>
               </li>
             ))}
@@ -97,11 +98,11 @@ export default function AboutPage() {
       <section className="mx-auto max-w-6xl px-5 py-16">
         <h2 className="font-serif text-4xl">The purse is on the door.</h2>
         <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-          Each founding theme is a ticket of US$ {FOUNDING.ticketUsd.toLocaleString("en-US")}. Of that number, US${" "}
-          {FOUNDING.athleteUsd.toLocaleString("en-US")} is escrowed to surfers — US${" "}
-          {FOUNDING.competitorUsd.toLocaleString("en-US")} in prize money and US${" "}
-          {FOUNDING.judgeUsd.toLocaleString("en-US")} to the judges — and US${" "}
-          {FOUNDING.platformUsd.toLocaleString("en-US")} is the platform&apos;s commission. This site only mirrors and
+          The founding sponsorship is US$ {FOUNDING.sponsorshipUsd.toLocaleString("en-US")}, split 78 / 6 / 16: US${" "}
+          {FOUNDING.seasonCompetitorUsd.toLocaleString("en-US")} in competitors&apos; prize money, US${" "}
+          {FOUNDING.seasonJudgeUsd.toLocaleString("en-US")} to the judges, and US${" "}
+          {FOUNDING.seasonPlatformUsd.toLocaleString("en-US")} to the platform. The prize money splits 53% season
+          tables, 36% weekly race and 11% world champions&apos; fund. This site only mirrors and
           orients that escrow. No money moves through the platform.
         </p>
         <Link href="/escrow" className="mt-6 inline-block border border-ocean px-4 py-2 text-ocean">

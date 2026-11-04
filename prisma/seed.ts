@@ -234,9 +234,9 @@ async function main() {
         finaleOn: dateOnly(theme.finaleOn),
         sortOrder: index + 1,
         open: theme.categories.includes("OPEN"),
-        junior: theme.categories.includes("JUNIOR"),
+        junior: false,
         masters40: theme.categories.includes("MASTERS_40"),
-        masters50: theme.categories.includes("MASTERS_50"),
+        masters50: false,
         oceanOnly: theme.oceanOnly,
         poolOnly: theme.poolOnly,
         proposed: theme.proposedDate,
@@ -314,7 +314,7 @@ async function main() {
     spot: string;
   }[] = [
     { slug: "marina-alves", theme: "best-aerial", environment: "OCEAN", category: "OPEN", tollCents: 0, spot: "Arpoador" },
-    { slug: "ana-luz", theme: "best-small-wave", environment: "OCEAN", category: "JUNIOR", tollCents: 0, spot: "Ipanema" },
+    { slug: "ana-luz", theme: "best-small-wave", environment: "OCEAN", category: "OPEN", tollCents: 0, spot: "Ipanema" },
     {
       slug: "helena-prado",
       theme: "frontside",
@@ -323,7 +323,7 @@ async function main() {
       tollCents: 2000,
       spot: "demo pool",
     },
-    { slug: "sergio-bahia", theme: "biggest-paddle-in", environment: "OCEAN", category: "MASTERS_50", tollCents: 0, spot: "Nazare" },
+    { slug: "sergio-bahia", theme: "biggest-paddle-in", environment: "OCEAN", category: "MASTERS_40", tollCents: 0, spot: "Nazare" },
   ];
 
   for (const extra of extras) {

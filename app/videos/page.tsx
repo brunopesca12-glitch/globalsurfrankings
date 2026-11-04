@@ -18,7 +18,7 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Watch</p>
       <h1 className="mt-2 font-serif text-5xl">Videos</h1>
       <p className="mt-4 max-w-2xl text-ink/80">
-        Every wave entered on the circuit. Open a card to watch it, with the athlete and the event beside the player.
+        Every wave entered on the circuit. Open a card to watch it, with the athlete and the title beside the player.
       </p>
       <div className="mt-6 flex flex-wrap gap-2 text-sm">
         <Link href="/videos" className={`border px-3 py-1 ${selected ? "border-line" : "border-ocean bg-ocean text-paper"}`}>

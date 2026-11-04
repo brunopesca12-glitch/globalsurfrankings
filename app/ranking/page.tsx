@@ -11,12 +11,12 @@ export default async function RankingPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-12">
-      <p className="text-xs uppercase tracking-[0.22em] text-gold">Eight world rankings</p>
+      <p className="text-xs uppercase tracking-[0.22em] text-gold">Four world rankings per title</p>
       <h1 className="mt-2 font-serif text-5xl">Season championship</h1>
       <p className="mt-4 max-w-2xl text-ink/80">
-        A category ranking is the sum of event points. Each event pays the curve 100 / 60 / 45 / 35 / 28 / 22 percent of the
+        A division ranking is the sum of title points. Each title pays the curve 100 / 60 / 45 / 35 / 28 / 22 percent of the
         base, and the winner&apos;s base is 100 × √(S/100). N is the number of athletes already placed in the edition. Points
-        stay provisional until the finales.
+        stay provisional until the season closes.
       </p>
       <div className="mt-10 space-y-10">
         {EDITIONS.map((edition) => {
@@ -40,7 +40,7 @@ export default async function RankingPage() {
                         </Link>
                         <span className="ml-2 text-xs uppercase tracking-wider text-ink/50">
                           {verificationLabel(row.verification)}
-                          {row.city ? ` · ${row.city}` : ""} · {row.results} {row.results === 1 ? "event" : "events"}
+                          {row.city ? ` · ${row.city}` : ""} · {row.results} {row.results === 1 ? "result" : "results"}
                         </span>
                       </span>
                       <span>{formatPoints(row.points)}</span>

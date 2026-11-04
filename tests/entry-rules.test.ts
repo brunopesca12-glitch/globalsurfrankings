@@ -7,7 +7,7 @@ import { isoWeek } from "@/lib/iso-week";
 const tube = THEMES.find((theme) => theme.slug === "best-tube")!;
 const air = THEMES.find((theme) => theme.slug === "best-aerial")!;
 const small = THEMES.find((theme) => theme.slug === "best-small-wave")!;
-const pool = { ...tube, slug: "pool", poolOnly: true, oceanOnly: false, finaleOn: "2027-05-31" };
+const pool = THEMES.find((theme) => theme.slug === "wave-pool")!;
 
 const base = {
   dutyCurrent: true,
@@ -22,28 +22,25 @@ const base = {
 };
 
 describe("catalogue", () => {
-  it("gives Season 1 six events, with small-wave and aerial cuts", () => {
-    expect(THEMES).toHaveLength(6);
-    expect(new Set(THEMES.map((theme) => theme.slug)).size).toBe(6);
-    expect(themesFor("OPEN")).toHaveLength(6);
-    expect(themesFor("JUNIOR")).toHaveLength(6);
-    expect(themesFor("MASTERS_40")).toHaveLength(5);
-    expect(themesFor("MASTERS_50")).toHaveLength(4);
-    expect(themesFor("MASTERS_50").some((theme) => theme.slug === "best-aerial")).toBe(false);
-    expect(themesFor("MASTERS_40").some((theme) => theme.slug === "best-small-wave")).toBe(false);
-    expect(themesFor("OPEN").some((theme) => theme.slug === "best-small-wave")).toBe(true);
+  it("gives the Founding Season seven titles, each open to both divisions", () => {
+    expect(THEMES).toHaveLength(7);
+    expect(new Set(THEMES.map((theme) => theme.slug)).size).toBe(7);
+    expect(themesFor("OPEN")).toHaveLength(7);
+    expect(themesFor("MASTERS_40")).toHaveLength(7);
+    expect(themesFor("JUNIOR")).toHaveLength(0);
+    expect(themesFor("MASTERS_50")).toHaveLength(0);
   });
 
-  it("dates the Founding Season from 1 Mar to 30 Sep 2027", () => {
+  it("dates the Founding Season from 1 Mar 2027 to 29 Feb 2028", () => {
     expect(SEASON_2027.startsOn).toBe("2027-03-01");
-    expect(SEASON_2027.endsOn).toBe("2027-09-30");
-    expect(small.finaleOn).toBe("2027-04-25");
-    expect(tube.finaleOn).toBe("2027-09-30");
-    expect(air.finaleOn).toBe("2027-09-10");
+    expect(SEASON_2027.endsOn).toBe("2028-02-29");
+    expect(small.finaleOn).toBe("2028-02-29");
+    expect(tube.finaleOn).toBe("2028-02-29");
+    expect(air.finaleOn).toBe("2028-02-29");
     expect(air.proposedDate).toBe(false);
     expect(air.oceanOnly).toBe(true);
     expect(pool.poolOnly).toBe(true);
-    expect(pool.finaleOn).toBe("2027-05-31");
+    expect(pool.finaleOn).toBe("2028-02-29");
   });
 });
 
@@ -51,12 +48,12 @@ describe("category", () => {
   const asOf = new Date("2027-09-30T00:00:00.000Z");
 
   it("assigns exclusive age bands", () => {
-    expect(categoryForAge(18)).toBe("JUNIOR");
+    expect(categoryForAge(18)).toBe("OPEN");
     expect(categoryForAge(19)).toBe("OPEN");
     expect(categoryForAge(39)).toBe("OPEN");
     expect(categoryForAge(40)).toBe("MASTERS_40");
     expect(categoryForAge(49)).toBe("MASTERS_40");
-    expect(categoryForAge(50)).toBe("MASTERS_50");
+    expect(categoryForAge(50)).toBe("MASTERS_40");
   });
 
   it("counts completed years on the season's age date", () => {
@@ -88,11 +85,11 @@ describe("entry gate", () => {
   });
 
   it("refuses the wrong category, environment, closed theme, or video", () => {
-    expect(decideEntry({ ...base, theme: small, category: "MASTERS_40" })).toEqual({ ok: false, code: "CATEGORY" });
+    expect(decideEntry({ ...base, theme: small, category: "JUNIOR" as "OPEN" })).toEqual({ ok: false, code: "CATEGORY" });
     expect(decideEntry({ ...base, theme: air, environment: "POOL" })).toEqual({ ok: false, code: "ENVIRONMENT" });
     expect(decideEntry({ ...base, theme: pool, environment: "OCEAN" })).toEqual({ ok: false, code: "ENVIRONMENT" });
     expect(decideEntry({ ...base, theme: pool, environment: "POOL" })).toEqual({ ok: true, tollCents: 2_000 });
-    expect(decideEntry({ ...base, today: "2027-10-01" })).toEqual({ ok: false, code: "THEME_CLOSED" });
+    expect(decideEntry({ ...base, today: "2028-03-01" })).toEqual({ ok: false, code: "THEME_CLOSED" });
     expect(decideEntry({ ...base, videoUrl: "nota-video" })).toEqual({ ok: false, code: "VIDEO" });
     expect(themeIsOpen("2027-09-30", "2027-09-30")).toBe(true);
   });
