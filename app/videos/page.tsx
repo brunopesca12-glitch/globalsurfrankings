@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORY_LABEL } from "@/lib/category";
+import { THEMES } from "@/lib/catalogue";
 import { listVideos } from "@/lib/data";
 import { environmentLabel, ordinal } from "@/lib/format";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: "Videos" };
 export default async function VideosPage({ searchParams }: { searchParams: Promise<{ theme?: string }> }) {
   const query = await searchParams;
   const videos = await listVideos();
-  const themes = [...new Map(videos.map((video) => [video.theme.slug, video.theme.name])).entries()];
+  const themes = THEMES.map((theme) => [theme.slug, theme.name] as const);
   const selected = themes.some(([slug]) => slug === query.theme) ? query.theme : undefined;
   const visible = selected ? videos.filter((video) => video.theme.slug === selected) : videos;
 

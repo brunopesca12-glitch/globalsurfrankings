@@ -131,9 +131,15 @@ export async function getHashtagBoard(tag: string, category: CategoryCode, sex: 
   };
 }
 
+/** Only the seven Founding Season titles and the four current divisions are shown. */
+const CURRENT_ENTRY = {
+  theme: { slug: { in: [...SEASON_SLUGS] } },
+  category: { in: ["OPEN", "MASTERS_40"] as CategoryCode[] },
+};
+
 export async function listVideos() {
   return prisma.entry.findMany({
-    where: { season: { vintage: SEASON_2027.vintage } },
+    where: { season: { vintage: SEASON_2027.vintage }, ...CURRENT_ENTRY },
     include: { athlete: true, theme: true, placement: true },
     orderBy: { createdAt: "desc" },
   });
@@ -155,8 +161,8 @@ export async function collegeVerdictMap(entryIds: string[]) {
 }
 
 export async function getVideo(id: string) {
-  return prisma.entry.findUnique({
-    where: { id },
+  return prisma.entry.findFirst({
+    where: { id, ...CURRENT_ENTRY },
     include: { athlete: true, theme: true, placement: true },
   });
 }
@@ -175,6 +181,7 @@ export async function getAthleteByUser(userId: string) {
     where: { userId },
     include: {
       entries: {
+        where: CURRENT_ENTRY,
         include: { theme: true, placement: true },
         orderBy: { createdAt: "desc" },
       },
@@ -187,7 +194,7 @@ export async function getPublicAthlete(slug: string) {
     where: { slug },
     include: {
       entries: {
-        where: { status: "PLACED" },
+        where: { status: "PLACED", ...CURRENT_ENTRY },
         include: { theme: true, placement: true },
         orderBy: { createdAt: "desc" },
       },

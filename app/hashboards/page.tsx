@@ -35,7 +35,7 @@ export default async function HashboardsPage() {
         <section className="mt-10">
           <h2 className="font-serif text-3xl">Your hashboards</h2>
           <p className="mt-2 text-sm text-ink/60">
-            {CATEGORY_LABEL[category]} · shown on Best Barrel, the filled demo board.
+            {CATEGORY_LABEL[category]} · shown on Best Tube, the filled demo board.
           </p>
           {yours.length === 0 ? (
             <p className="mt-4 border border-line bg-white px-4 py-6 text-sm text-ink/70">
