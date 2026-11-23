@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { undoPlacement } from "@/app/actions/ballot";
+import { FlagWave } from "@/components/FlagWave";
 import { PlaceBoard } from "@/components/PlaceBoard";
 import { auth } from "@/lib/auth";
 import { ensureWeeklyQueue, loadJudgeStack } from "@/lib/judge-queue";
@@ -79,6 +80,12 @@ export default async function BallotPage({
         eventLine={`You're judging: ${stack.event} · ${stack.edition}`}
         tiles={stack.tiles}
       />
+      <div className="mt-8 max-w-md border border-line bg-white px-4 py-4">
+        <p className="mb-3 text-sm text-ink/70">
+          If the new wave was already posted somewhere, tell the desk. This does not name the surfer.
+        </p>
+        <FlagWave ballotId={queue.ballot.id} />
+      </div>
     </div>
   );
 }

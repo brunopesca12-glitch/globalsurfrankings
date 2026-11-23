@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createInvite, setCollegeOverride } from "@/app/actions/invite";
 import { runVerdict, seatJudge } from "@/app/actions/judging";
@@ -38,6 +39,11 @@ export default async function DeskPage({
       <p className="mt-4 max-w-2xl text-ink/75">
         Seat Champions and the pro tour. Athletes, the Top 10, and Everyone sit on their own. A wave is placed when you
         run Monday&apos;s verdict: the median of the panels that reached three ballots.
+      </p>
+      <p className="mt-4">
+        <Link href="/admin/review" className="text-ocean">
+          Review waves
+        </Link>
       </p>
       {query.saved === "1" ? <p className="mt-4 text-sm text-ocean">Seat updated.</p> : null}
       {query.invite ? (

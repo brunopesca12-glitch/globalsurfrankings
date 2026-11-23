@@ -6,6 +6,7 @@ import { CATEGORY_LABEL } from "@/lib/category";
 import { getAthleteByUser } from "@/lib/data";
 import { environmentLabel, formatUsd, ordinal } from "@/lib/format";
 import { entryWeekLabel } from "@/lib/season-clock";
+import { submissionStatus } from "@/lib/submission-check";
 
 export const metadata: Metadata = { title: "My waves" };
 
@@ -32,7 +33,9 @@ export default async function MyEntriesPage() {
         </Link>
       </p>
       <ul className="mt-8 space-y-3">
-        {athlete.entries.map((entry) => (
+        {athlete.entries.map((entry) => {
+          const status = submissionStatus(entry);
+          return (
           <li key={entry.id} className="border border-line bg-white px-4 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-lg">
@@ -51,6 +54,12 @@ export default async function MyEntriesPage() {
               {entry.tollCents === 0 ? "no toll" : `${formatUsd(entry.tollCents)} DEMO, not charged`}
               {entry.spot ? ` · ${entry.spot}` : ""}
             </p>
+            <p className="mt-2 text-sm">
+              <span className="border border-line px-2 py-0.5 text-xs uppercase tracking-wider text-ink/70">
+                {status.label}
+              </span>
+              {status.note ? <span className="ml-2 text-ink/70">{status.note}</span> : null}
+            </p>
             <p className="mt-1 text-sm">
               {entry.placement ? "Placement published." : "Waiting for Monday's liturgy."}{" "}
               <Link className="text-ocean" href={`/videos/${entry.id}`}>
@@ -58,7 +67,8 @@ export default async function MyEntriesPage() {
               </Link>
             </p>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </div>
   );

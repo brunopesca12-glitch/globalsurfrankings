@@ -1,13 +1,15 @@
 import NextAuth from "next-auth";
 import type { NextFetchEvent, NextMiddleware, NextRequest } from "next/server";
 import { authConfig } from "@/lib/auth.config";
-import { siteGateResponse } from "@/lib/site-gate";
+import { siteGateResponse, skipsVisitorGate } from "@/lib/site-gate";
 
 const auth = NextAuth(authConfig).auth as NextMiddleware;
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
-  const gate = siteGateResponse(request.headers.get("authorization"));
-  if (gate) return gate;
+  if (!skipsVisitorGate(request.nextUrl.pathname, request.headers.get("x-vercel-signature"))) {
+    const gate = siteGateResponse(request.headers.get("authorization"));
+    if (gate) return gate;
+  }
   return auth(request, event);
 }
 
