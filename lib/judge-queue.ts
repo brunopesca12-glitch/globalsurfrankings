@@ -121,7 +121,7 @@ export const ensureWeeklyQueue = cache(async (userId: string): Promise<JudgeSess
       .filter((ballot) => {
         if (ballot.status !== "OPEN") return false;
         if (!college || ballot.college !== college) return true;
-        if (ballot.entry.status !== "SUBMITTED") return true;
+        if (ballot.entry.status !== "SUBMITTED" && ballot.entry.status !== "PLACED") return true;
         if (!isCurrentModality(ballot.entry.theme.slug, ballot.entry.category)) return true;
         return !canJudgeEntry({
           judgeAthleteId: athleteId,

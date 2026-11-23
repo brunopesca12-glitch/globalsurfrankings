@@ -13,12 +13,20 @@ export type FreshBallotResult =
       ok: true;
       email: string;
       created: number;
+      reused: boolean;
       event: string;
       edition: string;
       ballotIds: string[];
       entryIds: string[];
     }
-  | { ok: false; reason: "no_user" | "no_panel" | "season_missing" | "not_enough_waves" };
+  | {
+      ok: false;
+      reason: "no_user" | "no_panel" | "season_missing" | "not_enough_waves";
+      detail?: {
+        college: string | null;
+        editions: { edition: string; total: number; submitted: number; eligible: number; alreadyHeld: number }[];
+      };
+    };
 
 /**
  * Adds open ballots for one account. It does not delete, update, or reseed anything.
@@ -46,13 +54,54 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
   });
   if (!college) return { ok: false, reason: "no_panel" };
 
+  const openNow = await prisma.ballot.findMany({
+    where: {
+      userId: user.id,
+      status: "OPEN",
+      entry: {
+        status: "SUBMITTED",
+        category: { in: ["OPEN", "MASTERS_40"] },
+        theme: { slug: { in: [...SEASON_SLUGS] } },
+      },
+    },
+    select: {
+      id: true,
+      entryId: true,
+      entry: { select: { themeId: true, category: true, sex: true, theme: { select: { slug: true, name: true } } } },
+    },
+  });
+  const openGroups = new Map<string, typeof openNow>();
+  for (const ballot of openNow) {
+    const key = `${ballot.entry.themeId}:${ballot.entry.category}:${ballot.entry.sex}`;
+    const list = openGroups.get(key) ?? [];
+    list.push(ballot);
+    openGroups.set(key, list);
+  }
+  let existing: typeof openNow = [];
+  for (const group of openGroups.values()) {
+    if (group.length > existing.length) existing = group;
+  }
+  if (existing.length >= 2) {
+    const sample = existing[0]!;
+    return {
+      ok: true,
+      email: user.email,
+      created: existing.length,
+      reused: true,
+      event: eventTitle(sample.entry.theme.slug, sample.entry.theme.name),
+      edition: editionLine(sample.entry.category, sample.entry.sex),
+      ballotIds: existing.map((row) => row.id),
+      entryIds: existing.map((row) => row.entryId),
+    };
+  }
+
   const forbidden = forbiddenForAthlete(athleteId, ctx.athletes, ctx.entryEditions);
   const held = await prisma.ballot.findMany({ where: { userId: user.id }, select: { entryId: true } });
   const heldIds = new Set(held.map((row) => row.entryId));
   const entries = await prisma.entry.findMany({
     where: {
       seasonId: ctx.seasonId,
-      status: "SUBMITTED",
+      status: { in: ["SUBMITTED", "PLACED"] },
       category: { in: ["OPEN", "MASTERS_40"] },
       theme: { slug: { in: [...SEASON_SLUGS] } },
     },
@@ -89,7 +138,39 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
   for (const group of groups.values()) {
     if (score(group) > score(best)) best = group;
   }
-  if (best.length < 2) return { ok: false, reason: "not_enough_waves" };
+  if (best.length < 2) {
+    const all = await prisma.entry.findMany({
+      where: { seasonId: ctx.seasonId },
+      select: { status: true, category: true, sex: true, theme: { select: { slug: true } } },
+    });
+    const tally = new Map<string, { edition: string; total: number; submitted: number; eligible: number; alreadyHeld: number }>();
+    for (const entry of all) {
+      const edition = `${entry.theme.slug}:${entry.category}:${entry.sex}:${entry.status}`;
+      const row = tally.get(edition) ?? { edition, total: 0, submitted: 0, eligible: 0, alreadyHeld: 0 };
+      row.total += 1;
+      tally.set(edition, row);
+    }
+    for (const entry of entries) {
+      const edition = `${entry.theme.slug}:${entry.category}:${entry.sex}:SUBMITTED`;
+      const row = tally.get(edition);
+      if (!row) continue;
+      row.submitted += 1;
+      if (heldIds.has(entry.id)) row.alreadyHeld += 1;
+    }
+    for (const entry of eligible) {
+      const edition = `${entry.theme.slug}:${entry.category}:${entry.sex}:SUBMITTED`;
+      const row = tally.get(edition);
+      if (row) row.eligible += 1;
+    }
+    return {
+      ok: false,
+      reason: "not_enough_waves",
+      detail: {
+        college,
+        editions: [...tally.values()].sort((a, b) => b.total - a.total).slice(0, 12),
+      },
+    };
+  }
 
   const chosen = [...best].sort((a, b) => Number(playable(b.videoUrl)) - Number(playable(a.videoUrl)) || a.createdAt.getTime() - b.createdAt.getTime());
   const waves = chosen.slice(0, TARGET);
@@ -119,6 +200,7 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
     ok: true,
     email: user.email,
     created: created.length,
+    reused: false,
     event: eventTitle(first.theme.slug, first.theme.name),
     edition: editionLine(first.category, first.sex),
     ballotIds: created.map((row) => row.id),
