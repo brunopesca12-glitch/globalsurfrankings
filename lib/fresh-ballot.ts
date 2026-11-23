@@ -101,7 +101,7 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
   const entries = await prisma.entry.findMany({
     where: {
       seasonId: ctx.seasonId,
-      status: "SUBMITTED",
+      status: { in: ["SUBMITTED", "PLACED"] },
       category: { in: ["OPEN", "MASTERS_40"] },
       theme: { slug: { in: [...SEASON_SLUGS] } },
     },
