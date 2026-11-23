@@ -58,8 +58,8 @@ export default async function ReviewPage({
       </p>
       <p className="mt-3 text-sm text-ink/70">
         {vision
-          ? `Automatic title check uses ${vision.name}.`
-          : "Automatic title check is off. Set OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY. Until then, new waves are marked pending review."}
+          ? `Automatic title check uses ${vision.name}${vision.model ? ` (${vision.model})` : ""}.`
+          : "Automatic title check is off. A direct key is used first. Otherwise the Vercel AI Gateway is used when AI_GATEWAY_API_KEY or the Vercel login token is present. Until then, new waves are marked pending review."}
       </p>
       {query.saved === "cleared" ? <p className="mt-4 text-sm text-ocean">Wave marked checked.</p> : null}
       {query.saved === "flag" ? <p className="mt-4 text-sm text-ocean">Report closed.</p> : null}

@@ -18,7 +18,7 @@ import {
   looksLikeVideoContainer,
   sha256Hex,
 } from "@/lib/video-bytes";
-import { parseObservation, waveVisionFromEnv } from "@/lib/vision";
+import { gatewayModelFromEnv, parseObservation, waveVisionFromEnv } from "@/lib/vision";
 
 function observed(partial: Partial<WaveObservation>): WaveObservation {
   return {
@@ -201,6 +201,17 @@ describe("vision provider", () => {
     expect(waveVisionFromEnv({ OPENAI_API_KEY: "sk-test" })?.name).toBe("OpenAI");
     expect(waveVisionFromEnv({ GEMINI_API_KEY: "g", OPENAI_API_KEY: "" })?.name).toBe("Gemini");
     expect(waveVisionFromEnv({ ANTHROPIC_API_KEY: "a" })?.name).toBe("Anthropic");
+    expect(waveVisionFromEnv({ VERCEL_OIDC_TOKEN: "oidc", OPENAI_API_KEY: "sk-test" })?.name).toBe("OpenAI");
+    expect(waveVisionFromEnv({ VERCEL_OIDC_TOKEN: "oidc" })).toMatchObject({
+      name: "Vercel AI Gateway",
+      model: "google/gemini-2.5-flash",
+    });
+    expect(waveVisionFromEnv({ AI_GATEWAY_API_KEY: "gw", AI_GATEWAY_MODEL: "openai/gpt-4o-mini" })).toMatchObject({
+      name: "Vercel AI Gateway",
+      model: "openai/gpt-4o-mini",
+    });
+    expect(waveVisionFromEnv({ AI_GATEWAY_API_KEY: "  ", VERCEL_OIDC_TOKEN: "" })).toBeNull();
+    expect(gatewayModelFromEnv({})).toBe("google/gemini-2.5-flash");
   });
 });
 

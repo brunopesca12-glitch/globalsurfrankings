@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { decideSiteGate, siteGateResponse } from "@/lib/site-gate";
+import { decideSiteGate, siteGateResponse, skipsVisitorGate } from "@/lib/site-gate";
 
 function basic(user: string, password: string): string {
   return `Basic ${btoa(`${user}:${password}`)}`;
@@ -45,5 +45,11 @@ describe("site gate", () => {
     expect(
       decideSiteGate({ password: "preview-secret", user: "gsr", authorization: basic("gsr", "nope") }),
     ).toBe("deny");
+  });
+
+  it("lets the preview vision probe through the visitor gate", () => {
+    expect(skipsVisitorGate("/api/vision-probe", null, { VERCEL_ENV: "preview" })).toBe(true);
+    expect(skipsVisitorGate("/api/vision-probe", null, { VERCEL_ENV: "production" })).toBe(false);
+    expect(skipsVisitorGate("/enter", null, { VERCEL_ENV: "preview" })).toBe(false);
   });
 });

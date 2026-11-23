@@ -1,3 +1,4 @@
+import { gateway, generateText } from "ai";
 import { pickEvenly } from "@/lib/video-frames";
 import type { WaveAnswer, WaveObservation, WaveSetting, WaveSize, WaveStance } from "@/lib/modality";
 
@@ -5,7 +6,19 @@ export type VisionFrame = { mimeType: "image/jpeg"; bytes: Uint8Array };
 
 export interface WaveVision {
   readonly name: string;
+  readonly model?: string;
   classify(frames: readonly VisionFrame[]): Promise<WaveObservation | null>;
+}
+
+/** Cheap vision model on the Vercel AI Gateway. Override with AI_GATEWAY_MODEL. */
+export const DEFAULT_GATEWAY_MODEL = "google/gemini-2.5-flash";
+
+export function gatewayModelFromEnv(env: { [key: string]: string | undefined }): string {
+  return env.AI_GATEWAY_MODEL?.trim() || DEFAULT_GATEWAY_MODEL;
+}
+
+export function gatewayConfigured(env: { [key: string]: string | undefined }): boolean {
+  return Boolean(env.AI_GATEWAY_API_KEY?.trim() || env.VERCEL_OIDC_TOKEN?.trim());
 }
 
 const PROMPT = `You are checking a surf video for Global Surf Rankings. These stills are samples from one clip, in time order.
@@ -158,9 +171,14 @@ async function classifyAnthropic(key: string, model: string, frames: readonly Vi
   return parseObservation(text);
 }
 
-function provider(name: string, classify: (frames: readonly VisionFrame[]) => Promise<WaveObservation | null>): WaveVision {
+function provider(
+  name: string,
+  classify: (frames: readonly VisionFrame[]) => Promise<WaveObservation | null>,
+  model?: string,
+): WaveVision {
   return {
     name,
+    model,
     async classify(frames) {
       const picked = pickEvenly(frames, 4).filter((frame) => frame.bytes.byteLength > 80);
       if (picked.length === 0) return null;
@@ -171,6 +189,29 @@ function provider(name: string, classify: (frames: readonly VisionFrame[]) => Pr
       }
     },
   };
+}
+
+/** Sends stills through the AI SDK gateway. Throws on auth or request failure; callers treat that as pending review. */
+export async function classifyGateway(model: string, frames: readonly VisionFrame[]): Promise<WaveObservation | null> {
+  const result = await generateText({
+    model: gateway(model),
+    temperature: 0,
+    maxOutputTokens: 300,
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: PROMPT },
+          ...frames.map((frame) => ({
+            type: "file" as const,
+            data: frame.bytes,
+            mediaType: frame.mimeType,
+          })),
+        ],
+      },
+    ],
+  });
+  return parseObservation(result.text);
 }
 
 /** The first configured provider wins, so a wave is sent to one model. */
@@ -189,6 +230,20 @@ export function waveVisionFromEnv(env: { [key: string]: string | undefined }): W
   if (anthropic) {
     const model = env.ANTHROPIC_VISION_MODEL?.trim() || "claude-haiku-4-5";
     return provider("Anthropic", (frames) => classifyAnthropic(anthropic, model, frames));
+  }
+  if (gatewayConfigured(env)) {
+    const model = gatewayModelFromEnv(env);
+    return provider(
+      "Vercel AI Gateway",
+      async (frames) => {
+        try {
+          return await classifyGateway(model, frames);
+        } catch {
+          return null;
+        }
+      },
+      model,
+    );
   }
   return null;
 }
