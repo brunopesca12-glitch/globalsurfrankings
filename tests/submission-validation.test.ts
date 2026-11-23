@@ -211,6 +211,8 @@ describe("vision provider", () => {
       model: "openai/gpt-4o-mini",
     });
     expect(waveVisionFromEnv({ AI_GATEWAY_API_KEY: "  ", VERCEL_OIDC_TOKEN: "" })).toBeNull();
+    expect(waveVisionFromEnv({ VERCEL: "1" })?.name).toBe("Vercel AI Gateway");
+    expect(waveVisionFromEnv({ VERCEL: "1", OPENAI_API_KEY: "sk-test" })?.name).toBe("OpenAI");
     expect(gatewayModelFromEnv({})).toBe("google/gemini-2.5-flash");
   });
 });

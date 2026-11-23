@@ -18,7 +18,9 @@ export function gatewayModelFromEnv(env: { [key: string]: string | undefined }):
 }
 
 export function gatewayConfigured(env: { [key: string]: string | undefined }): boolean {
-  return Boolean(env.AI_GATEWAY_API_KEY?.trim() || env.VERCEL_OIDC_TOKEN?.trim());
+  if (env.AI_GATEWAY_API_KEY?.trim() || env.VERCEL_OIDC_TOKEN?.trim()) return true;
+  // On Vercel the OIDC token is attached to the request. The SDK reads it when the call runs.
+  return env.VERCEL === "1";
 }
 
 const PROMPT = `You are checking a surf video for Global Surf Rankings. These stills are samples from one clip, in time order.
