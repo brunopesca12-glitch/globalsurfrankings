@@ -47,6 +47,19 @@ export function decideSiteGate(input: {
   return "deny";
 }
 
+/**
+ * Vercel Blob tells us an upload finished with a signed callback. That request
+ * does not carry the visitor password. The upload route checks the signature.
+ */
+export function skipsVisitorGate(
+  pathname: string,
+  blobSignature: string | null,
+  env: { [key: string]: string | undefined } = process.env,
+): boolean {
+  if (pathname === "/api/vision-probe" && env.VERCEL_ENV === "preview") return true;
+  return pathname === "/api/video-upload" && typeof blobSignature === "string" && blobSignature.length > 0;
+}
+
 export function siteGateResponse(authorization: string | null): Response | null {
   const decision = decideSiteGate({
     password: process.env["SITE_GATE_PASSWORD"],

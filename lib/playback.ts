@@ -18,6 +18,7 @@ function youtubeId(url: URL): string | null {
 
 /** How a stored wave URL should play. The old demo host is served as a same-origin file. */
 export function playbackFor(url: string): Playback {
+  if (url.startsWith("/media/entries/") || url.startsWith("/uploads/")) return { kind: "file" };
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -32,6 +33,18 @@ export function playbackFor(url: string): Playback {
     if (id) return { kind: "embed", src: `https://player.vimeo.com/video/${id}` };
   }
   if (host === "video.gsr.surf") return { kind: "file" };
-  if (/\.(mp4|webm|ogg)$/i.test(parsed.pathname)) return { kind: "file" };
+  if (/\.(mp4|webm|mov|m4v|ogg)$/i.test(parsed.pathname)) return { kind: "file" };
   return { kind: "link" };
+}
+
+/** Judges watch a real file through the blind route. Demo hosts and embeds stay on the stand-in clip. */
+export function playsAsFile(url: string): boolean {
+  if (url.startsWith("/media/entries/")) return true;
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    if (host === "video.gsr.surf") return false;
+  } catch {
+    return false;
+  }
+  return playbackFor(url).kind === "file";
 }

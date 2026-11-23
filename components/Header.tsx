@@ -87,9 +87,14 @@ export async function Header() {
                 Profile
               </Link>
               {viewer.role === "ADMIN" ? (
-                <Link href="/admin/judge" className="hover:text-ocean">
-                  Desk
-                </Link>
+                <>
+                  <Link href="/admin/judge" className="hover:text-ocean">
+                    Desk
+                  </Link>
+                  <Link href="/admin/review" className="hover:text-ocean">
+                    Review
+                  </Link>
+                </>
               ) : null}
               <SignOutButton />
             </>

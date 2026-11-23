@@ -2,6 +2,7 @@
 export const DEMO_CLIPS = ["ocean.mp4", "sand.mp4", "foam.mp4", "gold.mp4"] as const;
 
 export function isUnplayableHost(url: string): boolean {
+  if (url.startsWith("/")) return false;
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");
     return host === "video.gsr.surf";

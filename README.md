@@ -87,6 +87,12 @@ The password for every demo account, including joao.vasques@gsr.surf and desk@gs
 
 Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Auth before any page (the user defaults to `gsr`). Remove `SITE_GATE_PASSWORD` to disable the gate. The password is not stored in this repo. Athlete sign-in still happens after the gate.
 
+## Submission checks
+
+An entry stores a required attestation that the wave has never been posted on any social network or platform. The file is hashed (SHA-256) and sampled frames get a perceptual hash, so an exact copy or a re-saved, trimmed, or cropped copy of a wave already in GSR is refused. Frames are also sent to a vision model, which checks the clip against the chosen title. A clear miss is refused. An unsure read, a link we cannot open (YouTube, Vimeo), or a missing vision key is accepted and marked pending review at `/my-waves` and `/admin/review`. Signed-in surfers and judges can report that a wave was already published. The desk clears it or removes it there. There is no automatic social-network search.
+
+A direct key is used first: `OPENAI_API_KEY`, `GEMINI_API_KEY` (or `GOOGLE_GENERATIVE_AI_API_KEY`), or `ANTHROPIC_API_KEY`. Optional model names: `OPENAI_VISION_MODEL`, `GEMINI_VISION_MODEL`, `ANTHROPIC_VISION_MODEL`. If none of those keys is set, the title check uses the Vercel AI Gateway (`google/gemini-2.5-flash`, override with `AI_GATEWAY_MODEL`). On Vercel that signs in with `VERCEL_OIDC_TOKEN`. Locally set `AI_GATEWAY_API_KEY`. A gateway error accepts the wave and marks it pending review. Frame sampling uses the `ffmpeg-static` binary. `BLOB_READ_WRITE_TOKEN` lets a phone video upload directly on Vercel. Do not run `db:seed` again on a database that already has real accounts. The validation migration only adds columns and tables.
+
 ## What the seed contains
 
 Season vintage 2027, Founding Season, 1 Mar 2027 → 29 Feb 2028, champions crowned March 2028. Seven titles: Best Tube, Best Aerial, Biggest Paddle-In Wave (big wave), Best Small-Wave Performance, Frontside, Backside, Wave Pool. Four divisions per title: Open and Masters 40+, men's and women's (28 weekly champions). Junior and Masters 50+ are retired; the enum values stay in the database so older rows still read.
@@ -129,6 +135,7 @@ The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep
 - `/judge` where you are judging. `/judge/ballot` place the new wave into your own list. `/judge/history` your places
 - `/invite/[token]` personal invite into a college
 - `/admin/judge` seat the Chamber and the Ranked, override a college, mint an invite, and run Monday's verdict
+- `/admin/review` waves waiting for a person, and reports that a wave was already posted
 
 ## Tests
 
@@ -136,4 +143,4 @@ The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep
 
 ## Not in v0.1
 
-On-chain payout execution, Pix, cards, KYC, video upload or transcoding, a ride-date field, an image-rights attestation on the entry form, public accuracy boards, the Golden Eye, accuracy promotion into the Upper Chamber, the media house, sponsor checkout, patron tools, WhatsApp, and any balance the application increments. The site publishes payment orders. An outside bot pays them. The Ranked cap of US$ 6 is applied when those orders are built. No money moves through the platform. `/rules` states the published competition rules, including the fields the entry form does not collect yet.
+On-chain payout execution, Pix, cards, KYC, transcoding, a ride-date field, public accuracy boards, the Golden Eye, accuracy promotion into the Upper Chamber, the media house, sponsor checkout, patron tools, WhatsApp, and any balance the application increments. Video files can be uploaded and are checked for duplicates and title fit. An unpublished-wave attestation is required. Social networks are not searched automatically. The site publishes payment orders. An outside bot pays them. The Ranked cap of US$ 6 is applied when those orders are built. No money moves through the platform. `/rules` states the published competition rules, including the fields the entry form does not collect yet.

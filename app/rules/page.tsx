@@ -36,6 +36,19 @@ export default function RulesPage() {
       </section>
 
       <section className="mt-12">
+        <h2 className="font-serif text-3xl">Original waves</h2>
+        <p className="mt-3 leading-relaxed text-ink/80">
+          Enter a wave that has never been posted on any social network or platform. The same wave cannot be entered
+          twice. A file that matches an earlier entry is refused, including a copy that was saved again, trimmed, or
+          cropped. Each title has a shape: a pool wave belongs in Wave Pool, an ocean wave does not, a frontside line
+          belongs in Frontside Lines, a backside line belongs in Backside Lines, an aerial needs an aerial, a tube
+          needs a tube, a big paddle-in wave has to be a big paddle-in, and a small-wave performance stays small. The
+          site watches frames from the file. A clear miss is refused. An unsure read is accepted and marked for the
+          desk. Anyone signed in can report a wave that was already published.
+        </p>
+      </section>
+
+      <section className="mt-12">
         <h2 className="font-serif text-3xl">Place, then pay</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
           A wave does not get a score. A judge drops it into their own list, best at #1. Three sealed places from a

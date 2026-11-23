@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CollegeVerdictLine } from "@/components/CollegeVerdict";
+import { FlagWave } from "@/components/FlagWave";
 import { WavePlayer } from "@/components/WavePlayer";
+import { auth } from "@/lib/auth";
 import { CATEGORY_LABEL } from "@/lib/category";
 import { collegeVerdictMap, getVideo } from "@/lib/data";
 import { environmentLabel, ordinal, verificationLabel } from "@/lib/format";
+import { submissionStatus } from "@/lib/submission-check";
 
 export const metadata: Metadata = { title: "Watch" };
 
@@ -13,6 +16,9 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const video = await getVideo(id);
   if (!video) notFound();
+  const session = await auth();
+  const status = submissionStatus(video);
+  const showNote = status.label === "Pending review" || session?.user?.id === video.athlete.userId || session?.user?.role === "ADMIN";
   const verdicts = video.placement ? await collegeVerdictMap([video.id]) : null;
   const title = `${video.athlete.displayName} · ${video.theme.name}`;
 
@@ -29,6 +35,12 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
         {video.placement ? ` · ${ordinal(video.placement.place)}` : " · waiting for a place"}
         {video.spot ? ` · ${video.spot}` : ""}
       </p>
+      {showNote ? (
+        <p className="mt-4 border border-line bg-white px-3 py-2 text-sm">
+          <span className="uppercase tracking-wider text-ink/60">{status.label}</span>
+          {status.note ? <span className="mt-1 block text-ink/75">{status.note}</span> : null}
+        </p>
+      ) : null}
       <div className="mt-6 border border-line">
         <WavePlayer url={video.videoUrl} title={title} />
       </div>
@@ -49,6 +61,18 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
       {video.placement ? (
         <CollegeVerdictLine verdicts={verdicts?.get(video.id) ?? []} finalPlace={video.placement.place} />
       ) : null}
+      <div className="mt-8 max-w-xl">
+        {session?.user ? (
+          <FlagWave entryId={video.id} />
+        ) : (
+          <p className="text-sm text-ink/70">
+            <Link href="/sign-in" className="text-ocean">
+              Sign in
+            </Link>{" "}
+            to report a wave that was already posted.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -39,6 +39,20 @@ enum EntryStatus {
   PLACED
 }
 
+/// CLEAR has passed the automatic checks, or the desk has accepted it.
+/// PENDING_REVIEW is in the contest and waiting for a person.
+enum ReviewStatus {
+  CLEAR
+  PENDING_REVIEW
+}
+
+/// UNFIT waves are refused and are not stored.
+enum ModalityCheck {
+  FIT
+  UNCERTAIN
+  UNAVAILABLE
+}
+
 model User {
   id               String    @id @default(cuid())
   email            String    @unique
@@ -55,6 +69,7 @@ model User {
   athlete          Athlete?
   seats            CollegeSeat[]
   ballots          Ballot[]
+  publicationFlags PublicationFlag[]
 }
 
 model Athlete {
@@ -132,13 +147,51 @@ model Entry {
   status      EntryStatus  @default(SUBMITTED)
   category    CategoryCode
   sex         Sex
+  /// SHA-256 of the video bytes. Null on rows entered before file checks, and on links we could not open.
+  contentSha256       String?
+  /// Perceptual hashes of sampled frames, full frame then a center crop. Empty when no frames were read.
+  frameHashes         String[]         @default([])
+  /// The athlete ticked the unpublished-wave statement.
+  unpublishedAttested Boolean          @default(false)
+  /// The exact statement they agreed to. Empty on older rows.
+  attestationText     String           @default("")
+  reviewStatus        ReviewStatus     @default(CLEAR)
+  modalityCheck       ModalityCheck?
+  modalityNote        String           @default("")
   createdAt   DateTime     @default(now())
   placement   Placement?
   ballots     Ballot[]
   verdicts    CollegeVerdict[]
+  publicationFlags PublicationFlag[]
+  media       EntryMedia?
 
   @@index([athleteId, isoYear, isoWeek, environment])
   @@index([themeId, category, sex])
+  @@index([reviewStatus])
+  @@unique([contentSha256])
+}
+
+/// Bytes for a file uploaded on a host with no blob store. The public URL stays on Entry.videoUrl.
+model EntryMedia {
+  entryId  String @id
+  entry    Entry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  mimeType String
+  bytes    Bytes
+}
+
+/// A signed-in surfer or judge reports that this wave was already published.
+model PublicationFlag {
+  id         String    @id @default(cuid())
+  entryId    String
+  entry      Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note       String    @default("")
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@unique([entryId, userId])
+  @@index([resolvedAt])
 }
 
 model Board {

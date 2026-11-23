@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { demoPair } from "@/lib/demo-clips";
 import { probeInsertion } from "@/lib/binary-insertion";
 import { prisma } from "@/lib/db";
+import { serveStoredVideo } from "@/lib/serve-video";
 
 export async function GET(request: Request, { params }: { params: Promise<{ ballotId: string; side: string }> }) {
   const session = await auth();
@@ -16,17 +17,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ ball
 
   const ballot = await prisma.ballot.findFirst({
     where: { id: ballotId, userId: session.user.id },
-    select: { lo: true, hi: true, boardEntryIds: true },
+    select: { lo: true, hi: true, boardEntryIds: true, entry: { select: { videoUrl: true } } },
   });
   if (!ballot) return new Response("Not found", { status: 404 });
+  let videoUrl = ballot.entry.videoUrl;
   if (side === "board") {
     const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
     if (probe.kind !== "probe") return new Response("Not found", { status: 404 });
     const probeEntryId = ballot.boardEntryIds[probe.index];
     if (!probeEntryId) return new Response("Not found", { status: 404 });
-    const probeEntry = await prisma.entry.findUnique({ where: { id: probeEntryId }, select: { id: true } });
+    const probeEntry = await prisma.entry.findUnique({ where: { id: probeEntryId }, select: { videoUrl: true } });
     if (!probeEntry) return new Response("Not found", { status: 404 });
+    videoUrl = probeEntry.videoUrl;
   }
+  const served = await serveStoredVideo(videoUrl, request.headers.get("range")).catch(() => null);
+  if (served) return served;
 
   const pair = demoPair(ballotId);
   const clip = side === "drawn" ? pair.drawn : pair.board;
