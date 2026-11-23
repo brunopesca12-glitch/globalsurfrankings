@@ -19,7 +19,14 @@ export type FreshBallotResult =
       ballotIds: string[];
       entryIds: string[];
     }
-  | { ok: false; reason: "no_user" | "no_panel" | "season_missing" | "not_enough_waves" };
+  | {
+      ok: false;
+      reason: "no_user" | "no_panel" | "season_missing" | "not_enough_waves";
+      detail?: {
+        college: string | null;
+        editions: { edition: string; total: number; submitted: number; eligible: number; alreadyHeld: number }[];
+      };
+    };
 
 /**
  * Adds open ballots for one account. It does not delete, update, or reseed anything.
@@ -131,7 +138,39 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
   for (const group of groups.values()) {
     if (score(group) > score(best)) best = group;
   }
-  if (best.length < 2) return { ok: false, reason: "not_enough_waves" };
+  if (best.length < 2) {
+    const all = await prisma.entry.findMany({
+      where: { seasonId: ctx.seasonId },
+      select: { status: true, category: true, sex: true, theme: { select: { slug: true } } },
+    });
+    const tally = new Map<string, { edition: string; total: number; submitted: number; eligible: number; alreadyHeld: number }>();
+    for (const entry of all) {
+      const edition = `${entry.theme.slug}:${entry.category}:${entry.sex}:${entry.status}`;
+      const row = tally.get(edition) ?? { edition, total: 0, submitted: 0, eligible: 0, alreadyHeld: 0 };
+      row.total += 1;
+      tally.set(edition, row);
+    }
+    for (const entry of entries) {
+      const edition = `${entry.theme.slug}:${entry.category}:${entry.sex}:SUBMITTED`;
+      const row = tally.get(edition);
+      if (!row) continue;
+      row.submitted += 1;
+      if (heldIds.has(entry.id)) row.alreadyHeld += 1;
+    }
+    for (const entry of eligible) {
+      const edition = `${entry.theme.slug}:${entry.category}:${entry.sex}:SUBMITTED`;
+      const row = tally.get(edition);
+      if (row) row.eligible += 1;
+    }
+    return {
+      ok: false,
+      reason: "not_enough_waves",
+      detail: {
+        college,
+        editions: [...tally.values()].sort((a, b) => b.total - a.total).slice(0, 12),
+      },
+    };
+  }
 
   const chosen = [...best].sort((a, b) => Number(playable(b.videoUrl)) - Number(playable(a.videoUrl)) || a.createdAt.getTime() - b.createdAt.getTime());
   const waves = chosen.slice(0, TARGET);
