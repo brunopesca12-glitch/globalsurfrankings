@@ -13,6 +13,7 @@ export type FreshBallotResult =
       ok: true;
       email: string;
       created: number;
+      reused: boolean;
       event: string;
       edition: string;
       ballotIds: string[];
@@ -45,6 +46,47 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
     hasAthlete: athleteId != null,
   });
   if (!college) return { ok: false, reason: "no_panel" };
+
+  const openNow = await prisma.ballot.findMany({
+    where: {
+      userId: user.id,
+      status: "OPEN",
+      entry: {
+        status: "SUBMITTED",
+        category: { in: ["OPEN", "MASTERS_40"] },
+        theme: { slug: { in: [...SEASON_SLUGS] } },
+      },
+    },
+    select: {
+      id: true,
+      entryId: true,
+      entry: { select: { themeId: true, category: true, sex: true, theme: { select: { slug: true, name: true } } } },
+    },
+  });
+  const openGroups = new Map<string, typeof openNow>();
+  for (const ballot of openNow) {
+    const key = `${ballot.entry.themeId}:${ballot.entry.category}:${ballot.entry.sex}`;
+    const list = openGroups.get(key) ?? [];
+    list.push(ballot);
+    openGroups.set(key, list);
+  }
+  let existing: typeof openNow = [];
+  for (const group of openGroups.values()) {
+    if (group.length > existing.length) existing = group;
+  }
+  if (existing.length >= 2) {
+    const sample = existing[0]!;
+    return {
+      ok: true,
+      email: user.email,
+      created: existing.length,
+      reused: true,
+      event: eventTitle(sample.entry.theme.slug, sample.entry.theme.name),
+      edition: editionLine(sample.entry.category, sample.entry.sex),
+      ballotIds: existing.map((row) => row.id),
+      entryIds: existing.map((row) => row.entryId),
+    };
+  }
 
   const forbidden = forbiddenForAthlete(athleteId, ctx.athletes, ctx.entryEditions);
   const held = await prisma.ballot.findMany({ where: { userId: user.id }, select: { entryId: true } });
@@ -119,6 +161,7 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
     ok: true,
     email: user.email,
     created: created.length,
+    reused: false,
     event: eventTitle(first.theme.slug, first.theme.name),
     edition: editionLine(first.category, first.sex),
     ballotIds: created.map((row) => row.id),

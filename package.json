@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && prisma migrate deploy && npx tsx scripts/open-comparison-ballot.ts brunopesca12@gmail.com && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
