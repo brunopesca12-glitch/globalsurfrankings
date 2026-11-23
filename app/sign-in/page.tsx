@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "@/components/Forms";
+import { safeCallback } from "@/lib/auth-redirect";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -10,7 +11,7 @@ export default async function LoginPage({
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const query = await searchParams;
-  const callbackUrl = query.callbackUrl?.startsWith("/invite/") || query.callbackUrl?.startsWith("/judge") ? query.callbackUrl : "";
+  const callbackUrl = query.callbackUrl ? safeCallback(query.callbackUrl, "") : "";
 
   return (
     <div className="mx-auto max-w-md px-5 py-12">

@@ -81,8 +81,10 @@ export default function PursePage() {
       <section className="mt-12">
         <h2 className="font-serif text-3xl">Seven titles, four divisions</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink/75">
-          Each title holds an equal share of the surfers&apos; purse, about{" "}
-          {formatUsdAmount(Math.round(FOUNDING.titleCompetitorUsd))}, and runs all {FOUNDING_WEEKS} weeks. Your ten best results decide the season.
+          Each title holds {formatUsdAmount(Math.min(...FOUNDING.titleShares))} or{" "}
+          {formatUsdAmount(Math.max(...FOUNDING.titleShares))}. The seven titles add up to{" "}
+          {formatUsdAmount(FOUNDING.seasonCompetitorUsd)}, and each runs all {FOUNDING_WEEKS} weeks. Your ten best
+          results decide the season.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ul className="border border-line bg-white">

@@ -21,12 +21,15 @@ export function WavePlayer({ url, title }: { url: string; title: string }) {
         />
       ) : null}
       {playback.kind === "link" ? (
-        <a href={url} className="flex h-full flex-col items-center justify-center gap-3 text-paper">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full border border-paper/50 text-2xl">
-            ▶
-          </span>
-          <span className="px-6 text-center text-sm text-paper/80">Open this wave</span>
-        </a>
+        <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-paper">
+          <p className="font-serif text-2xl">{title}</p>
+          <a href={url} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center border border-paper/50 px-4">
+            Open this wave in a new tab
+          </a>
+          <p className="max-w-sm text-sm text-paper/80">
+            This link leaves the site. It has to be public. A private file, such as a closed Google Drive link, will not play.
+          </p>
+        </div>
       ) : null}
     </div>
   );

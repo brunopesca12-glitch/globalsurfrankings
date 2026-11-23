@@ -1,14 +1,25 @@
 /** Same-origin stand-ins for the broken video.gsr.surf host. Distinct colors, no athlete identity. */
 export const DEMO_CLIPS = ["ocean.mp4", "sand.mp4", "foam.mp4", "gold.mp4"] as const;
 
-export function isUnplayableHost(url: string): boolean {
+/** Hosts that only ever held stand-in clips. Real uploads are not in this list. */
+export function isStandInHost(url: string): boolean {
   if (url.startsWith("/")) return false;
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");
-    return host === "video.gsr.surf";
+    return host === "video.gsr.surf" || host === "demo.gsr.surf" || host === "upload.gsr.surf";
+  } catch {
+    return false;
+  }
+}
+
+export function isUnplayableHost(url: string): boolean {
+  if (url.startsWith("/")) return false;
+  try {
+    new URL(url);
   } catch {
     return true;
   }
+  return isStandInHost(url);
 }
 
 function hash(seed: string): number {

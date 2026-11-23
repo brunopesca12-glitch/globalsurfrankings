@@ -138,7 +138,7 @@ export function submissionStatus(entry: {
     };
   }
   if (entry.modalityCheck == null && entry.contentSha256 == null) {
-    return { label: "Entered before checks", note: "" };
+    return { label: "Entered", note: "" };
   }
   return { label: "Checked", note: entry.modalityNote };
 }

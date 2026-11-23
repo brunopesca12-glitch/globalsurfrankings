@@ -13,5 +13,7 @@ describe("playback", () => {
       src: "https://player.vimeo.com/video/12345",
     });
     expect(playbackFor("https://video.gsr.surf/demo/best-barrel/01")).toEqual({ kind: "file" });
+    expect(playbackFor("https://abc.public.blob.vercel-storage.com/waves/no-extension")).toEqual({ kind: "file" });
+    expect(playbackFor("https://drive.google.com/file/d/abc/view")).toEqual({ kind: "link" });
   });
 });

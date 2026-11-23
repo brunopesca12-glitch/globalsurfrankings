@@ -236,6 +236,7 @@ describe("video intake helpers", () => {
     expect(playsAsFile("/media/entries/abc")).toBe(true);
     expect(playsAsFile("https://cdn.example.com/heat.mp4")).toBe(true);
     expect(playsAsFile("https://video.gsr.surf/demo/01")).toBe(false);
+    expect(playsAsFile("https://abc.public.blob.vercel-storage.com/waves/clip")).toBe(true);
     expect(playsAsFile("https://www.youtube.com/watch?v=abc123")).toBe(false);
     expect(skipsVisitorGate("/api/video-upload", "abc")).toBe(true);
     expect(skipsVisitorGate("/api/video-upload", null)).toBe(false);
@@ -244,7 +245,7 @@ describe("video intake helpers", () => {
     expect(parseFrameRate("1280x720, 30 fps,")).toBe(30);
     expect(sampleTimes(10, 6)).toHaveLength(6);
     expect(submissionStatus({ reviewStatus: "CLEAR", modalityCheck: null, modalityNote: "", contentSha256: null }).label).toBe(
-      "Entered before checks",
+      "Entered",
     );
   });
 });

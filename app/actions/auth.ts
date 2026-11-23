@@ -1,8 +1,11 @@
 "use server";
 
-import { hash } from "bcryptjs";
+import { Prisma } from "@prisma/client";
+import { compare, hash } from "bcryptjs";
 import { AuthError } from "next-auth";
+import { redirect } from "next/navigation";
 import { z } from "zod";
+import { safeCallback } from "@/lib/auth-redirect";
 import { parseDateOnly } from "@/lib/category";
 import { prisma } from "@/lib/db";
 import { signIn } from "@/lib/auth";
@@ -16,6 +19,29 @@ const credentials = z.object({
   password: z.string().min(8).max(72),
 });
 
+async function signInAccount(
+  email: string,
+  password: string,
+  redirectTo: string,
+  failure = "Invalid email or password.",
+): Promise<FormState> {
+  try {
+    const destination = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      redirectTo,
+    });
+    if (typeof destination !== "string" || /[?&]error=/.test(destination)) {
+      return { error: failure };
+    }
+  } catch (error) {
+    if (error instanceof AuthError) return { error: failure };
+    throw error;
+  }
+  redirect(redirectTo);
+}
+
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = credentials.safeParse({
     email: formData.get("email"),
@@ -23,20 +49,8 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   });
   if (!parsed.success) return { error: "Invalid email or password." };
 
-  const requested = String(formData.get("callbackUrl") ?? "");
-  const redirectTo = requested.startsWith("/invite/") || requested.startsWith("/judge") ? requested : "/judge";
-
-  try {
-    await signIn("credentials", {
-      email: parsed.data.email.toLowerCase(),
-      password: parsed.data.password,
-      redirectTo,
-    });
-  } catch (error) {
-    if (error instanceof AuthError) return { error: "Invalid email or password." };
-    throw error;
-  }
-  return { error: null };
+  const redirectTo = safeCallback(String(formData.get("callbackUrl") ?? ""), "/judge");
+  return signInAccount(parsed.data.email.toLowerCase(), parsed.data.password, redirectTo);
 }
 
 const signup = z.object({
@@ -86,12 +100,21 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
     return { error: "Enter a valid date of birth." };
   }
 
+  if (formData.get("rules") !== "on") {
+    return { error: "Tick the box to agree to the competition rules." };
+  }
+
   const email = parsed.data.email.toLowerCase();
   const taken = await prisma.user.findUnique({ where: { email } });
-  if (taken) return { error: "An account with that email already exists." };
+  if (taken) {
+    const samePassword = await compare(parsed.data.password, taken.passwordHash);
+    if (!samePassword) return { error: "An account with that email already exists." };
+    return signInAccount(email, parsed.data.password, "/judge", "Account created, but sign-in failed. Try signing in.");
+  }
 
   const passwordHash = await hash(parsed.data.password, 10);
   const slug = await uniqueSlug(parsed.data.displayName);
+  try {
   await prisma.user.create({
     data: {
       email,
@@ -115,18 +138,15 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
       },
     },
   });
-
-  try {
-    await signIn("credentials", {
-      email,
-      password: parsed.data.password,
-      redirectTo: "/judge",
-    });
   } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: "Account created, but sign-in failed. Try signing in." };
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const existing = await prisma.user.findUnique({ where: { email } });
+      const samePassword = existing ? await compare(parsed.data.password, existing.passwordHash) : false;
+      if (!samePassword) return { error: "An account with that email already exists." };
+      return signInAccount(email, parsed.data.password, "/judge", "Account created, but sign-in failed. Try signing in.");
     }
     throw error;
   }
-  return { error: null };
+
+  return signInAccount(email, parsed.data.password, "/judge", "Account created, but sign-in failed. Try signing in.");
 }

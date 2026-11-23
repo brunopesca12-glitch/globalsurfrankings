@@ -1,18 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORY_LABEL } from "@/lib/category";
-import { THEMES } from "@/lib/catalogue";
+import { THEMES, themeBySlug } from "@/lib/catalogue";
 import { listVideos } from "@/lib/data";
 import { environmentLabel, ordinal } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Videos" };
 
-export default async function VideosPage({ searchParams }: { searchParams: Promise<{ theme?: string }> }) {
+const PAGE_SIZE = 24;
+
+export default async function VideosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ theme?: string; page?: string }>;
+}) {
   const query = await searchParams;
   const videos = await listVideos();
   const themes = THEMES.map((theme) => [theme.slug, theme.name] as const);
   const selected = themes.some(([slug]) => slug === query.theme) ? query.theme : undefined;
   const visible = selected ? videos.filter((video) => video.theme.slug === selected) : videos;
+  const pages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const requested = Number(query.page);
+  const current = Number.isInteger(requested) && requested > 0 ? Math.min(requested, pages) : 1;
+  const slice = visible.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const themeQuery = selected ? `&theme=${selected}` : "";
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
@@ -45,7 +56,7 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
         </p>
       ) : (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((video) => (
+          {slice.map((video) => (
             <li key={video.id}>
               <Link href={`/videos/${video.id}`} className="block border border-line bg-white hover:border-ocean">
                 <div className="relative flex aspect-video items-center justify-center bg-ocean text-paper">
@@ -61,7 +72,8 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
                 <div className="px-3 py-3">
                   <p className="font-medium">{video.athlete.displayName}</p>
                   <p className="mt-1 text-sm text-ink/70">
-                    {video.theme.name} · {CATEGORY_LABEL[video.category]} · {environmentLabel(video.environment)}
+                    {themeBySlug(video.theme.slug)?.name ?? video.theme.name} · {CATEGORY_LABEL[video.category]} ·{" "}
+                    {environmentLabel(video.environment)}
                   </p>
                   {video.spot ? <p className="mt-1 text-xs uppercase tracking-wider text-ink/50">{video.spot}</p> : null}
                 </div>
@@ -70,6 +82,27 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
           ))}
         </ul>
       )}
+      {pages > 1 ? (
+        <nav className="mt-8 flex items-center justify-between text-sm">
+          {current > 1 ? (
+            <Link href={`/videos?page=${current - 1}${themeQuery}`} className="text-ocean">
+              Previous
+            </Link>
+          ) : (
+            <span />
+          )}
+          <p className="text-ink/60">
+            Page {current} of {pages}
+          </p>
+          {current < pages ? (
+            <Link href={`/videos?page=${current + 1}${themeQuery}`} className="text-ocean">
+              Next
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      ) : null}
     </div>
   );
 }

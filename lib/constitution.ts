@@ -176,5 +176,13 @@ export const FOUNDING = (() => {
     weeklyUsd: seasonPurse.weeklyCents / 100,
     overallUsd: seasonPurse.overallCents / 100,
     weeklyPerMondayUsd: seasonPurse.weeklyCents / 100 / FOUNDING_WEEKS,
+    /**
+     * Whole dollars per title. They differ by at most one dollar and sum to the
+     * surfers' purse, so seven rounded shares do not invent an extra dollar.
+     */
+    titleShares: allocateByWeights(
+      season.competitorCents / 100,
+      Array.from({ length: FOUNDING_THEME_COUNT }, () => 1),
+    ),
   };
 })();

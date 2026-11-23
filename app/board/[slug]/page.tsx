@@ -73,8 +73,8 @@ export default async function BoardPage({
       ) : (
         <>
           <p className="mt-8 text-sm text-ink/70">
-            N = {board.entrants} · {CATEGORY_LABEL[category]} · {sexLabel(sex)} · provisional points, base × √(S/100), until
-            the season closes. The liturgy publishes the board on Monday.
+            N = {board.placedAthletes} athletes placed · {CATEGORY_LABEL[category]} · {sexLabel(sex)}. Points use S ={" "}
+            {board.entrants} waves entered, base × √(S/100), until the season closes. Monday results publish the places.
           </p>
           <div className="mt-4 overflow-x-auto border border-line bg-white">
             <table className="w-full text-left text-sm">
@@ -90,7 +90,10 @@ export default async function BoardPage({
                 {board.placed.length === 0 ? (
                   <tr>
                     <td className="px-3 py-6 text-ink/60" colSpan={4}>
-                      No placement published in this edition.
+                      No placement published in this division.{" "}
+                      <Link href="/enter" className="text-ocean">
+                        Enter a wave
+                      </Link>
                     </td>
                   </tr>
                 ) : (

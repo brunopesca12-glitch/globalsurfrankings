@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { openFreshBallot } from "@/app/actions/fresh-ballot";
 import { createInvite, setCollegeOverride } from "@/app/actions/invite";
 import { runVerdict, seatJudge } from "@/app/actions/judging";
 import { auth } from "@/lib/auth";
@@ -13,7 +14,17 @@ export const metadata: Metadata = { title: "Desk" };
 export default async function DeskPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string; placed?: string; held?: string; invite?: string }>;
+  searchParams: Promise<{
+    saved?: string;
+    error?: string;
+    placed?: string;
+    held?: string;
+    invite?: string;
+    fresh?: string;
+    event?: string;
+    edition?: string;
+    reason?: string;
+  }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
@@ -52,6 +63,25 @@ export default async function DeskPage({
       {query.error === "invite" ? <p className="mt-4 text-sm text-stamp">That invite could not be created.</p> : null}
       {query.error === "seat" ? <p className="mt-4 text-sm text-stamp">That seat could not be saved.</p> : null}
       {query.error === "verdict" ? <p className="mt-4 text-sm text-stamp">Monday&apos;s verdict did not run.</p> : null}
+      {query.error === "ballot" ? (
+        <p className="mt-4 text-sm text-stamp">
+          No fresh ballot was added
+          {query.reason === "no_user"
+            ? " — that email has no account."
+            : query.reason === "no_panel"
+              ? " — that account is not on a panel."
+              : query.reason === "not_enough_waves"
+                ? " — fewer than two current waves are left for that account to compare."
+                : "."}
+        </p>
+      ) : null}
+      {query.fresh ? (
+        <p className="mt-4 text-sm text-ocean">
+          Added {query.fresh} open {query.fresh === "1" ? "ballot" : "ballots"}
+          {query.event ? ` for ${query.event}` : ""}
+          {query.edition ? ` · ${query.edition}` : ""}. Nothing else was changed.
+        </p>
+      ) : null}
       {ran ? (
         <p className="mt-4 text-sm text-ocean">
           Monday&apos;s verdict placed {placed} and held {held}.
@@ -161,6 +191,26 @@ export default async function DeskPage({
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-serif text-3xl">Fresh comparison</h2>
+        <p className="mt-2 max-w-2xl text-sm text-ink/70">
+          Adds open ballots for one account, in one current division, so they can rank several waves. It does not
+          delete or change existing waves, places, or ballots.
+        </p>
+        <form action={openFreshBallot} className="mt-4 flex flex-wrap gap-3">
+          <input
+            className="min-w-64 flex-1 border border-line bg-white px-3 py-2"
+            name="email"
+            type="email"
+            required
+            placeholder="email"
+          />
+          <button className="bg-ocean px-4 py-2 text-paper" type="submit">
+            Open a fresh ballot
+          </button>
+        </form>
       </section>
     </div>
   );

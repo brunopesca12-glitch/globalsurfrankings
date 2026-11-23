@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { applyBallotComparison, placeOnStack, sealFinishedBallot, undoBallotComparison, undoStackPlacement } from "@/lib/judge-queue";
+import { applyBallotComparison, placeOnStack, saveRankingOrder, sealFinishedBallot, undoBallotComparison, undoStackPlacement } from "@/lib/judge-queue";
 
 export async function castComparison(formData: FormData) {
   const session = await auth();
@@ -42,6 +42,16 @@ export async function undoPlacement(formData: FormData) {
   const outcome = await undoStackPlacement(session.user.id, ballotId);
   if (outcome === "rejected") redirect("/judge/ballot?error=1");
   redirect("/judge/ballot");
+}
+
+export async function saveRanking(formData: FormData) {
+  const session = await auth();
+  if (!session?.user) redirect("/sign-in");
+  const ballotId = String(formData.get("ballotId") ?? "");
+  const order = String(formData.get("order") ?? "");
+  const outcome = await saveRankingOrder(session.user.id, ballotId, order);
+  if (outcome === "saved") redirect("/judge/ballot?sealed=1");
+  redirect("/judge/ballot?error=1");
 }
 
 export async function undoComparison(formData: FormData) {

@@ -57,15 +57,17 @@ export default async function JudgeHomePage() {
       </h1>
       <p className="mt-4 text-lg text-ink/75">
         {queue.pending === 0
-          ? "You're done for this week."
+          ? queue.sealed > 0
+            ? "You've already placed the waves assigned to you this week."
+            : "No waves were assigned to you this week, so there is nothing to compare."
           : queue.pending === 1
-            ? "1 wave left this week."
-            : `${queue.pending} waves left this week.`}
+            ? "1 wave left to place this week."
+            : `${queue.pending} waves left to place this week.`}
       </p>
       <p className="mt-2 text-sm text-ink/60">{mondayCountdown(new Date())}</p>
       {queue.pending > 0 ? (
         <Link href="/judge/ballot" className="mt-8 inline-flex min-h-12 items-center bg-ocean px-5 py-3 text-paper">
-          Place the next wave
+          Rank the waves
         </Link>
       ) : (
         <Link href="/judge/history" className="mt-8 inline-flex min-h-12 items-center border border-ocean px-5 py-3 text-ocean">

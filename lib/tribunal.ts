@@ -178,6 +178,43 @@ export function drawEntries<T extends { id: string; collegeBallots: number }>(
   return drawn;
 }
 
+/**
+ * Fill a weekly queue from one division at a time, so the waves on a ballot
+ * can be ranked against each other. Within a division, the college still
+ * draws the waves it has judged least.
+ */
+export function drawComparable<T extends { id: string; collegeBallots: number; edition: string }>(
+  candidates: readonly T[],
+  count: number,
+  random: () => number,
+): T[] {
+  const pool = [...candidates];
+  const drawn: T[] = [];
+  while (drawn.length < count && pool.length > 0) {
+    let min = pool[0]!.collegeBallots;
+    for (const item of pool) min = Math.min(min, item.collegeBallots);
+    const fresh = pool.filter((item) => item.collegeBallots === min);
+    const groups = new Map<string, T[]>();
+    for (const item of fresh) {
+      const list = groups.get(item.edition) ?? [];
+      list.push(item);
+      groups.set(item.edition, list);
+    }
+    let best: T[] = [];
+    for (const group of groups.values()) {
+      if (group.length > best.length) best = group;
+    }
+    const take = Math.min(count - drawn.length, best.length);
+    const picked = drawEntries(best, take, random);
+    drawn.push(...picked);
+    for (const item of picked) {
+      const removeAt = pool.findIndex((row) => row.id === item.id);
+      if (removeAt >= 0) pool.splice(removeAt, 1);
+    }
+  }
+  return drawn;
+}
+
 export type SealedCollegeBallot = { college: College; place: number };
 
 export function collegeVerdictsFromBallots(ballots: readonly SealedCollegeBallot[]): {

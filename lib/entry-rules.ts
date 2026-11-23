@@ -73,5 +73,5 @@ export const ENTRY_REJECTION: Record<Exclude<EntryDecision, { ok: true }>["code"
   THEME_CLOSED: "This event has closed. The finale has passed.",
   CATEGORY: "This event does not constitute your category's ranking.",
   ENVIRONMENT: "This wave's environment does not belong in this event.",
-  VIDEO: "Enter an http(s) URL for the video. File upload comes later.",
+  VIDEO: "That link needs to start with http:// or https://.",
 };

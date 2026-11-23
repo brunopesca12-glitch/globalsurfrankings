@@ -5,6 +5,7 @@ import { CollegeVerdictLine } from "@/components/CollegeVerdict";
 import { FlagWave } from "@/components/FlagWave";
 import { WavePlayer } from "@/components/WavePlayer";
 import { auth } from "@/lib/auth";
+import { themeBySlug } from "@/lib/catalogue";
 import { CATEGORY_LABEL } from "@/lib/category";
 import { collegeVerdictMap, getVideo } from "@/lib/data";
 import { environmentLabel, ordinal, verificationLabel } from "@/lib/format";
@@ -20,7 +21,8 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
   const status = submissionStatus(video);
   const showNote = status.label === "Pending review" || session?.user?.id === video.athlete.userId || session?.user?.role === "ADMIN";
   const verdicts = video.placement ? await collegeVerdictMap([video.id]) : null;
-  const title = `${video.athlete.displayName} · ${video.theme.name}`;
+  const titleName = themeBySlug(video.theme.slug)?.name ?? video.theme.name;
+  const title = `${video.athlete.displayName} · ${titleName}`;
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-10">
@@ -29,9 +31,11 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
           Videos
         </Link>
       </p>
-      <h1 className="mt-2 font-serif text-4xl md:text-5xl">{video.athlete.displayName}</h1>
-      <p className="mt-2 text-ink/75">
-        {video.theme.name} · {CATEGORY_LABEL[video.category]} · {environmentLabel(video.environment)}
+      <p className="mt-2 text-xs uppercase tracking-[0.18em] text-ink/50">Athlete</p>
+      <h1 className="mt-1 font-serif text-4xl md:text-5xl">{video.athlete.displayName}</h1>
+      <p className="mt-3 text-xs uppercase tracking-[0.18em] text-ink/50">Title</p>
+      <p className="mt-1 text-lg text-ink/80">
+        {titleName} · {CATEGORY_LABEL[video.category]} · {environmentLabel(video.environment)}
         {video.placement ? ` · ${ordinal(video.placement.place)}` : " · waiting for a place"}
         {video.spot ? ` · ${video.spot}` : ""}
       </p>

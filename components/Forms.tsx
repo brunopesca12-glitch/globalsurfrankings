@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { login, register, type FormState } from "@/app/actions/auth";
 import { submitEntry, type EntryState } from "@/app/actions/entry";
 import { updateProfile, type ProfileState } from "@/app/actions/profile";
+import { parseVideoUrl } from "@/lib/entry-rules";
 import { dutyStatusLine } from "@/lib/tribunal";
 
 const field = "mt-1 w-full border border-line bg-white px-3 py-2 outline-none focus:border-ocean";
@@ -15,10 +16,27 @@ function ErrorNote({ message }: { message: string | null }) {
   return <p className="border border-stamp/40 bg-white px-3 py-2 text-sm text-stamp">{message}</p>;
 }
 
+function useSubmitLock(state: { error: string | null }) {
+  const lock = useRef(false);
+  const [locked, setLocked] = useState(false);
+  useEffect(() => {
+    lock.current = false;
+    setLocked(false);
+  }, [state]);
+  function guard(formData: FormData, submit: (formData: FormData) => void) {
+    if (lock.current) return;
+    lock.current = true;
+    setLocked(true);
+    submit(formData);
+  }
+  return { locked, guard };
+}
+
 export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
   const [state, action, pending] = useActionState(login, { error: null } satisfies FormState);
+  const { locked, guard } = useSubmitLock(state);
   return (
-    <form action={action} className="space-y-4">
+    <form action={(formData) => guard(formData, action)} className="space-y-4">
       <ErrorNote message={state.error} />
       {callbackUrl ? <input type="hidden" name="callbackUrl" value={callbackUrl} /> : null}
       <label className="block text-sm">
@@ -29,8 +47,8 @@ export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
         Password
         <input className={field} name="password" type="password" autoComplete="current-password" required />
       </label>
-      <button className={button} type="submit" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+      <button className={button} type="submit" disabled={pending || locked}>
+        {pending || locked ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );
@@ -38,8 +56,9 @@ export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
 
 export function RegisterForm() {
   const [state, action, pending] = useActionState(register, { error: null } satisfies FormState);
+  const { locked, guard } = useSubmitLock(state);
   return (
-    <form action={action} className="space-y-4">
+    <form action={(formData) => guard(formData, action)} className="space-y-4">
       <ErrorNote message={state.error} />
       <label className="block text-sm">
         Name
@@ -93,11 +112,17 @@ export function RegisterForm() {
         </label>
       </fieldset>
       <label className="flex items-start gap-2 text-sm">
-        <input className="mt-1" type="checkbox" name="pro" />
-        <span>Verified Pro — a stub, with no credential check. The door stays open to everyone.</span>
+        <input className="mt-1" type="checkbox" name="rules" required />
+        <span>
+          I agree to the{" "}
+          <Link href="/rules" className="text-ocean">
+            competition rules
+          </Link>
+          .
+        </span>
       </label>
-      <button className={button} type="submit" disabled={pending}>
-        {pending ? "Creating…" : "Create account"}
+      <button className={button} type="submit" disabled={pending || locked}>
+        {pending || locked ? "Creating…" : "Create account"}
       </button>
     </form>
   );
@@ -198,11 +223,21 @@ export function EntryForm({
   const [state, action, pending] = useActionState(submitEntry, { error: null } satisfies EntryState);
   const [localError, setLocalError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [theme, setTheme] = useState(themes[0]?.slug ?? "");
+  const [environment, setEnvironment] = useState<"OCEAN" | "POOL">("OCEAN");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [spot, setSpot] = useState("");
+  const [unpublished, setUnpublished] = useState(false);
   const [, startTransition] = useTransition();
   const busy = pending || uploading;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     setLocalError(null);
+    if (videoUrl.trim() && parseVideoUrl(videoUrl) == null) {
+      event.preventDefault();
+      setLocalError("That link needs to start with http:// or https://.");
+      return;
+    }
     const form = event.currentTarget;
     const file = (form.elements.namedItem("video") as HTMLInputElement | null)?.files?.[0];
     if (!blobUpload || !file || file.size === 0) return;
@@ -250,7 +285,7 @@ export function EntryForm({
       ) : null}
       <label className="block text-sm">
         Title in your division
-        <select className={field} name="theme" required defaultValue={themes[0]?.slug}>
+        <select className={field} name="theme" required value={theme} onChange={(event) => setTheme(event.target.value)}>
           {themes.map((theme) => (
             <option key={theme.slug} value={theme.slug}>
               {theme.name}
@@ -263,12 +298,26 @@ export function EntryForm({
       <fieldset className="text-sm">
         <legend className="mb-2">Environment</legend>
         <label className="mr-4">
-          <input className="mr-2" type="radio" name="environment" value="OCEAN" defaultChecked />
-          Ocean · US$ 0
+          <input
+            className="mr-2"
+            type="radio"
+            name="environment"
+            value="OCEAN"
+            checked={environment === "OCEAN"}
+            onChange={() => setEnvironment("OCEAN")}
+          />
+          Ocean · free
         </label>
         <label>
-          <input className="mr-2" type="radio" name="environment" value="POOL" />
-          Pool · US$ 20 DEMO
+          <input
+            className="mr-2"
+            type="radio"
+            name="environment"
+            value="POOL"
+            checked={environment === "POOL"}
+            onChange={() => setEnvironment("POOL")}
+          />
+          Pool · US$ 20, not charged here
         </label>
       </fieldset>
       <label className="block text-sm">
@@ -291,18 +340,34 @@ export function EntryForm({
       </label>
       <label className="block text-sm">
         Or a video link
-        <input className={field} name="videoUrl" type="url" placeholder="https://…/wave.mp4" />
+        <input
+          className={field}
+          name="videoUrl"
+          type="text"
+          inputMode="url"
+          placeholder="https://…/wave.mp4"
+          value={videoUrl}
+          onChange={(event) => setVideoUrl(event.target.value)}
+        />
       </label>
       <p className="text-xs text-ink/60">
-        MP4, WebM, or MOV, up to 64 MB. A direct link to a video file is checked the same way. A YouTube or Vimeo page
-        can be entered, but we cannot watch it from here, so the desk reviews it.
+        MP4, WebM, or MOV, up to 64 MB. A link has to be public, or judges cannot watch it. A private Google Drive file
+        will not play. A direct link to a video file is checked the same way. A YouTube or Vimeo page can be entered,
+        but we cannot watch it from here, so the desk reviews it.
       </p>
       <label className="block text-sm">
         Break
-        <input className={field} name="spot" maxLength={80} />
+        <input className={field} name="spot" maxLength={80} value={spot} onChange={(event) => setSpot(event.target.value)} />
       </label>
       <label className="flex items-start gap-2 text-sm">
-        <input className="mt-1" type="checkbox" name="unpublished" required />
+        <input
+          className="mt-1"
+          type="checkbox"
+          name="unpublished"
+          required
+          checked={unpublished}
+          onChange={(event) => setUnpublished(event.target.checked)}
+        />
         <span>This wave has never been posted on any social network or platform.</span>
       </label>
       <button className={button} type="submit" disabled={busy || themes.length === 0}>
