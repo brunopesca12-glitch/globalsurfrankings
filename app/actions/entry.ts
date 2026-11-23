@@ -25,8 +25,6 @@ import {
   sha256Hex,
 } from "@/lib/video-bytes";
 
-export const maxDuration = 60;
-
 export type EntryState = { error: string | null };
 
 const TOO_BIG = "That video is too large. Keep it under 64 MB.";

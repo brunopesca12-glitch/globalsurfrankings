@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import ffmpegStatic from "ffmpeg-static";
 import { dHashFromGray } from "@/lib/perceptual-hash";
 
 const FRAME_COUNT = 6;
@@ -70,13 +70,7 @@ export function pickEvenly<T>(items: readonly T[], count: number): T[] {
 
 export function ffmpegPath(): string {
   if (process.env.FFMPEG_PATH) return process.env.FFMPEG_PATH;
-  try {
-    const required = createRequire(path.join(process.cwd(), "package.json"));
-    const bundled = required("ffmpeg-static") as unknown;
-    if (typeof bundled === "string" && bundled.length > 0) return bundled;
-  } catch {
-    // The binary is optional at build time. A missing one leaves the wave for the desk.
-  }
+  if (typeof ffmpegStatic === "string" && ffmpegStatic.length > 0) return ffmpegStatic;
   return "ffmpeg";
 }
 
