@@ -59,6 +59,9 @@ describe("constitutional rails", () => {
     expect(FOUNDING.weeklyUsd).toBe(1_404_000);
     expect(FOUNDING.overallUsd).toBe(429_000);
     expect(FOUNDING.weeklyPerMondayUsd).toBe(27_000);
+    expect(FOUNDING.titleShares).toHaveLength(7);
+    expect(FOUNDING.titleShares.reduce((sum, share) => sum + share, 0)).toBe(3_900_000);
+    expect(Math.max(...FOUNDING.titleShares) - Math.min(...FOUNDING.titleShares)).toBeLessThanOrEqual(1);
   });
 
   it("has four divisions whose field shares sum to 100%", () => {

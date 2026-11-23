@@ -104,10 +104,8 @@ export const FUTURE_THEMES = [
   "Best Beachbreak",
   "Best Cutback",
   "Big Wave of the Year",
-  "Big Barrel",
   "Most Powerful Rails",
   "Most Elegant (Twin Fin)",
-  "Best Barrel",
 ] as const;
 
 export const SEASON_SLUGS: readonly string[] = THEMES.map((theme) => theme.slug);

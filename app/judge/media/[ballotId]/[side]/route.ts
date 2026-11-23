@@ -1,17 +1,11 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { demoPair } from "@/lib/demo-clips";
 import { probeInsertion } from "@/lib/binary-insertion";
 import { prisma } from "@/lib/db";
-import { serveStoredVideo } from "@/lib/serve-video";
+import { respondWithVideo } from "@/lib/judge-media";
 
 export async function GET(request: Request, { params }: { params: Promise<{ ballotId: string; side: string }> }) {
   const session = await auth();
-  if (!session?.user) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
-  }
+  if (!session?.user) return new Response("Not found", { status: 404 });
   const { ballotId, side } = await params;
   if (side !== "drawn" && side !== "board") return new Response("Not found", { status: 404 });
 
@@ -30,19 +24,5 @@ export async function GET(request: Request, { params }: { params: Promise<{ ball
     if (!probeEntry) return new Response("Not found", { status: 404 });
     videoUrl = probeEntry.videoUrl;
   }
-  const served = await serveStoredVideo(videoUrl, request.headers.get("range")).catch(() => null);
-  if (served) return served;
-
-  const pair = demoPair(ballotId);
-  const clip = side === "drawn" ? pair.drawn : pair.board;
-  const file = path.join(process.cwd(), "public", clip.replace(/^\//, ""));
-  const bytes = await readFile(file).catch(() => null);
-  if (!bytes) return new Response("Not found", { status: 404 });
-  return new NextResponse(bytes, {
-    headers: {
-      "Content-Type": "video/mp4",
-      "Content-Length": String(bytes.byteLength),
-      "Cache-Control": "private, no-store",
-    },
-  });
+  return respondWithVideo(videoUrl, request, `${ballotId}:${side}`);
 }

@@ -1,5 +1,6 @@
 import type { CategoryCode, Sex, VerificationTier } from "@prisma/client";
 import { DEMO_THEME_SLUG, SEASON_2027, SEASON_SLUGS } from "@/lib/catalogue";
+import { placedAthleteCount } from "@/lib/comparison";
 import { prisma } from "@/lib/db";
 import { isoWeek } from "@/lib/iso-week";
 import { deriveLeaderboard } from "@/lib/leaderboard";
@@ -24,6 +25,9 @@ export async function getEditionBoard(slug: string, category: CategoryCode, sex:
   });
 
   const entrants = entries.length;
+  const placedAthletes = placedAthleteCount(
+    entries.map((entry) => ({ athleteId: entry.athleteId, placed: entry.placement != null })),
+  );
   const verdicts = await collegeVerdictMap(entries.filter((entry) => entry.placement).map((entry) => entry.id));
   const placed = entries
     .filter((entry) => entry.placement)
@@ -40,7 +44,7 @@ export async function getEditionBoard(slug: string, category: CategoryCode, sex:
     }));
 
   const pending = entries.filter((entry) => !entry.placement);
-  return { theme, entrants, placed, pending };
+  return { theme, entrants, placedAthletes, placed, pending };
 }
 
 export type RankingRow = {
@@ -127,6 +131,7 @@ export async function getHashtagBoard(tag: string, category: CategoryCode, sex: 
   return {
     theme: board.theme,
     entrants: board.entrants,
+    placedAthletes: board.placedAthletes,
     rows: derived.map((row) => ({ ...row, athlete: byId.get(row.athleteId)!.athlete, points: byId.get(row.athleteId)!.points })),
   };
 }

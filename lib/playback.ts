@@ -33,16 +33,23 @@ export function playbackFor(url: string): Playback {
     if (id) return { kind: "embed", src: `https://player.vimeo.com/video/${id}` };
   }
   if (host === "video.gsr.surf") return { kind: "file" };
+  if (isPublicBlob(parsed)) return { kind: "file" };
   if (/\.(mp4|webm|mov|m4v|ogg)$/i.test(parsed.pathname)) return { kind: "file" };
   return { kind: "link" };
+}
+
+function isPublicBlob(url: URL): boolean {
+  return url.protocol === "https:" && url.hostname.endsWith(".public.blob.vercel-storage.com");
 }
 
 /** Judges watch a real file through the blind route. Demo hosts and embeds stay on the stand-in clip. */
 export function playsAsFile(url: string): boolean {
   if (url.startsWith("/media/entries/")) return true;
   try {
-    const host = new URL(url).hostname.replace(/^www\./, "");
-    if (host === "video.gsr.surf") return false;
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "video.gsr.surf" || host === "demo.gsr.surf" || host === "upload.gsr.surf") return false;
+    if (isPublicBlob(parsed)) return true;
   } catch {
     return false;
   }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SEASON_2027 } from "@/lib/catalogue";
+import { SEASON_2027, themeBySlug } from "@/lib/catalogue";
 import { CATEGORY_LABEL, categoryFor, parseDateOnly } from "@/lib/category";
 import { getPublicAthlete } from "@/lib/data";
 import { ordinal, sexLabel, verificationLabel } from "@/lib/format";
@@ -46,7 +46,7 @@ export default async function AthletePage({ params }: { params: Promise<{ slug: 
                 className="hover:text-ocean"
               >
                 {entry.placement ? `${ordinal(entry.placement.place)} · ` : ""}
-                {entry.theme.name}
+                {themeBySlug(entry.theme.slug)?.name ?? entry.theme.name}
               </Link>
               <span className="text-ink/60"> · {CATEGORY_LABEL[entry.category]}</span>
             </li>

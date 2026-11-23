@@ -85,7 +85,7 @@ export default async function HomePage() {
               </tr>
             </thead>
             <tbody>
-              {THEMES.map((theme) => (
+              {THEMES.map((theme, index) => (
                 <tr key={theme.slug} className="border-b border-line last:border-b-0">
                   <td className="px-3 py-2">
                     <Link href={`/board/${theme.slug}`} className="hover:text-ocean">
@@ -93,7 +93,7 @@ export default async function HomePage() {
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-ink/70">{formatDate(theme.finaleOn)}</td>
-                  <td className="px-3 py-2">{formatUsdAmount(Math.round(FOUNDING.titleCompetitorUsd))}</td>
+                  <td className="px-3 py-2">{formatUsdAmount(FOUNDING.titleShares[index] ?? 0)}</td>
                 </tr>
               ))}
             </tbody>

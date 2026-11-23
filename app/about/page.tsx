@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FUTURE_THEMES, SEASON_2027, THEMES } from "@/lib/catalogue";
+import { auth } from "@/lib/auth";
 import { EDITIONS, FOUNDING, POOL_TOLL_CENTS } from "@/lib/constitution";
 import { formatDate, formatUsdAmount } from "@/lib/format";
 
 export const metadata: Metadata = { title: "About" };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const session = await auth().catch(() => null);
   return (
     <>
       <section className="bg-ocean text-paper">
@@ -24,9 +26,15 @@ export default function AboutPage() {
             <Link href="/ranking" className="bg-paper px-5 py-3 text-ocean">
               See the rankings
             </Link>
-            <Link href="/sign-up" className="border border-paper/40 px-5 py-3">
-              Create an athlete account
-            </Link>
+            {session?.user ? (
+              <Link href="/enter" className="border border-paper/40 px-5 py-3">
+                Enter a wave
+              </Link>
+            ) : (
+              <Link href="/sign-up" className="border border-paper/40 px-5 py-3">
+                Create an athlete account
+              </Link>
+            )}
           </div>
         </div>
       </section>

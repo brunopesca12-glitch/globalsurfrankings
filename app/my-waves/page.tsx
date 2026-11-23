@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { themeBySlug } from "@/lib/catalogue";
 import { CATEGORY_LABEL } from "@/lib/category";
 import { getAthleteByUser } from "@/lib/data";
 import { environmentLabel, formatUsd, ordinal } from "@/lib/format";
@@ -26,8 +27,8 @@ export default async function MyEntriesPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12">
       <h1 className="font-serif text-5xl">My waves</h1>
-      <p className="mt-3 text-sm text-ink/70">
-        {count}{" "}
+      <p className="mt-3 text-sm text-ink/70">{count}</p>
+      <p className="mt-3">
         <Link href="/enter" className="text-ocean">
           Enter a wave
         </Link>
@@ -43,15 +44,17 @@ export default async function MyEntriesPage() {
                   href={`/board/${entry.theme.slug}?category=${entry.category}&sex=${athlete.sex}`}
                   className="hover:text-ocean"
                 >
-                  {entry.theme.name}
+                  {themeBySlug(entry.theme.slug)?.name ?? entry.theme.name}
                 </Link>
               </h2>
-              <p className="font-serif text-3xl">{entry.placement ? ordinal(entry.placement.place) : "—"}</p>
+              <p className={entry.placement ? "font-serif text-3xl" : "text-sm text-ink/60"}>
+                {entry.placement ? ordinal(entry.placement.place) : "Not placed yet"}
+              </p>
             </div>
             <p className="mt-1 text-sm text-ink/70">
               {CATEGORY_LABEL[entry.category]} · {environmentLabel(entry.environment)} ·{" "}
               {entryWeekLabel(entry.isoYear, entry.isoWeek, new Date())} ·{" "}
-              {entry.tollCents === 0 ? "no toll" : `${formatUsd(entry.tollCents)} DEMO, not charged`}
+              {entry.tollCents === 0 ? "Free" : `${formatUsd(entry.tollCents)}, not charged here`}
               {entry.spot ? ` · ${entry.spot}` : ""}
             </p>
             <p className="mt-2 text-sm">
@@ -61,7 +64,7 @@ export default async function MyEntriesPage() {
               {status.note ? <span className="ml-2 text-ink/70">{status.note}</span> : null}
             </p>
             <p className="mt-1 text-sm">
-              {entry.placement ? "Placement published." : "Waiting for Monday's liturgy."}{" "}
+              {entry.placement ? "Placement published." : "Results come out on Monday."}{" "}
               <Link className="text-ocean" href={`/videos/${entry.id}`}>
                 Watch
               </Link>

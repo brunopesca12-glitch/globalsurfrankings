@@ -35,7 +35,7 @@ export default async function HashboardsPage() {
         <section className="mt-10">
           <h2 className="font-serif text-3xl">Your hashboards</h2>
           <p className="mt-2 text-sm text-ink/60">
-            {CATEGORY_LABEL[category]} · shown on Best Tube, the filled demo board.
+            {CATEGORY_LABEL[category]} · shown on Best Tube.
           </p>
           {yours.length === 0 ? (
             <p className="mt-4 border border-line bg-white px-4 py-6 text-sm text-ink/70">
@@ -63,7 +63,17 @@ export default async function HashboardsPage() {
                       </p>
                     </div>
                     {!board || board.rows.length === 0 ? (
-                      <p className="px-4 py-4 text-sm text-ink/60">Nobody placed on this tag yet.</p>
+                      <p className="px-4 py-4 text-sm text-ink/60">
+                        Nobody placed on #{tag} yet.{" "}
+                        <Link href="/profile" className="text-ocean">
+                          Add the tag on your profile
+                        </Link>{" "}
+                        or{" "}
+                        <Link href="/enter" className="text-ocean">
+                          enter a wave
+                        </Link>
+                        .
+                      </p>
                     ) : (
                       <ol>
                         {board.rows.map((row) => (
@@ -93,7 +103,15 @@ export default async function HashboardsPage() {
           <Link href="/sign-in" className="text-ocean">
             Sign in
           </Link>{" "}
-          to see the hashboards your own hashtags open.
+          to see the hashboards your own hashtags open.{" "}
+          <Link href="/enter" className="text-ocean">
+            Enter a wave
+          </Link>{" "}
+          or{" "}
+          <Link href="/judge" className="text-ocean">
+            judge
+          </Link>{" "}
+          after you have an account.
         </p>
       )}
 

@@ -25,7 +25,7 @@ export function circuitClock(now: Date, season = SEASON_2027): CircuitClock {
       phase: "preseason",
       weekKey: key,
       headline: `Founding Season starts ${formatDate(season.startsOn)}`,
-      detail: `This is a preseason demo week (${key}), not a week of the circuit. Verdicts still publish on Monday.`,
+      detail: `This is a preseason week (${key}), before the circuit opens. Results still publish on Monday.`,
     };
   }
   if (today > season.endsOn) {
@@ -48,7 +48,7 @@ export function circuitClock(now: Date, season = SEASON_2027): CircuitClock {
 export function entryWeekLabel(isoYear: number, isoWeekNumber: number, now: Date, season = SEASON_2027): string {
   const key = weekKey(isoYear, isoWeekNumber);
   const clock = circuitClock(now, season);
-  if (clock.phase !== "live") return `Demo week ${key}`;
+  if (clock.phase !== "live") return `Week ${key}`;
   return key;
 }
 

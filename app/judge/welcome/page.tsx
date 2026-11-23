@@ -34,12 +34,12 @@ export default async function WelcomePage() {
   return (
     <div className="mx-auto max-w-xl px-5 py-14">
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Your panel: {queue.panel}</p>
-      <h1 className="mt-3 font-serif text-5xl leading-none">Place the wave.</h1>
+      <h1 className="mt-3 font-serif text-5xl leading-none">Rank the waves.</h1>
       <p className="mt-4 text-lg leading-relaxed text-ink/80">
         {queue.destination
           ? `You're judging: ${queue.destination.event} · ${queue.destination.edition}.`
-          : "When a wave is waiting, it goes into your own list."}{" "}
-        Best at the top. Names stay hidden. Monday publishes the week&apos;s payment orders.
+          : "When waves are waiting, you rank them against each other."}{" "}
+        Best at the top. Names stay hidden. Monday publishes the week&apos;s results.
       </p>
       <form action={finishOnboarding} className="mt-8">
         <input type="hidden" name="next" value="/judge/ballot" />

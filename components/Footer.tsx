@@ -16,7 +16,7 @@ export function Footer() {
             Rules
           </Link>
         </p>
-        <p>gsr.surf · globalsurfrankings.com</p>
+        <p>GlobalSurfRankings.com</p>
       </div>
     </footer>
   );

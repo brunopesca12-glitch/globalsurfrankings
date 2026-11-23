@@ -35,8 +35,8 @@ export default async function EscrowPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="stamp">Demo</span>
-        <p className="text-sm text-ink/70">Sample orders are labelled Demo. No US dollar (stablecoin) has moved.</p>
+        <span className="stamp">Example</span>
+        <p className="text-sm text-ink/70">Example orders show the shape of a payout. No US dollar (stablecoin) has moved.</p>
       </div>
       <h1 className="mt-4 font-serif text-5xl">Escrow</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink/80">
@@ -46,7 +46,7 @@ export default async function EscrowPage() {
 
       <dl className="mt-10 grid gap-4 sm:grid-cols-3">
         {[
-          ["Demo orders published", String(demo.orders.length)],
+          ["Example orders", String(demo.orders.length)],
           ["Live orders", String(orders.length)],
           ["Executed", String(CHAIN_EXECUTION.transactions.length)],
         ].map(([label, value]) => (
@@ -115,7 +115,9 @@ export default async function EscrowPage() {
 function DemoOrders({ demo }: { demo: DemoFile }) {
   return (
     <div className="mt-4">
-      <p className="text-sm text-ink/70">{demo.note}</p>
+      <p className="text-sm text-ink/70">
+        These rows are an example of the file a payout bot would read. They are not payments.
+      </p>
       <ul className="mt-3 divide-y divide-line border border-line bg-white">
         {demo.orders.map((order) => (
           <li key={order.id}>
@@ -127,7 +129,7 @@ function DemoOrders({ demo }: { demo: DemoFile }) {
         {/* JSON file, not an app page. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a className="text-ocean" href="/api/payment-orders/demo">
-          Demo JSON
+          Example file
         </a>
       </p>
     </div>
@@ -137,7 +139,7 @@ function DemoOrders({ demo }: { demo: DemoFile }) {
 function OrderRow({ order }: { order: PaymentOrder }) {
   return (
     <div className="px-4 py-3 text-sm">
-      {order.demo ? <p className="text-xs uppercase tracking-widest text-stamp">Demo</p> : null}
+      {order.demo ? <p className="text-xs uppercase tracking-widest text-stamp">Example</p> : null}
       <p>
         {order.event ?? "Judges"}
         {order.board ? ` · ${order.board}` : ""}
@@ -162,7 +164,7 @@ function OrderList({ files }: { files: PeriodFile[] }) {
     return (
       <p className="mt-6 leading-relaxed text-ink/70">
         Live orders: none yet. The weekly files and the season file stay empty until a Founding Season place or a sealed
-        Champions or pro tour ballot exists. The rows above are the labelled demo sample.
+        Champions or pro tour ballot exists. The rows above are the example, not a payout.
       </p>
     );
   }

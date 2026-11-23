@@ -67,11 +67,21 @@ export default async function HashboardPage({
       ) : (
         <>
           <p className="mt-8 text-sm text-ink/60">
-            World N on this board = {board.entrants}. Hashtag N = {board.rows.length}.
+            World N on this board = {board.placedAthletes} athletes placed. Hashtag N = {board.rows.length}.
           </p>
           <ol className="mt-3 divide-y divide-line border border-line bg-white">
             {board.rows.length === 0 ? (
-              <li className="px-3 py-6 text-sm text-ink/60">Nobody with that hashtag on this board.</li>
+              <li className="px-3 py-6 text-sm text-ink/60">
+                Nobody with #{tag} on this board yet.{" "}
+                <Link href="/profile" className="text-ocean">
+                  Add it on your profile
+                </Link>{" "}
+                or{" "}
+                <Link href="/enter" className="text-ocean">
+                  enter a wave
+                </Link>
+                .
+              </li>
             ) : (
               board.rows.map((row) => (
                 <li key={row.athleteId} className="flex items-baseline justify-between gap-4 px-3 py-3 text-sm">
