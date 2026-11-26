@@ -189,6 +189,8 @@ function dateOnly(iso: string): Date {
 }
 
 async function main() {
+  await prisma.voteCommit.deleteMany();
+  await prisma.weekRoot.deleteMany();
   await prisma.calibrationAnswer.deleteMany();
   await prisma.calibrationVote.deleteMany();
   await prisma.calibrationDuel.deleteMany();

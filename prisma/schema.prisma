@@ -84,6 +84,7 @@ model User {
   shakas           Shaka[]
   calibrationVotes CalibrationVote[]
   eyeDays          EyeDay[]
+  voteCommits      VoteCommit[]
 }
 
 model Athlete {
@@ -196,6 +197,15 @@ model Entry {
   shakas      Shaka[]
   calibrationLeft  CalibrationDuel[] @relation("CalLeft")
   calibrationRight CalibrationDuel[] @relation("CalRight")
+  /// Why Monday left this wave unranked. NONE once it has a place, or before the first drop.
+  holdReason       HoldReason      @default(NONE)
+  /// Mondays on which this wave missed the judge quorum.
+  rolloverCount    Int             @default(0)
+  /// The second quorum had to fill seats below Golden Eye.
+  appealFallback   Boolean         @default(false)
+  lastHoldYear     Int?
+  lastHoldWeek     Int?
+  voteCommits      VoteCommit[]
 
   @@index([athleteId, isoYear, isoWeek, environment])
   @@index([themeId, category, sex])
@@ -299,6 +309,8 @@ model Ballot {
   sealedAt      DateTime?
   createdAt     DateTime           @default(now())
   comparisons   BallotComparison[]
+  /// Second quorum, opened when the first panel disagreed.
+  appeal        Boolean            @default(false)
 
   @@unique([userId, entryId])
   @@index([entryId, college])
@@ -318,6 +330,7 @@ model BallotComparison {
   /// False on rows written before undo existed. Those cannot be rewound.
   anchored     Boolean          @default(false)
   createdAt    DateTime         @default(now())
+  commit       VoteCommit?
 
   @@index([ballotId])
 }
@@ -417,6 +430,17 @@ enum HigherSide {
   RIGHT
 }
 
+enum HoldReason {
+  NONE
+  QUORUM
+  APPEAL
+}
+
+enum VoteConfidence {
+  CONFIDENT
+  UNSURE
+}
+
 /// A pairwise duel with a known answer once the pros agree.
 model CalibrationDuel {
   id           String             @id @default(cuid())
@@ -470,4 +494,49 @@ model EyeDay {
   calibrationHits  Int      @default(0)
 
   @@unique([userId, day])
+}
+
+/// SHA-256 commitment of one pairwise vote. The preimage is revealed on the receipt.
+model VoteCommit {
+  id            String           @id @default(cuid())
+  comparisonId  String           @unique
+  comparison    BallotComparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  entryId       String
+  entry         Entry            @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  probeEntryId  String
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Stable public code. Not a name.
+  pseudonym     String
+  choice        ComparisonResult
+  nonce         String
+  committedAt   DateTime
+  payloadHash   String
+  confidence    VoteConfidence?
+  eyeScore      Int
+  eyeLevel      String
+  /// Eligible for this wave's title, and not judging their own division.
+  qualified     Boolean
+  /// Answered the calibration minimum before this vote.
+  calibrated    Boolean
+  themeSlug     String
+  isoYear       Int
+  isoWeek       Int
+
+  @@index([entryId])
+  @@index([isoYear, isoWeek])
+  @@index([userId])
+}
+
+/// Weekly Merkle root of vote hashes. `chainTx` is reserved for a later on-chain anchor.
+model WeekRoot {
+  id          String   @id @default(cuid())
+  isoYear     Int
+  isoWeek     Int
+  merkleRoot  String
+  voteCount   Int
+  publishedAt DateTime @default(now())
+  chainTx     String?
+
+  @@unique([isoYear, isoWeek])
 }

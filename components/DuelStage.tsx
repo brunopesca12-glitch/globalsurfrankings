@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
-import { answerGuestDuel, voteCalibration, voteLive, voteSeat, type GuestAnswer } from "@/app/actions/feed";
+import { answerGuestDuel, setVoteConfidence, voteCalibration, voteLive, voteSeat, type GuestAnswer } from "@/app/actions/feed";
 import { flagPublished, type FlagState } from "@/app/actions/review";
 import type { EyeSnapshot } from "@/lib/eye-record";
 import type { FeedCard, GuestDuel } from "@/lib/feed";
@@ -113,7 +113,15 @@ function Chrome({
   );
 }
 
-export function JudgeFeed({ initial, eye }: { initial: FeedCard; eye: EyeSnapshot | null }) {
+export function JudgeFeed({
+  initial,
+  eye,
+  quorum = 7,
+}: {
+  initial: FeedCard;
+  eye: EyeSnapshot | null;
+  quorum?: number;
+}) {
   const [card, setCard] = useState(initial);
   const [showing, setShowing] = useState<"A" | "B">("A");
   const [seenA, setSeenA] = useState(false);
@@ -121,6 +129,7 @@ export function JudgeFeed({ initial, eye }: { initial: FeedCard; eye: EyeSnapsho
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [score, setScore] = useState(eye);
+  const [confidence, setConfidence] = useState<{ commitId: string; card: FeedCard } | null>(null);
 
   const token = card.kind === "idle" ? "idle" : card.kind === "seat" ? card.ballotId : card.kind === "live" ? `${card.ballotId}:${card.leftSrc}` : card.duelId;
 
@@ -137,15 +146,30 @@ export function JudgeFeed({ initial, eye }: { initial: FeedCard; eye: EyeSnapsho
     try {
       if (card.kind === "live") {
         const result = await voteLive(card.ballotId, side === "LEFT" ? "left" : "right");
-        if (result.sealed) setNote("In your list.");
         if (result.eye) setScore(result.eye);
-        setCard(result.card);
+        if (result.commitId) setConfidence({ commitId: result.commitId, card: result.card });
+        else {
+          if (result.sealed) setNote("In your list.");
+          setCard(result.card);
+        }
       } else if (card.kind === "calibration") {
         const result = await voteCalibration(card.duelId, side);
         setNote(result.correct ? "That's the higher wave." : "The key says the other one.");
         if (result.eye) setScore(result.eye);
         window.setTimeout(() => setCard(result.card), 700);
       }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function mark(value: "CONFIDENT" | "UNSURE") {
+    if (!confidence || busy) return;
+    setBusy(true);
+    try {
+      await setVoteConfidence(confidence.commitId, value);
+      setCard(confidence.card);
+      setConfidence(null);
     } finally {
       setBusy(false);
     }
@@ -216,7 +240,19 @@ export function JudgeFeed({ initial, eye }: { initial: FeedCard; eye: EyeSnapsho
             {showing === "A" ? "Watch A through." : "Watch B through. Then the vote opens."}
           </p>
         ) : null}
-        {card.kind === "seat" ? (
+        {confidence ? (
+          <>
+            <p className="text-center font-serif text-2xl">How sure was that?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" disabled={busy} onClick={() => mark("CONFIDENT")} className="min-h-14 bg-[#f4efe6] text-[#07161c]">
+                Confident
+              </button>
+              <button type="button" disabled={busy} onClick={() => mark("UNSURE")} className="min-h-14 border border-[#f4efe6]/50">
+                Unsure
+              </button>
+            </div>
+          </>
+        ) : card.kind === "seat" ? (
           <button type="button" disabled={!unlocked || busy} onClick={seat} className="min-h-14 w-full bg-[#f4efe6] text-[#07161c] disabled:opacity-40">
             Place it first
           </button>
@@ -234,7 +270,9 @@ export function JudgeFeed({ initial, eye }: { initial: FeedCard; eye: EyeSnapsho
             </button>
           </div>
         ) : null}
-        <p className="text-center text-[11px] text-[#f4efe6]/45">{card.pending} still on your desk</p>
+        <p className="text-center text-[11px] text-[#f4efe6]/45">
+          {card.pending} still on your desk. Monday ranks a wave after {quorum} calibrated judges in its title.
+        </p>
       </div>
     </section>
   );

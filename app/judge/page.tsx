@@ -6,6 +6,7 @@ import { currentEye } from "@/app/actions/feed";
 import { auth } from "@/lib/auth";
 import { eligibilityFor } from "@/lib/eligibility";
 import { loadJudgeCard } from "@/lib/feed";
+import { verdictQuorum } from "@/lib/receipt";
 import { loadJudgeContext } from "@/lib/judge-context";
 import { prisma } from "@/lib/db";
 
@@ -57,5 +58,5 @@ export default async function JudgeHomePage() {
 
   const [card, eye] = await Promise.all([loadJudgeCard(session.user.id), currentEye()]);
 
-  return <JudgeFeed initial={card} eye={eye} />;
+  return <JudgeFeed initial={card} eye={eye} quorum={verdictQuorum()} />;
 }

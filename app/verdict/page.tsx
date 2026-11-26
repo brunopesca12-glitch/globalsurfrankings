@@ -57,6 +57,9 @@ export default async function VerdictPage() {
                 <Link href={`/videos/${verdict.entryId}/share`} className="mt-3 inline-block text-sm text-ocean">
                   Story card
                 </Link>
+                <Link href={`/videos/${verdict.entryId}/receipt`} className="mt-3 ml-4 inline-block text-sm text-ocean">
+                  Receipt
+                </Link>
               </li>
             );
           })}

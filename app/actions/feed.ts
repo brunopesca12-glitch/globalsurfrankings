@@ -8,6 +8,7 @@ import { loadEyeSnapshot, touchEyeDay, type EyeSnapshot } from "@/lib/eye-record
 import { eyeLevel, eyeScore } from "@/lib/eye";
 import { loadJudgeCard, type FeedCard } from "@/lib/feed";
 import { applyBallotComparison, ensureWeeklyQueue, sealFinishedBallot } from "@/lib/judge-queue";
+import { commitLatestComparison } from "@/lib/vote-commit";
 
 export type VoteResult = {
   ok: boolean;
@@ -15,6 +16,7 @@ export type VoteResult = {
   correct: boolean | null;
   card: FeedCard;
   eye: EyeSnapshot | null;
+  commitId: string | null;
 };
 
 const EMPTY_EYE: EyeSnapshot = {
@@ -35,12 +37,13 @@ async function signedEye(userId: string): Promise<EyeSnapshot> {
 
 export async function voteLive(ballotId: string, side: "left" | "right"): Promise<VoteResult> {
   const session = await auth();
-  if (!session?.user) return { ok: false, sealed: false, correct: null, card: { kind: "idle", pending: 0 }, eye: null };
+  if (!session?.user) return { ok: false, sealed: false, correct: null, card: { kind: "idle", pending: 0 }, eye: null, commitId: null };
   const comparison = side === "left" ? "better" : "worse";
   const outcome = await applyBallotComparison(session.user.id, ballotId, comparison);
   if (outcome === "rejected") {
-    return { ok: false, sealed: false, correct: null, card: await loadJudgeCard(session.user.id), eye: await signedEye(session.user.id) };
+    return { ok: false, sealed: false, correct: null, card: await loadJudgeCard(session.user.id), eye: await signedEye(session.user.id), commitId: null };
   }
+  const commitId = await commitLatestComparison(session.user.id, ballotId).catch(() => null);
   await touchEyeDay(session.user.id, { duels: 1 });
   return {
     ok: true,
@@ -48,15 +51,16 @@ export async function voteLive(ballotId: string, side: "left" | "right"): Promis
     correct: null,
     card: await loadJudgeCard(session.user.id),
     eye: await signedEye(session.user.id),
+    commitId,
   };
 }
 
 export async function voteSeat(ballotId: string): Promise<VoteResult> {
   const session = await auth();
-  if (!session?.user) return { ok: false, sealed: false, correct: null, card: { kind: "idle", pending: 0 }, eye: null };
+  if (!session?.user) return { ok: false, sealed: false, correct: null, card: { kind: "idle", pending: 0 }, eye: null, commitId: null };
   const outcome = await sealFinishedBallot(session.user.id, ballotId);
   if (outcome !== "sealed") {
-    return { ok: false, sealed: false, correct: null, card: await loadJudgeCard(session.user.id), eye: await signedEye(session.user.id) };
+    return { ok: false, sealed: false, correct: null, card: await loadJudgeCard(session.user.id), eye: await signedEye(session.user.id), commitId: null };
   }
   await touchEyeDay(session.user.id, { duels: 1 });
   return {
@@ -65,15 +69,16 @@ export async function voteSeat(ballotId: string): Promise<VoteResult> {
     correct: null,
     card: await loadJudgeCard(session.user.id),
     eye: await signedEye(session.user.id),
+    commitId: null,
   };
 }
 
 export async function voteCalibration(duelId: string, side: "LEFT" | "RIGHT"): Promise<VoteResult> {
   const session = await auth();
-  if (!session?.user) return { ok: false, sealed: false, correct: null, card: { kind: "idle", pending: 0 }, eye: null };
+  if (!session?.user) return { ok: false, sealed: false, correct: null, card: { kind: "idle", pending: 0 }, eye: null, commitId: null };
   const duel = await prisma.calibrationDuel.findFirst({ where: { id: duelId, higher: { not: null } } });
   if (!duel?.higher) {
-    return { ok: false, sealed: false, correct: null, card: await loadJudgeCard(session.user.id), eye: await signedEye(session.user.id) };
+    return { ok: false, sealed: false, correct: null, card: await loadJudgeCard(session.user.id), eye: await signedEye(session.user.id), commitId: null };
   }
   const correct = duel.higher === side;
   await prisma.calibrationAnswer.create({
@@ -86,7 +91,18 @@ export async function voteCalibration(duelId: string, side: "LEFT" | "RIGHT"): P
     correct,
     card: await loadJudgeCard(session.user.id),
     eye: await signedEye(session.user.id),
+    commitId: null,
   };
+}
+
+export async function setVoteConfidence(commitId: string, confidence: "CONFIDENT" | "UNSURE"): Promise<boolean> {
+  const session = await auth();
+  if (!session?.user) return false;
+  const updated = await prisma.voteCommit.updateMany({
+    where: { id: commitId, userId: session.user.id },
+    data: { confidence },
+  });
+  return updated.count === 1;
 }
 
 export type GuestAnswer = {
