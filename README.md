@@ -89,6 +89,14 @@ Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Au
 
 Password reset uses Resend (`RESEND_API_KEY`, from `GSR <no-reply@gsr.surf>`). If the key is missing, the forgot-password page says so and does not crash. Add the domain in Resend and publish the DKIM, SPF, and DMARC records it shows.
 
+Monday’s verdict runs from Vercel Cron at 09:00 America/Sao_Paulo (`0 12 * * 1` UTC) on `/api/cron/monday-verdict`. Set `CRON_SECRET` in the Vercel project. Vercel sends it as `Authorization: Bearer`. If the secret is missing the route returns 401 and does not publish. If `RESEND_API_KEY` is missing the verdict still publishes and the results email is skipped. The desk button remains a manual rerun. The reveal page is `/verdict`.
+
+Preseason 2026–27 is 1 Dec 2026 through 28 Feb 2027. Its points do not count toward the Founding Season, which starts 1 Mar 2027. New entries in that window are filed on the preseason. Entries ask for the original video file only. A capture date outside the season is refused. A file with no capture date is accepted and marked for review. Keyframes are kept for the desk. A judge can report “Seen this wave before”; the desk can ban that account in one click.
+
+The calibration key is at `/admin/calibration`. The desk and accounts marked as pros vote. Two agreeing votes lock a pair. About one card in four of the judge deck is one of those pairs.
+
+A wave is ranked on Monday only after `GSR_VERDICT_QUORUM` calibrated judges qualified for its title have sealed a place. The default is 7. Short of that, the wave is not ranked and rolls to the next Monday. Once that panel has judged, the place is final. It is not appealed, re-queued, or replaced. The receipt says so. The public receipt is `/videos/[id]/receipt`. Vote hashes and the weekly Merkle root are checked at `/verify` and with `npx tsx scripts/verify-receipt.ts`. `GSR_RECEIPT_PEPPER` sets the judge codes. The weekly root has an empty `chainTx` column for a later on-chain anchor. Nothing is written on a chain now.
+
 Demo cleanup is `npm run db:remove-demo`. It refuses to run without `--dry-run` or `--apply`. Tube/barrel and Big Surf demo rows are kept. Take a backup before `--apply`. Do not point it at a database you have not backed up.
 
 ## Submission checks
@@ -116,18 +124,18 @@ Constitutional constants live in `lib/constitution.ts`.
 - Ordinal placement is binary insertion (index 0 is best). A judge's ballot is sealed. Each college's public place is the median of its ballots, and the college abstains below three. The wave's place is the median of the colleges that voted; an even split resolves toward the Chamber of Champions. The desk runs that Monday verdict. It does not type a place.
 - One person sits in one college: a desk override, then Chamber, then Ranked, then the Upper Chamber (top 10 of a category ranking), then Athletes (anyone who entered that season), then the Public. A verified athlete with no higher claim is the Public. The desk, and an account with no athlete profile, do not judge unless invited. The rules live in `lib/eligibility.ts`. A judge never draws a wave in their own category or a declared clubmate's, and the ballot does not show the athlete.
 - An entry is refused while this ISO week's ballot queue is still open. Monday holds a wave when the week it was entered still has open ballots, so the new week does not pull last week's wave back out. The queue is at most 8 ballots (the paper's "about fifteen minutes"). The old duty checkbox is unused. Waves judged in the same week are compared with the board already published, not with each other.
-- The Ranked college is capped at US$ 6 a ballot. On the founding scenario the paper prints about US$ 3.30 for The Ranked and about US$ 4.80 for the Chamber. Nothing is paid. A judge sees their own mean deviation after Monday. Public accuracy boards, demotion, and the Golden Eye are not in this version. Upper Chamber membership is the top 10, not the paper's accuracy-promotion ladder.
+- The Ranked college is capped at US$ 6 a ballot. On the founding scenario the paper prints about US$ 3.30 for The Ranked and about US$ 4.80 for the Chamber. Nothing is paid. A judge sees their own mean deviation after Monday, and an eye score built from that deviation plus calibration accuracy. Upper Chamber membership is the top 10, not the paper's accuracy-promotion ladder. The eye score does not mint season points.
 - Hashboards filter a world board by hashtag and renumber. They do not judge or pay.
 - Verification is Verified or Verified Pro. Pro is a checkbox with no credential check. Tiers gate nothing at the door. Age bands are exclusive.
 
-The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep 2027, and Season 2028 returns to 1 Oct → 30 Sep. Themes close on their finale date. Entries are not yet rejected for being ridden outside the vintage, so the scaffold can be used before opening day.
+The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar 2027 → 29 Feb 2028. Themes close on their finale date. A video file whose capture date falls outside the season it is entered in is refused. A file with no capture date is kept and marked for review.
 
 ## Routes
 
-- `/` world rankings and the purse on each theme
+- `/` world rankings. A visitor with no account first plays three calibration duels and sees an eye score
 - `/about` the circuit thesis
 - `/rules` the public competition rules. The PDF is not served.
-- `/videos` watch every uploaded wave; `/videos/[id]` plays one
+- `/videos` verdicted waves only; `/videos/[id]` plays one. Unjudged waves stay off this page
 - `/calendar` the six Season 1 events
 - `/board/best-tube` demo world board; other event slugs work the same way
 - `/escrow` published payment orders, and an empty list of on-chain executions until a contract address exists. `/api/payment-orders` is the machine-readable file.
@@ -136,10 +144,15 @@ The calendar follows Section 3 of v10.1: the Founding Season is 1 Mar → 30 Sep
 - `/hashboards` an athlete's hashtag rankings; `/hashboards/[tag]` is one tag. `/t/[tag]` redirects there
 - `/sign-up`, `/sign-in`, `/profile`, `/enter`, `/my-waves`
 - `/athlete/[slug]` public placements
-- `/judge` where you are judging. `/judge/ballot` place the new wave into your own list. `/judge/history` your places
+- `/judge` the first screen after sign-in: a full-screen blind duel, “Which wave goes higher?”. `/judge/ballot` is the list view. `/judge/history` your places
+- `/lineup` The Lineup, verdicted waves only, with a Shaka and follow. A friend’s wave from this week stays locked until Monday
+- `/eye` eye score, level, streaks, badges. Season points still come only from Monday
+- `/verdict` the Monday drop
+- `/videos/[id]/share` a 9:16 story card for a verdicted wave. `/videos/[id]/card` is the image
 - `/invite/[token]` personal invite into a college
-- `/admin/judge` seat the Chamber and the Ranked, override a college, mint an invite, and run Monday's verdict
-- `/admin/review` waves waiting for a person, and reports that a wave was already posted
+- `/admin/judge` seat the Chamber and the Ranked, override a college, mint an invite, and rerun Monday’s verdict
+- `/admin/calibration` the pros’ answer key
+- `/admin/review` waves waiting for a person, stored keyframes, and reports. One click bans the surfer
 
 ## Tests
 

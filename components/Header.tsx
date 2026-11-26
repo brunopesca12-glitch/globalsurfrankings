@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { ensureWeeklyQueue, type JudgeSession } from "@/lib/judge-queue";
 
 const links = [
+  { href: "/lineup", label: "Lineup" },
   { href: "/videos", label: "Videos" },
   { href: "/calendar", label: "Calendar" },
   { href: "/ranking", label: "Rankings" },

@@ -61,7 +61,18 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
         </Link>
       </p>
       {video.placement ? (
-        <CollegeVerdictLine verdicts={verdicts?.get(video.id) ?? []} finalPlace={video.placement.place} />
+        <>
+          <CollegeVerdictLine verdicts={verdicts?.get(video.id) ?? []} finalPlace={video.placement.place} />
+          <p className="mt-4">
+            <Link href={`/videos/${video.id}/share`} className="text-ocean">
+              Instagram story card
+            </Link>
+            <span className="mx-2 text-ink/40">·</span>
+            <Link href={`/videos/${video.id}/receipt`} className="text-ocean">
+              Verdict receipt
+            </Link>
+          </p>
+        </>
       ) : null}
       <div className="mt-8 max-w-xl">
         {session?.user ? (

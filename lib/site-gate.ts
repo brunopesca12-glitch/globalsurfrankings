@@ -57,6 +57,7 @@ export function skipsVisitorGate(
   env: { [key: string]: string | undefined } = process.env,
 ): boolean {
   if (pathname === "/api/vision-probe" && env.VERCEL_ENV === "preview") return true;
+  if (pathname === "/api/cron/monday-verdict") return true;
   return pathname === "/api/video-upload" && typeof blobSignature === "string" && blobSignature.length > 0;
 }
 

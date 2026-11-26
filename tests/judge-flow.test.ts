@@ -81,6 +81,7 @@ describe.skipIf(!local)("judge assignment on a local database", () => {
     const judge = await surfer("judge", "W");
     const left = await surfer("left", "M");
     const right = await surfer("right", "M");
+    const ranked = await surfer("ranked", "M");
     for (const athlete of [left, right]) {
       await prisma.entry.create({
         data: {
@@ -92,17 +93,33 @@ describe.skipIf(!local)("judge assignment on a local database", () => {
           isoYear: 2026,
           isoWeek: 48,
           tollCents: 0,
-          status: "PLACED",
+          status: "SUBMITTED",
           category: "OPEN",
           sex: "M",
         },
       });
     }
+    const published = await prisma.entry.create({
+      data: {
+        athleteId: ranked.athlete!.id,
+        themeId: theme!.id,
+        seasonId: season!.id,
+        environment: "OCEAN",
+        videoUrl: `https://video.gsr.surf/demo/flow/${ranked.id}`,
+        isoYear: 2026,
+        isoWeek: 48,
+        tollCents: 0,
+        status: "PLACED",
+        category: "OPEN",
+        sex: "M",
+      },
+    });
 
     const assigned = await openFreshComparison(judge.email);
     expect(assigned.ok).toBe(true);
     if (!assigned.ok) return;
     expect(assigned.created).toBeGreaterThanOrEqual(2);
+    expect(assigned.entryIds).not.toContain(published.id);
 
     const desk = await ensureWeeklyQueue(judge.id);
     expect(desk.pending).toBeGreaterThanOrEqual(2);

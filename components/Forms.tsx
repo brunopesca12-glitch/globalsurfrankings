@@ -6,7 +6,6 @@ import { login, register, type FormState } from "@/app/actions/auth";
 import { requestPasswordReset, resetPassword } from "@/app/actions/password";
 import { submitEntry, type EntryState } from "@/app/actions/entry";
 import { updateProfile, type ProfileState } from "@/app/actions/profile";
-import { parseVideoUrl } from "@/lib/entry-rules";
 import { dutyStatusLine } from "@/lib/tribunal";
 
 const field = "mt-1 w-full border border-line bg-white px-3 py-2 outline-none focus:border-ocean";
@@ -253,7 +252,6 @@ export function EntryForm({
   const [uploading, setUploading] = useState(false);
   const [theme, setTheme] = useState(themes[0]?.slug ?? "");
   const [environment, setEnvironment] = useState<"OCEAN" | "POOL">("OCEAN");
-  const [videoUrl, setVideoUrl] = useState("");
   const [spot, setSpot] = useState("");
   const [unpublished, setUnpublished] = useState(false);
   const [terms, setTerms] = useState(false);
@@ -262,11 +260,6 @@ export function EntryForm({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     setLocalError(null);
-    if (videoUrl.trim() && parseVideoUrl(videoUrl) == null) {
-      event.preventDefault();
-      setLocalError("That link needs to start with http:// or https://.");
-      return;
-    }
     const form = event.currentTarget;
     const file = (form.elements.namedItem("video") as HTMLInputElement | null)?.files?.[0];
     if (!blobUpload || !file || file.size === 0) return;
@@ -289,7 +282,7 @@ export function EntryForm({
         action(data);
       });
     } catch {
-      setLocalError("The upload did not finish. Try again, or paste a direct link to the video file.");
+      setLocalError("The upload did not finish. Try the file again.");
     } finally {
       setUploading(false);
     }
@@ -366,22 +359,9 @@ export function EntryForm({
           }}
         />
       </label>
-      <label className="block text-sm">
-        Or a video link
-        <input
-          className={field}
-          name="videoUrl"
-          type="text"
-          inputMode="url"
-          placeholder="https://…/wave.mp4"
-          value={videoUrl}
-          onChange={(event) => setVideoUrl(event.target.value)}
-        />
-      </label>
       <p className="text-xs text-ink/60">
-        MP4, WebM, or MOV, up to 64 MB. A link has to be public, or judges cannot watch it. A private Google Drive file
-        will not play. A direct link to a video file is checked the same way. A YouTube or Vimeo page can be entered,
-        but we cannot watch it from here, so the desk reviews it.
+        The original file only. MP4, WebM, or MOV, up to 64 MB. YouTube, Instagram, and other links are not accepted.
+        The wave has to be unpublished and filmed this season. A copy of a wave already in GSR is refused.
       </p>
       <label className="block text-sm">
         Break

@@ -1,6 +1,7 @@
 import { hashSync } from "bcryptjs";
 import { CategoryCode, Environment, PrismaClient, Sex, VerificationTier } from "@prisma/client";
 import { SEASON_2027, THEMES } from "../lib/catalogue";
+import { PRESEASON } from "../lib/seasons";
 import { isoWeek } from "../lib/iso-week";
 
 const prisma = new PrismaClient();
@@ -188,6 +189,15 @@ function dateOnly(iso: string): Date {
 }
 
 async function main() {
+  await prisma.voteCommit.deleteMany();
+  await prisma.weekRoot.deleteMany();
+  await prisma.calibrationAnswer.deleteMany();
+  await prisma.calibrationVote.deleteMany();
+  await prisma.calibrationDuel.deleteMany();
+  await prisma.shaka.deleteMany();
+  await prisma.follow.deleteMany();
+  await prisma.eyeDay.deleteMany();
+  await prisma.entryKeyframe.deleteMany();
   await prisma.ballotComparison.deleteMany();
   await prisma.collegeVerdict.deleteMany();
   await prisma.ballot.deleteMany();
@@ -220,8 +230,40 @@ async function main() {
       startsOn: dateOnly(SEASON_2027.startsOn),
       endsOn: dateOnly(SEASON_2027.endsOn),
       ageAsOf: dateOnly(SEASON_2027.ageAsOf),
+      countsForRanking: true,
     },
   });
+
+  const preseason = await prisma.season.create({
+    data: {
+      vintage: PRESEASON.vintage,
+      name: PRESEASON.name,
+      startsOn: dateOnly(PRESEASON.startsOn),
+      endsOn: dateOnly(PRESEASON.endsOn),
+      ageAsOf: dateOnly(PRESEASON.ageAsOf),
+      countsForRanking: false,
+    },
+  });
+  for (const [index, theme] of THEMES.entries()) {
+    await prisma.theme.create({
+      data: {
+        seasonId: preseason.id,
+        slug: theme.slug,
+        name: theme.name,
+        namePt: theme.namePt,
+        finaleOn: dateOnly(PRESEASON.endsOn),
+        sortOrder: index + 1,
+        open: theme.categories.includes("OPEN"),
+        junior: false,
+        masters40: theme.categories.includes("MASTERS_40"),
+        masters50: false,
+        oceanOnly: theme.oceanOnly,
+        poolOnly: theme.poolOnly,
+        proposed: theme.proposedDate,
+        note: "Preseason. Points do not count toward the Founding Season.",
+      },
+    });
+  }
 
   const themes = new Map<string, string>();
   for (const [index, theme] of THEMES.entries()) {
@@ -281,6 +323,7 @@ async function main() {
     data: { themeId: barrelId, category, sex: "M" },
   });
 
+  const barrelEntries: { id: string; place: number }[] = [];
   for (const [index, slug] of barrelOrder.entries()) {
     const athlete = bySlug.get(slug)!;
     const entry = await prisma.entry.create({
@@ -302,8 +345,36 @@ async function main() {
         },
       },
     });
-    void entry;
+    barrelEntries.push({ id: entry.id, place: index + 1 });
   }
+
+  function wave(place: number) {
+    return barrelEntries.find((row) => row.place === place)!.id;
+  }
+  const keyed: [number, number][] = [
+    [1, 5],
+    [2, 6],
+    [3, 7],
+    [4, 8],
+    [1, 8],
+    [2, 7],
+  ];
+  for (const [better, worse] of keyed) {
+    const leftIsBetter = better % 2 === 1;
+    await prisma.calibrationDuel.create({
+      data: {
+        leftEntryId: leftIsBetter ? wave(better) : wave(worse),
+        rightEntryId: leftIsBetter ? wave(worse) : wave(better),
+        higher: leftIsBetter ? "LEFT" : "RIGHT",
+      },
+    });
+  }
+  await prisma.calibrationDuel.create({
+    data: { leftEntryId: wave(3), rightEntryId: wave(8) },
+  });
+  await prisma.calibrationDuel.create({
+    data: { leftEntryId: wave(4), rightEntryId: wave(6) },
+  });
 
   const extras: {
     slug: string;

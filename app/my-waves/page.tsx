@@ -10,6 +10,7 @@ import { environmentLabel, formatPoints, formatUsd, ordinal } from "@/lib/format
 import { poolFeeCents } from "@/lib/pool-fee";
 import { MONEY_BLANK } from "@/lib/prize";
 import { entryWeekLabel } from "@/lib/season-clock";
+import { holdCopy, verdictQuorum } from "@/lib/receipt";
 import { submissionStatus } from "@/lib/submission-check";
 
 export const metadata: Metadata = { title: "My waves" };
@@ -22,6 +23,7 @@ export default async function MyEntriesPage() {
 
   const points = pointsForAthlete(await getSeasonRankings(), athlete.id);
   const feeOn = poolFeeCents() > 0;
+  const quorum = verdictQuorum();
   const count =
     athlete.entries.length === 0
       ? "No waves yet."
@@ -82,10 +84,13 @@ export default async function MyEntriesPage() {
             </p>
             <p className="mt-1 text-sm">
               {entry.placement ? "Placement published." : "Results come out on Monday."}{" "}
-              <Link className="text-ocean" href={`/videos/${entry.id}`}>
-                Watch
+              <Link className="text-ocean" href={`/videos/${entry.id}/receipt`}>
+                Receipt
               </Link>
             </p>
+            {holdCopy(entry.holdReason, quorum) ? (
+              <p className="mt-2 text-sm text-ink/75">{holdCopy(entry.holdReason, quorum)}</p>
+            ) : null}
           </li>
           );
         })}

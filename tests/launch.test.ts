@@ -10,8 +10,8 @@ import { MONEY_BLANK, prizeMoneyPublished } from "@/lib/prize";
 import { submissionStatus } from "@/lib/submission-check";
 
 describe("assigned ballots", () => {
-  it("shows a ballot on a placed wave and accepts the submission", () => {
-    expect(JUDGEABLE_ENTRY_STATUSES).toEqual(["SUBMITTED", "PLACED"]);
+  it("keeps a published wave off the desk", () => {
+    expect(JUDGEABLE_ENTRY_STATUSES).toEqual(["SUBMITTED"]);
     const placed = {
       ballot: { id: "ballot-placed" },
       status: "OPEN",
@@ -25,8 +25,8 @@ describe("assigned ballots", () => {
       current: true,
     };
     const shown = visibleOpenBallots([placed, submitted], []);
-    expect(shown.map((row) => row.id)).toEqual(["ballot-placed", "ballot-submitted"]);
-    expect(canSubmitOpenBallot({ status: "OPEN", entryStatus: "PLACED" })).toBe(true);
+    expect(shown.map((row) => row.id)).toEqual(["ballot-submitted"]);
+    expect(canSubmitOpenBallot({ status: "OPEN", entryStatus: "PLACED" })).toBe(false);
     expect(canSubmitOpenBallot({ status: "OPEN", entryStatus: "SUBMITTED" })).toBe(true);
     const sealed = { ...placed, status: "SEALED" };
     expect(visibleOpenBallots([sealed], [])).toEqual([]);
@@ -46,11 +46,11 @@ describe("world board link", () => {
 
 describe("pool fee and prize columns", () => {
   it("is free unless the env fee is a positive number of cents", () => {
-    expect(poolFeeCents({ GSR_POOL_FEE_CENTS: undefined })).toBe(0);
-    expect(poolFeeCents({ GSR_POOL_FEE_CENTS: "off" })).toBe(0);
-    expect(poolFeeCents({ GSR_POOL_FEE_CENTS: "2000" })).toBe(2000);
-    expect(prizeMoneyPublished({ GSR_PRIZE_MONEY: undefined })).toBe(false);
-    expect(prizeMoneyPublished({ GSR_PRIZE_MONEY: "on" })).toBe(true);
+    expect(poolFeeCents({ ...process.env, GSR_POOL_FEE_CENTS: undefined })).toBe(0);
+    expect(poolFeeCents({ ...process.env, GSR_POOL_FEE_CENTS: "off" })).toBe(0);
+    expect(poolFeeCents({ ...process.env, GSR_POOL_FEE_CENTS: "2000" })).toBe(2000);
+    expect(prizeMoneyPublished({ ...process.env, GSR_PRIZE_MONEY: undefined })).toBe(false);
+    expect(prizeMoneyPublished({ ...process.env, GSR_PRIZE_MONEY: "on" })).toBe(true);
     expect(MONEY_BLANK).toBe("—");
   });
 });

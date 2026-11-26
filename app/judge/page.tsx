@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { JudgeFeed } from "@/components/DuelStage";
+import { currentEye } from "@/app/actions/feed";
 import { auth } from "@/lib/auth";
 import { eligibilityFor } from "@/lib/eligibility";
-import { ensureWeeklyQueue } from "@/lib/judge-queue";
+import { loadJudgeCard } from "@/lib/feed";
+import { verdictQuorum } from "@/lib/receipt";
 import { loadJudgeContext } from "@/lib/judge-context";
 import { prisma } from "@/lib/db";
-import { panelHeading } from "@/lib/panel";
-import { mondayCountdown } from "@/lib/season-clock";
 
 export const metadata: Metadata = { title: "Judge" };
 
@@ -19,6 +20,13 @@ export default async function JudgeHomePage() {
     include: { seats: true, athlete: { select: { id: true } } },
   });
   if (!user) redirect("/sign-in");
+  if (user.bannedAt) {
+    return (
+      <div className="mx-auto max-w-xl px-5 py-16">
+        <h1 className="font-serif text-5xl">This account is closed.</h1>
+      </div>
+    );
+  }
 
   const ctx = await loadJudgeContext();
   const athleteId = user.athlete?.id ?? null;
@@ -41,42 +49,14 @@ export default async function JudgeHomePage() {
             ? "This is the desk. It runs Monday. It does not place waves."
             : "Create an athlete profile. Then you can place waves with everyone else."}
         </p>
+        <Link href="/lineup" className="mt-6 inline-block text-ocean">
+          The Lineup
+        </Link>
       </div>
     );
   }
 
-  const queue = await ensureWeeklyQueue(session.user.id);
-  if (!queue.onboarded) redirect("/judge/welcome");
+  const [card, eye] = await Promise.all([loadJudgeCard(session.user.id), currentEye()]);
 
-  return (
-    <div className="mx-auto max-w-xl px-5 py-12">
-      <p className="text-xs uppercase tracking-[0.22em] text-gold">
-        {panelHeading(queue.panel, queue.destination?.edition ?? null)}
-      </p>
-      <h1 className="mt-3 font-serif text-5xl leading-tight">
-        {queue.destination
-          ? `You're judging: ${queue.destination.event} · ${queue.destination.edition}`
-          : "Nothing to place this week."}
-      </h1>
-      <p className="mt-4 text-lg text-ink/75">
-        {queue.pending === 0
-          ? queue.sealed > 0
-            ? "You've already placed the waves assigned to you this week."
-            : "No waves were assigned to you this week, so there is nothing to compare."
-          : queue.pending === 1
-            ? "1 wave left to place this week."
-            : `${queue.pending} waves left to place this week.`}
-      </p>
-      <p className="mt-2 text-sm text-ink/60">{mondayCountdown(new Date())}</p>
-      {queue.pending > 0 ? (
-        <Link href="/judge/ballot" className="mt-8 inline-flex min-h-12 items-center bg-ocean px-5 py-3 text-paper">
-          Rank the waves
-        </Link>
-      ) : (
-        <Link href="/judge/history" className="mt-8 inline-flex min-h-12 items-center border border-ocean px-5 py-3 text-ocean">
-          Your places
-        </Link>
-      )}
-    </div>
-  );
+  return <JudgeFeed initial={card} eye={eye} quorum={verdictQuorum()} />;
 }

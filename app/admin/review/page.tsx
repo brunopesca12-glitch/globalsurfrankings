@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { clearReview, dismissFlag, removeEntry } from "@/app/actions/review";
+import { banFromReport, clearReview, dismissFlag, removeEntry } from "@/app/actions/review";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { submissionStatus } from "@/lib/submission-check";
@@ -32,7 +32,11 @@ export default async function ReviewPage({
   const [pending, flags] = await Promise.all([
     prisma.entry.findMany({
       where: { reviewStatus: "PENDING_REVIEW" },
-      include: { athlete: true, theme: true },
+      include: {
+        athlete: true,
+        theme: true,
+        keyframes: { select: { id: true, position: true }, orderBy: { position: "asc" } },
+      },
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
@@ -64,6 +68,7 @@ export default async function ReviewPage({
       {query.saved === "cleared" ? <p className="mt-4 text-sm text-ocean">Wave marked checked.</p> : null}
       {query.saved === "flag" ? <p className="mt-4 text-sm text-ocean">Report closed.</p> : null}
       {query.saved === "removed" ? <p className="mt-4 text-sm text-ocean">Wave removed.</p> : null}
+      {query.saved === "banned" ? <p className="mt-4 text-sm text-ocean">Account closed. The wave was removed if it had no place.</p> : null}
       {query.error === "placed" ? (
         <p className="mt-4 text-sm text-stamp">That wave already has a place, so it was left on the board.</p>
       ) : null}
@@ -84,6 +89,28 @@ export default async function ReviewPage({
                   <span className="text-ink/50"> · {entry.athlete.displayName}</span>
                 </p>
                 <p className="mt-1 text-sm text-ink/70">{status.note}</p>
+                {entry.metadataNote ? <p className="mt-1 text-sm text-ink/70">{entry.metadataNote}</p> : null}
+                {entry.captureDevice || entry.capturedAt ? (
+                  <p className="mt-1 text-xs text-ink/55">
+                    {entry.captureDevice ? `${entry.captureDevice} · ` : ""}
+                    {entry.capturedAt ? entry.capturedAt.toISOString().slice(0, 10) : "no date"}
+                    {entry.captureLat != null && entry.captureLng != null
+                      ? ` · ${entry.captureLat.toFixed(3)}, ${entry.captureLng.toFixed(3)}`
+                      : ""}
+                  </p>
+                ) : null}
+                {entry.keyframes.length > 0 ? (
+                  <div className="mt-3 flex gap-2 overflow-x-auto">
+                    {entry.keyframes.map((frame) => (
+                      <img
+                        key={frame.id}
+                        alt={`Keyframe ${frame.position + 1}`}
+                        src={`/admin/review/frame/${frame.id}`}
+                        className="h-24 w-16 shrink-0 object-cover"
+                      />
+                    ))}
+                  </div>
+                ) : null}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <form action={clearReview}>
                     <input type="hidden" name="entryId" value={entry.id} />
@@ -134,6 +161,12 @@ export default async function ReviewPage({
                   <input type="hidden" name="entryId" value={flag.entryId} />
                   <button className={button} type="submit">
                     Remove this wave
+                  </button>
+                </form>
+                <form action={banFromReport}>
+                  <input type="hidden" name="flagId" value={flag.id} />
+                  <button className={button} type="submit">
+                    Ban this surfer
                   </button>
                 </form>
               </div>

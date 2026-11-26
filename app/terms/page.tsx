@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalDraft } from "@/components/LegalDraft";
+import { TERMS_VERSION } from "@/lib/legal";
 
 export const metadata: Metadata = { title: "Terms of Use" };
 
@@ -9,7 +10,7 @@ export default function TermsPage() {
       <LegalDraft />
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Global Surf Rankings</p>
       <h1 className="mt-2 font-serif text-5xl">Terms of Use</h1>
-      <p className="mt-4 text-sm text-ink/60">Version 2026-11-26. These terms govern gsr.surf and globalsurfrankings.com.</p>
+      <p className="mt-4 text-sm text-ink/60">Version {TERMS_VERSION}. These terms govern gsr.surf and globalsurfrankings.com.</p>
 
       <section className="mt-10 space-y-3 leading-relaxed text-ink/85">
         <h2 className="font-serif text-3xl text-ink">The service</h2>
@@ -66,8 +67,15 @@ export default function TermsPage() {
           To be judged, you judge. An entry joins Monday&apos;s verdict when this week&apos;s ballot queue is
           complete. You place waves into your own list. You do not place your own division or a declared
           clubmate&apos;s. The screen does not show the surfer. Monday takes the median of the panels that reached
-          three sealed places. Places become season points on the published curve. Individual ballots are not a
-          public scoreboard.
+          three sealed places. A wave is ranked only when at least seven distinct calibrated judges, qualified for
+          that wave&apos;s title, have sealed a place. That number is seven unless GSR_VERDICT_QUORUM sets another
+          whole number. A wave that is short of the quorum is not ranked. It rolls to the next Monday and stays in
+          the queue. Once the quorum is in, that panel&apos;s verdict is final. It is the judges&apos; sole
+          prerogative. There is no second judgment, no appeal, and no reopening of the queue after the verdict. GSR
+          guarantees the process: that the quorum of qualified judges actually judged, and that the votes stay sealed
+          and can be checked. GSR does not judge the merit and does not replace the panel&apos;s place. Places become
+          season points on the published curve. Judges are not named. Each judged wave has a public receipt: a stable
+          pseudonym, the eye score at the time of the vote, the duel tallies, and the hashes anyone can recompute.
         </p>
       </section>
 
@@ -76,7 +84,7 @@ export default function TermsPage() {
         <p>
           Season points are calculated from published places and can change until the season closes, because the
           field size changes. Prize-money fields stay in the product so a later sponsor can fill them. A blank is not
-          an amount you are owed. GSR may correct a place that was produced by a rules breach.
+          an amount you are owed. A published place is not corrected, re-judged, or replaced.
         </p>
       </section>
 

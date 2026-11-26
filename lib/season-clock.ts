@@ -1,6 +1,7 @@
 import { SEASON_2027 } from "@/lib/catalogue";
 import { formatDate } from "@/lib/format";
 import { isoWeek } from "@/lib/iso-week";
+import { PRESEASON, seasonWindow } from "@/lib/seasons";
 
 export type CircuitPhase = "preseason" | "live" | "closed";
 
@@ -20,12 +21,21 @@ export function circuitClock(now: Date, season = SEASON_2027): CircuitClock {
   const today = now.toISOString().slice(0, 10);
   const week = isoWeek(now);
   const key = weekKey(week.isoYear, week.isoWeek);
+  const window = seasonWindow(today);
+  if (window === "preseason") {
+    return {
+      phase: "preseason",
+      weekKey: key,
+      headline: PRESEASON.name,
+      detail: `Points from ${PRESEASON.name} do not count toward the Founding Season, which starts ${formatDate(season.startsOn)}. Results still publish on Monday.`,
+    };
+  }
   if (today < season.startsOn) {
     return {
       phase: "preseason",
       weekKey: key,
       headline: `Founding Season starts ${formatDate(season.startsOn)}`,
-      detail: `This is a preseason week (${key}), before the circuit opens. Results still publish on Monday.`,
+      detail: `Preseason 2026–27 opens ${formatDate(PRESEASON.startsOn)}. This week (${key}) is before that, and preseason points will not count toward the Founding Season.`,
     };
   }
   if (today > season.endsOn) {
