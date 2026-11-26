@@ -69,13 +69,13 @@ export default function TermsPage() {
           clubmate&apos;s. The screen does not show the surfer. Monday takes the median of the panels that reached
           three sealed places. A wave is ranked only when at least seven distinct calibrated judges, qualified for
           that wave&apos;s title, have sealed a place. That number is seven unless GSR_VERDICT_QUORUM sets another
-          whole number, so it can later be raised without a new release. A wave that is short of the quorum is not
-          ranked. It rolls to the next Monday and stays in the queue. If the judges who did vote agree on fewer than
-          60 percent of the deciding duels (GSR_APPEAL_AGREEMENT can change that fraction), the wave is not ranked
-          that Monday. It goes to a second quorum of Golden Eye judges, or to the highest eye scores if there are not
-          enough Golden Eye judges. No one on the desk picks that panel. Places become season points on the published
-          curve. Judges are not named. Each judged wave has a public receipt: a stable pseudonym, the eye score at the
-          time of the vote, the duel tallies, and the hashes anyone can recompute.
+          whole number. A wave that is short of the quorum is not ranked. It rolls to the next Monday and stays in
+          the queue. Once the quorum is in, that panel&apos;s verdict is final. It is the judges&apos; sole
+          prerogative. There is no second judgment, no appeal, and no reopening of the queue after the verdict. GSR
+          guarantees the process: that the quorum of qualified judges actually judged, and that the votes stay sealed
+          and can be checked. GSR does not judge the merit and does not replace the panel&apos;s place. Places become
+          season points on the published curve. Judges are not named. Each judged wave has a public receipt: a stable
+          pseudonym, the eye score at the time of the vote, the duel tallies, and the hashes anyone can recompute.
         </p>
       </section>
 
@@ -84,7 +84,7 @@ export default function TermsPage() {
         <p>
           Season points are calculated from published places and can change until the season closes, because the
           field size changes. Prize-money fields stay in the product so a later sponsor can fill them. A blank is not
-          an amount you are owed. GSR may correct a place that was produced by a rules breach.
+          an amount you are owed. A published place is not corrected, re-judged, or replaced.
         </p>
       </section>
 

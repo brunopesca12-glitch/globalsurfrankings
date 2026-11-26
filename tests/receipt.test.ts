@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  appealPanel,
-  appealThreshold,
   canonicalVote,
   duelAgreements,
+  finalLine,
   holdCopy,
   judgePseudonym,
   merkleRoot,
@@ -31,8 +30,6 @@ describe("verdict quorum", () => {
     expect(verdictQuorum({ ...process.env, GSR_VERDICT_QUORUM: undefined })).toBe(7);
     expect(verdictQuorum({ ...process.env, GSR_VERDICT_QUORUM: "11" })).toBe(11);
     expect(verdictQuorum({ ...process.env, GSR_VERDICT_QUORUM: "nope" })).toBe(7);
-    expect(appealThreshold({ ...process.env, GSR_APPEAL_AGREEMENT: undefined })).toBe(0.6);
-    expect(appealThreshold({ ...process.env, GSR_APPEAL_AGREEMENT: "0.75" })).toBe(0.75);
   });
 
   it("counts a judge once, and only when calibrated for that title", () => {
@@ -52,44 +49,22 @@ describe("verdict quorum", () => {
       calibrated: true,
       qualified: true,
     }));
-    expect(mondayGate({ judges: judges.slice(0, 6), agreement: 1, appealSealed: 0, quorum: 7, threshold: 0.6 })).toBe(
-      "quorum",
-    );
-    expect(mondayGate({ judges, agreement: 0.9, appealSealed: 0, quorum: 7, threshold: 0.6 })).toBe("rank");
+    expect(mondayGate({ judges: judges.slice(0, 6), quorum: 7 })).toBe("quorum");
+    expect(mondayGate({ judges, quorum: 7 })).toBe("rank");
     expect(holdCopy("QUORUM", 7)).toContain("rolls to next Monday");
     expect(holdCopy("QUORUM", 7)).toContain("not ranked");
+    expect(finalLine(7)).toBe("Judged by 7 qualified judges. Verdict final.");
   });
 });
 
-describe("appeal routing", () => {
-  it("sends a split wave to Golden Eye, then to the highest eyes if that bench is short", () => {
+describe("a split still ranks", () => {
+  it("does not send a low-agreement wave back for another judgment", () => {
     const judges = Array.from({ length: 7 }, (_, index) => ({
       userId: `j${index}`,
       calibrated: true,
       qualified: true,
     }));
-    expect(mondayGate({ judges, agreement: 0.5, appealSealed: 0, quorum: 7, threshold: 0.6 })).toBe("appeal");
-    expect(mondayGate({ judges, agreement: 0.5, appealSealed: 7, quorum: 7, threshold: 0.6 })).toBe("rank");
-
-    const bench = [
-      { userId: "g1", eye: 96, level: "Golden Eye" },
-      { userId: "g2", eye: 91, level: "Golden Eye" },
-      { userId: "t1", eye: 88, level: "Tower" },
-      { userId: "s1", eye: 10, level: "Shorebreak" },
-      { userId: "seen", eye: 99, level: "Golden Eye" },
-    ];
-    const short = appealPanel(bench, new Set(["seen"]), 4);
-    expect(short.fallback).toBe(true);
-    expect(short.ids).toEqual(["g1", "g2", "t1", "s1"]);
-
-    const deep = appealPanel(
-      Array.from({ length: 8 }, (_, index) => ({ userId: `g${index}`, eye: 99 - index, level: "Golden Eye" })),
-      new Set(),
-      7,
-    );
-    expect(deep.fallback).toBe(false);
-    expect(deep.ids).toHaveLength(7);
-    expect(deep.ids[0]).toBe("g0");
+    expect(mondayGate({ judges, quorum: 7 })).toBe("rank");
   });
 
   it("flags a low-agreement duel and an outlier place", () => {

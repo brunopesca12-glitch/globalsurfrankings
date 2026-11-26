@@ -8,6 +8,7 @@ import { ordinal } from "@/lib/format";
 import { ordinalMedian } from "@/lib/median";
 import {
   duelAgreements,
+  finalLine,
   holdCopy,
   isOutlier,
   verdictQuorum,
@@ -38,12 +39,11 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const title = themeBySlug(entry.theme.slug)?.name ?? entry.theme.name;
 
   const weeks = uniqueWeeks(entry.voteCommits);
-  const [ballots, appealCount, roots] = await Promise.all([
+  const [ballots, roots] = await Promise.all([
     prisma.ballot.findMany({
       where: { entryId: id, status: "SEALED", place: { not: null } },
-      select: { userId: true, place: true, appeal: true },
+      select: { userId: true, place: true },
     }),
-    prisma.ballot.count({ where: { entryId: id, appeal: true, status: "SEALED" } }),
     weeks.length === 0
       ? Promise.resolve([])
       : prisma.weekRoot.findMany({
@@ -103,17 +103,15 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
         )}
         {ranked && entry.placement ? ` · ${ordinal(entry.placement.place)}` : " · not ranked"}
       </p>
-      {hold && !ranked ? <p className="mt-4 border border-line bg-white px-4 py-3 text-sm leading-relaxed">{hold}</p> : null}
-      {entry.holdReason === "APPEAL" || appealCount > 0 ? (
-        <p className="mt-4 border border-line bg-white px-4 py-3 text-sm leading-relaxed">
-          Agreement on the deciding duels was {Math.round(agreement * 100)}%.{" "}
-          {entry.appealFallback
-            ? "There were not enough Golden Eye judges, so the highest eye scores filled the second quorum."
-            : "A second quorum of Golden Eye judges has the wave."}{" "}
-          {appealCount > 0 ? `${appealCount} of those ballots are sealed.` : "It is not ranked until that quorum seals."}{" "}
-          No one on the desk chose the panel.
+      {ranked ? (
+        <p className="mt-4 font-serif text-3xl">{finalLine(distinct)}</p>
+      ) : null}
+      {ranked ? (
+        <p className="mt-2 text-sm leading-relaxed text-ink/75">
+          The place is the panel&apos;s decision, and it is final. GSR records that these judges judged, and that the votes are sealed and can be checked. GSR does not review the merit.
         </p>
       ) : null}
+      {hold && !ranked ? <p className="mt-4 border border-line bg-white px-4 py-3 text-sm leading-relaxed">{hold}</p> : null}
 
       <section className="mt-8 border border-line bg-white px-4 py-4">
         <h2 className="font-serif text-3xl">Quorum</h2>

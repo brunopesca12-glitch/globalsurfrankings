@@ -206,8 +206,8 @@ export default async function DeskPage({
       <section className="mt-12">
         <h2 className="font-serif text-3xl">Fresh comparison</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink/70">
-          Adds open ballots for one account, in one current division, so they can rank several waves. It does not
-          delete or change existing waves, places, or ballots.
+          Adds open ballots for one account, on waves that do not have a verdict yet. A published place is final
+          and is not reopened.
         </p>
         <form action={openFreshBallot} className="mt-4 flex flex-wrap gap-3">
           <input

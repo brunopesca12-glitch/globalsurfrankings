@@ -3,11 +3,10 @@ import { eyeLevel, type EyeLevel } from "@/lib/eye";
 import { ordinalMedian } from "@/lib/median";
 
 export const DEFAULT_VERDICT_QUORUM = 7;
-export const DEFAULT_APPEAL_AGREEMENT = 0.6;
 export const DEFAULT_CALIBRATION_MINIMUM = 1;
 export const DEFAULT_RECEIPT_PEPPER = "gsr-receipt-v1";
 
-export type HoldDecision = "rank" | "quorum" | "appeal";
+export type HoldDecision = "rank" | "quorum";
 
 export function verdictQuorum(env: NodeJS.ProcessEnv = process.env): number {
   return positiveInt(env.GSR_VERDICT_QUORUM, DEFAULT_VERDICT_QUORUM);
@@ -18,15 +17,6 @@ export function calibrationMinimum(env: NodeJS.ProcessEnv = process.env): number
   if (!raw) return DEFAULT_CALIBRATION_MINIMUM;
   const value = Number(raw);
   if (!Number.isInteger(value) || value < 0) return DEFAULT_CALIBRATION_MINIMUM;
-  return value;
-}
-
-/** Fraction in (0, 1]. Below this, Monday opens a Golden Eye quorum instead of ranking. */
-export function appealThreshold(env: NodeJS.ProcessEnv = process.env): number {
-  const raw = env.GSR_APPEAL_AGREEMENT?.trim();
-  if (!raw) return DEFAULT_APPEAL_AGREEMENT;
-  const value = Number(raw);
-  if (!Number.isFinite(value) || value <= 0 || value > 1) return DEFAULT_APPEAL_AGREEMENT;
   return value;
 }
 
@@ -52,41 +42,10 @@ export function quorumCount(judges: readonly QuorumJudge[]): number {
   return ids.size;
 }
 
-export function mondayGate(input: {
-  judges: readonly QuorumJudge[];
-  agreement: number;
-  appealSealed: number;
-  quorum: number;
-  threshold: number;
-}): HoldDecision {
+/** Once the quorum is in, that panel's place is the verdict. Agreement does not send it back. */
+export function mondayGate(input: { judges: readonly QuorumJudge[]; quorum: number }): HoldDecision {
   if (quorumCount(input.judges) < input.quorum) return "quorum";
-  if (input.agreement < input.threshold && input.appealSealed < input.quorum) return "appeal";
   return "rank";
-}
-
-export type AppealCandidate = { userId: string; eye: number; level: string };
-
-/**
- * A second quorum. Golden Eye first. If that bench is short, the highest eye
- * scores fill the remaining seats. People who already judged this wave are out.
- */
-export function appealPanel(
-  candidates: readonly AppealCandidate[],
-  alreadyJudged: ReadonlySet<string>,
-  quorum: number,
-): { ids: string[]; fallback: boolean } {
-  const fresh = candidates.filter((candidate) => !alreadyJudged.has(candidate.userId));
-  const byEye = (a: AppealCandidate, b: AppealCandidate) => b.eye - a.eye || (a.userId < b.userId ? -1 : a.userId > b.userId ? 1 : 0);
-  const golden = fresh.filter((candidate) => candidate.level === "Golden Eye" || candidate.eye >= 90).sort(byEye);
-  if (golden.length >= quorum) {
-    return { ids: golden.slice(0, quorum).map((candidate) => candidate.userId), fallback: false };
-  }
-  const goldenIds = new Set(golden.map((candidate) => candidate.userId));
-  const rest = fresh.filter((candidate) => !goldenIds.has(candidate.userId)).sort(byEye);
-  return {
-    ids: [...golden, ...rest].slice(0, quorum).map((candidate) => candidate.userId),
-    fallback: true,
-  };
 }
 
 export type PairTally = { subjectId: string; probeId: string; better: number; worse: number };
@@ -187,14 +146,16 @@ export function merkleRoot(leaves: readonly string[]): string {
   return layer[0]!;
 }
 
-export function holdCopy(reason: "NONE" | "QUORUM" | "APPEAL", quorum: number): string | null {
+export function holdCopy(reason: "NONE" | "QUORUM", quorum: number): string | null {
   if (reason === "QUORUM") {
     return `This wave did not reach ${quorum} calibrated judges for its title. It is not ranked and rolls to next Monday.`;
   }
-  if (reason === "APPEAL") {
-    return "The judges did not agree. A second quorum of Golden Eye judges has the wave before it is ranked. It rolls to the next Monday if that quorum is still open.";
-  }
   return null;
+}
+
+export function finalLine(judges: number): string {
+  const noun = judges === 1 ? "judge" : "judges";
+  return `Judged by ${judges} qualified ${noun}. Verdict final.`;
 }
 
 export function levelName(score: number): EyeLevel {

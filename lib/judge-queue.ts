@@ -122,7 +122,7 @@ export const ensureWeeklyQueue = cache(async (userId: string): Promise<JudgeSess
       .filter((ballot) => {
         if (ballot.status !== "OPEN") return false;
         if (!college || ballot.college !== college) return true;
-        if (ballot.entry.status !== "SUBMITTED" && ballot.entry.status !== "PLACED") return true;
+        if (ballot.entry.status !== "SUBMITTED") return true;
         if (!isCurrentModality(ballot.entry.theme.slug, ballot.entry.category)) return true;
         return !canJudgeEntry({
           judgeAthleteId: athleteId,
@@ -468,6 +468,7 @@ export async function placeOnStack(
             themeId: ballot.entry.themeId,
             category: ballot.entry.category,
             sex: ballot.entry.sex,
+            status: "SUBMITTED",
           },
         },
         orderBy: [{ place: "asc" }, { sealedAt: "asc" }],
@@ -737,9 +738,10 @@ export async function saveRankingOrder(userId: string, ballotId: string, rawOrde
         const place = index + 1;
         const ballot = await tx.ballot.findFirst({
           where: { id: token.id, userId },
-          select: { status: true },
+          select: { status: true, entry: { select: { status: true } } },
         });
         if (!ballot) return "rejected";
+        if (ballot.entry.status !== "SUBMITTED") continue;
         if (ballot.status === "OPEN") {
           freshIndex += 1;
           await tx.ballot.update({

@@ -201,8 +201,6 @@ model Entry {
   holdReason       HoldReason      @default(NONE)
   /// Mondays on which this wave missed the judge quorum.
   rolloverCount    Int             @default(0)
-  /// The second quorum had to fill seats below Golden Eye.
-  appealFallback   Boolean         @default(false)
   lastHoldYear     Int?
   lastHoldWeek     Int?
   voteCommits      VoteCommit[]
@@ -309,8 +307,6 @@ model Ballot {
   sealedAt      DateTime?
   createdAt     DateTime           @default(now())
   comparisons   BallotComparison[]
-  /// Second quorum, opened when the first panel disagreed.
-  appeal        Boolean            @default(false)
 
   @@unique([userId, entryId])
   @@index([entryId, college])
@@ -433,7 +429,6 @@ enum HigherSide {
 enum HoldReason {
   NONE
   QUORUM
-  APPEAL
 }
 
 enum VoteConfidence {

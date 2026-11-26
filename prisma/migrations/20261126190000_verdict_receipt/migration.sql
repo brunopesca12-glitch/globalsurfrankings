@@ -1,16 +1,12 @@
 -- CreateEnum
-CREATE TYPE "HoldReason" AS ENUM ('NONE', 'QUORUM', 'APPEAL');
+CREATE TYPE "HoldReason" AS ENUM ('NONE', 'QUORUM');
 CREATE TYPE "VoteConfidence" AS ENUM ('CONFIDENT', 'UNSURE');
 
 -- AlterTable
 ALTER TABLE "Entry" ADD COLUMN "holdReason" "HoldReason" NOT NULL DEFAULT 'NONE',
 ADD COLUMN "rolloverCount" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN "appealFallback" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN "lastHoldYear" INTEGER,
 ADD COLUMN "lastHoldWeek" INTEGER;
-
--- AlterTable
-ALTER TABLE "Ballot" ADD COLUMN "appeal" BOOLEAN NOT NULL DEFAULT false;
 
 -- CreateTable
 CREATE TABLE "VoteCommit" (
