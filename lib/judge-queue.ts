@@ -287,7 +287,9 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
       entryStatus: ballot.entry.status,
       current: isCurrentModality(ballot.entry.theme.slug, ballot.entry.category),
     }));
-  const open = visibleOpenBallots(asView(weekBallots), asView(earlierOpen));
+  const open = visibleOpenBallots(asView(weekBallots), asView(earlierOpen)).sort(
+    (a, b) => Number(b.hi > b.lo) - Number(a.hi > a.lo) || a.createdAt.getTime() - b.createdAt.getTime(),
+  );
   const sealed = weekBallots.filter((ballot) => ballot.status === "SEALED").length;
   const pairs = sealedFinal
     .filter((ballot) => ballot.place != null && ballot.entry.placement)

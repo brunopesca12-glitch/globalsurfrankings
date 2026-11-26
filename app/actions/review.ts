@@ -97,3 +97,29 @@ export async function removeEntry(formData: FormData) {
   revalidatePath("/ranking");
   redirect("/admin/review?saved=removed");
 }
+
+export async function banFromReport(formData: FormData) {
+  const admin = await requireAdmin();
+  if (!admin) redirect("/sign-in");
+  const flagId = String(formData.get("flagId") ?? "");
+  const flag = await prisma.publicationFlag.findUnique({
+    where: { id: flagId },
+    include: { entry: { include: { athlete: true, placement: { select: { id: true } } } } },
+  });
+  if (!flag) redirect("/admin/review?error=missing");
+  await prisma.user.update({
+    where: { id: flag.entry.athlete.userId },
+    data: { bannedAt: new Date(), banReason: "Reposted or already published wave." },
+  });
+  await prisma.publicationFlag.updateMany({
+    where: { entryId: flag.entryId, resolvedAt: null },
+    data: { resolvedAt: new Date() },
+  });
+  if (flag.entry.status !== "PLACED" && !flag.entry.placement) {
+    await prisma.entry.delete({ where: { id: flag.entryId } });
+  }
+  revalidatePath("/admin/review");
+  revalidatePath("/videos");
+  revalidatePath("/lineup");
+  redirect("/admin/review?saved=banned");
+}

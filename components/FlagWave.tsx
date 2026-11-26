@@ -14,11 +14,11 @@ export function FlagWave({ entryId, ballotId }: { entryId?: string; ballotId?: s
       {entryId ? <input type="hidden" name="entryId" value={entryId} /> : null}
       {ballotId ? <input type="hidden" name="ballotId" value={ballotId} /> : null}
       <label className="block text-sm">
-        Seen this wave posted online before?
+        Seen this wave before?
         <input className="mt-1 w-full border border-line bg-white px-3 py-2" name="note" maxLength={500} placeholder="Where you saw it, if you remember" />
       </label>
       <button className="border border-line px-3 py-2 text-sm" type="submit" disabled={pending}>
-        {pending ? "Sending…" : "Report it to the desk"}
+        {pending ? "Sending…" : "Seen this wave before"}
       </button>
     </form>
   );

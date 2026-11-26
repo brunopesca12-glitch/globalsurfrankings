@@ -50,8 +50,15 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   });
   if (!parsed.success) return { error: "Invalid email or password." };
 
+  const email = parsed.data.email.toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email }, select: { bannedAt: true, passwordHash: true } });
+  if (existing?.bannedAt) {
+    const matches = await compare(parsed.data.password, existing.passwordHash);
+    if (matches) return { error: "This account is closed." };
+  }
+
   const redirectTo = safeCallback(String(formData.get("callbackUrl") ?? ""), "/judge");
-  return signInAccount(parsed.data.email.toLowerCase(), parsed.data.password, redirectTo);
+  return signInAccount(email, parsed.data.password, redirectTo);
 }
 
 const signup = z.object({

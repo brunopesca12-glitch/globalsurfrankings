@@ -5,10 +5,13 @@ import { del } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { SEASON_2027, themeBySlug } from "@/lib/catalogue";
+import { themeBySlug } from "@/lib/catalogue";
+import { FILE_ONLY_MESSAGE } from "@/lib/file-only";
+import { MISSING_METADATA_NOTE, OUTSIDE_SEASON_MESSAGE, decideFootage, parseFootageProbe } from "@/lib/footage";
+import { captureWindow, entryVintage } from "@/lib/seasons";
 import { categoryFor } from "@/lib/category";
 import { prisma } from "@/lib/db";
-import { decideEntry, ENTRY_REJECTION, parseVideoUrl } from "@/lib/entry-rules";
+import { decideEntry, ENTRY_REJECTION } from "@/lib/entry-rules";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { isoWeek } from "@/lib/iso-week";
 import { TERMS_REQUIRED, termsBoxChecked, termsStamp } from "@/lib/legal";
@@ -31,7 +34,7 @@ export type EntryState = { error: string | null };
 const TOO_BIG = "That video is too large. Keep it under 64 MB.";
 const BAD_TYPE = "Use an MP4, WebM, or MOV file.";
 const UNREADABLE = "We could not read that video. Export it as an MP4 and try again.";
-const NEED_VIDEO = "Add a video file, or paste a link to one.";
+const NEED_VIDEO = "Add the video file. Links are not accepted.";
 const PLACEHOLDER_URL = "https://upload.gsr.surf/wave.mp4";
 
 type Intake =
@@ -59,21 +62,7 @@ async function readIntake(formData: FormData): Promise<{ error: string } | Intak
     return { readable: true, bytes: fetched.bytes, mime: fetched.mime, sourceUrl: fetched.finalUrl, blobUrl };
   }
 
-  if (videoUrl) {
-    const canonical = parseVideoUrl(videoUrl);
-    if (!canonical) return { error: ENTRY_REJECTION.VIDEO };
-    const fetched = await fetchVideo(canonical);
-    if (fetched.kind === "blocked") return { error: "That link cannot be used. Upload the file, or paste a public link to the video." };
-    if (fetched.kind === "too-big") return { error: TOO_BIG };
-    if (fetched.kind === "failed") return { error: "We could not open that link. Try the file itself." };
-    if (fetched.kind === "unreadable") {
-      return { error: "That link did not download a video file. Upload the file, or paste a link that ends in .mp4." };
-    }
-    if (fetched.kind === "page") {
-      return { readable: false, bytes: null, mime: null, sourceUrl: fetched.finalUrl, blobUrl: null };
-    }
-    return { readable: true, bytes: fetched.bytes, mime: fetched.mime, sourceUrl: fetched.finalUrl, blobUrl: null };
-  }
+  if (videoUrl) return { error: FILE_ONLY_MESSAGE };
 
   return { error: NEED_VIDEO };
 }
@@ -87,14 +76,27 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
   const session = await auth();
   if (!session?.user) return { error: "Sign in to enter a wave." };
 
+  const account = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { bannedAt: true },
+  });
+  if (account?.bannedAt) return { error: "This account is closed." };
+
   const athlete = await prisma.athlete.findUnique({ where: { userId: session.user.id } });
   if (!athlete) return { error: "The house does not compete in its own rankings." };
 
+  const now = new Date();
+  const day = now.toISOString().slice(0, 10);
+  const vintage = entryVintage(day);
   const season = await prisma.season.findUnique({
-    where: { vintage: SEASON_2027.vintage },
+    where: { vintage },
     include: { themes: true },
   });
-  if (!season) return { error: "Season 2027 is not in the database yet. Run the seed." };
+  if (!season) {
+    return {
+      error: vintage === 2026 ? "Preseason is not in the database yet." : "Season 2027 is not in the database yet. Run the seed.",
+    };
+  }
 
   const theme = season.themes.find((item) => item.slug === String(formData.get("theme") ?? ""));
   const catalogue = theme ? themeBySlug(theme.slug) : undefined;
@@ -108,7 +110,6 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
   const environment = formData.get("environment") === "POOL" ? "POOL" : "OCEAN";
   const spot = String(formData.get("spot") ?? "").trim().slice(0, 80);
   const category = categoryFor(athlete.birthDate, season.ageAsOf);
-  const now = new Date();
   const week = isoWeek(now);
   const existing = await prisma.entry.findMany({
     where: { athleteId: athlete.id, environment: "OCEAN", isoYear: week.isoYear, isoWeek: week.isoWeek },
@@ -136,11 +137,13 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
 
   let frameHashes: string[] | null = intake.readable ? [] : null;
   let jpegs: Buffer[] = [];
+  let probeText = "";
   if (intake.readable) {
     try {
       const sampled = await sampleFrames(intake.bytes);
       frameHashes = sampled.hashes;
       jpegs = sampled.jpegs;
+      probeText = sampled.probeText;
     } catch (error) {
       if (error instanceof FrameSampleError && error.reason === "missing-ffmpeg") {
         frameHashes = null;
@@ -150,6 +153,15 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
       }
     }
   }
+
+  const footage = parseFootageProbe(probeText);
+  const gate = intake.readable && probeText ? decideFootage(footage, captureWindow(day)) : { outcome: "missing" as const };
+  if (gate.outcome === "outside") {
+    await discardBlob(intake.blobUrl);
+    return { error: OUTSIDE_SEASON_MESSAGE };
+  }
+  const metadataNote = gate.outcome === "missing" && intake.readable ? MISSING_METADATA_NOTE : "";
+  const capturedAt = gate.outcome === "inside" ? new Date(`${gate.capturedOn}T00:00:00.000Z`) : null;
 
   const vision = waveVisionFromEnv(process.env);
   let observation = null;
@@ -177,6 +189,8 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
           visionConfigured: vision != null,
         });
         if (!checked.ok) return checked.error;
+        const reviewStatus = metadataNote && checked.reviewStatus === "CLEAR" ? "PENDING_REVIEW" : checked.reviewStatus;
+        const modalityNote = metadataNote && checked.reviewStatus === "CLEAR" ? metadataNote : checked.modalityNote;
         const created = await tx.entry.create({
           data: {
             athleteId: athlete.id,
@@ -195,11 +209,16 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
             frameHashes: checked.frameHashes,
             unpublishedAttested: true,
             attestationText: checked.attestationText,
-            reviewStatus: checked.reviewStatus,
+            reviewStatus,
             modalityCheck: checked.modalityCheck,
-            modalityNote: checked.modalityNote,
+            modalityNote,
             termsAcceptedAt: accepted.termsAcceptedAt,
             termsVersion: accepted.termsVersion,
+            capturedAt,
+            captureDevice: footage.device,
+            captureLat: footage.lat,
+            captureLng: footage.lng,
+            metadataNote,
           },
         });
         if (intake.readable && !intake.sourceUrl) {
@@ -215,6 +234,15 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
           where: { id: athlete.userId },
           data: { termsAcceptedAt: accepted.termsAcceptedAt, termsVersion: accepted.termsVersion },
         });
+        if (jpegs.length > 0) {
+          await tx.entryKeyframe.createMany({
+            data: jpegs.slice(0, 6).map((frame, position) => ({
+              entryId: created.id,
+              position,
+              bytes: Uint8Array.from(frame),
+            })),
+          });
+        }
         return null;
       },
       { timeout: 20_000 },

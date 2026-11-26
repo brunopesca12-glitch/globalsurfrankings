@@ -1,17 +1,25 @@
 import Link from "next/link";
+import { GuestEye } from "@/components/DuelStage";
 import { SEASON_2027, THEMES } from "@/lib/catalogue";
 import { EDITIONS } from "@/lib/constitution";
 import { getHomeRankings, type RankingRow } from "@/lib/data";
 import { formatDate, formatPoints } from "@/lib/format";
+import { GUEST_DUELS } from "@/lib/calibration";
+import { loadGuestDuels } from "@/lib/feed";
 import { MONEY_BLANK } from "@/lib/prize";
 import { circuitClock } from "@/lib/season-clock";
+import { auth } from "@/lib/auth";
 
 export default async function HomePage() {
+  const session = await auth().catch(() => null);
   const board = await loadBoard();
   const clock = circuitClock(new Date());
+  const guest = session?.user ? null : await loadGuestDuels(GUEST_DUELS).catch(() => []);
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-10 md:py-14">
+    <div>
+      {guest ? <GuestEye duels={guest} /> : null}
+      <div className="mx-auto max-w-6xl px-5 py-10 md:py-14">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-gold">
@@ -103,6 +111,7 @@ export default async function HomePage() {
           Seven titles, four divisions, 28 weekly champions. Your ten best results decide the season.
         </p>
       </section>
+      </div>
     </div>
   );
 }

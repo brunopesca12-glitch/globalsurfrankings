@@ -111,6 +111,8 @@ export type SampledFrames = {
   hashes: string[];
   jpegs: Buffer[];
   duration: number | null;
+  /** ffmpeg's probe log, used to read capture date, device, and GPS. */
+  probeText: string;
 };
 
 export async function sampleFrames(bytes: Uint8Array): Promise<SampledFrames> {
@@ -157,7 +159,7 @@ export async function sampleFrames(bytes: Uint8Array): Promise<SampledFrames> {
     );
     const hashes = [...hashesFromRaw(full.stdout), ...hashesFromRaw(center.stdout)];
     if (hashes.length === 0) throw new FrameSampleError("unreadable");
-    return { hashes, jpegs: splitJpegs(jpeg.stdout), duration };
+    return { hashes, jpegs: splitJpegs(jpeg.stdout), duration, probeText: probe.stderr };
   } catch (error) {
     if (error instanceof FrameSampleError) throw error;
     throw new FrameSampleError("unreadable");

@@ -91,14 +91,24 @@ export default async function DeskPage({
       <section className="mt-10">
         <h2 className="font-serif text-3xl">Monday verdict</h2>
         <p className="mt-2 text-sm text-ink/70">
+          The drop runs itself every Monday at 09:00 São Paulo time. This button is only a manual rerun.{" "}
           {desk.waiting === 1 ? "1 wave is waiting." : `${desk.waiting} waves are waiting.`} An entry is held when its
           athlete still has open ballots for that week, or when every panel is short of three ballots.
         </p>
         <form action={runVerdict} className="mt-4">
           <button className="bg-ocean px-4 py-3 text-paper" type="submit">
-            Run Monday verdict
+            Run the drop now
           </button>
         </form>
+        <p className="mt-3 text-sm">
+          <Link href="/admin/calibration" className="text-ocean">
+            Calibration key
+          </Link>
+          <span className="mx-2 text-ink/30">·</span>
+          <Link href="/verdict" className="text-ocean">
+            Reveal page
+          </Link>
+        </p>
         {desk.runs.length > 0 ? (
           <ul className="mt-4 space-y-1 text-sm text-ink/70">
             {desk.runs.map((run) => (

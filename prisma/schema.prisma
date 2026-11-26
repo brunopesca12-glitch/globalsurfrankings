@@ -70,11 +70,20 @@ model User {
   termsAcceptedAt  DateTime?
   /// Version of the terms they accepted. See lib/legal.ts.
   termsVersion     String?
+  /// Set when the desk closes the account for a reposted or already published wave.
+  bannedAt         DateTime?
+  banReason        String    @default("")
+  /// May lock calibration keys with the desk.
+  calibrationPro   Boolean   @default(false)
   athlete          Athlete?
   seats            CollegeSeat[]
   ballots          Ballot[]
   publicationFlags PublicationFlag[]
   passwordResets   PasswordResetToken[]
+  follows          Follow[]
+  shakas           Shaka[]
+  calibrationVotes CalibrationVote[]
+  eyeDays          EyeDay[]
 }
 
 model Athlete {
@@ -99,6 +108,7 @@ model Athlete {
   createdAt          DateTime         @default(now())
   entries            Entry[]
   placements         Placement[]
+  followers          Follow[]
 }
 
 model Season {
@@ -108,6 +118,8 @@ model Season {
   startsOn DateTime @db.Date
   endsOn   DateTime @db.Date
   ageAsOf  DateTime @db.Date
+  /// Preseason points stay off the Founding Season tables.
+  countsForRanking Boolean @default(true)
   themes   Theme[]
   entries  Entry[]
 }
@@ -167,12 +179,23 @@ model Entry {
   termsAcceptedAt     DateTime?
   /// Version of the terms accepted for this upload.
   termsVersion        String?
+  /// Capture time read from the file, when the container had one.
+  capturedAt          DateTime?
+  captureDevice       String?
+  captureLat          Float?
+  captureLng          Float?
+  /// Why the footage is in review, or empty when the file date sat inside the season.
+  metadataNote        String           @default("")
   createdAt   DateTime     @default(now())
   placement   Placement?
   ballots     Ballot[]
   verdicts    CollegeVerdict[]
   publicationFlags PublicationFlag[]
   media       EntryMedia?
+  keyframes   EntryKeyframe[]
+  shakas      Shaka[]
+  calibrationLeft  CalibrationDuel[] @relation("CalLeft")
+  calibrationRight CalibrationDuel[] @relation("CalRight")
 
   @@index([athleteId, isoYear, isoWeek, environment])
   @@index([themeId, category, sex])
@@ -350,4 +373,101 @@ model CollegeVerdict {
   createdAt DateTime   @default(now())
 
   @@unique([entryId, college])
+}
+
+/// A surfer follows an athlete. Friends' unjudged weeks show as locked cards.
+model Follow {
+  id         String   @id @default(cuid())
+  followerId String
+  follower   User     @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  athleteId  String
+  athlete    Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([followerId, athleteId])
+  @@index([athleteId])
+}
+
+/// The only reaction on The Lineup.
+model Shaka {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entryId   String
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, entryId])
+  @@index([entryId])
+}
+
+/// JPEG keyframes kept so the desk can compare a wave by eye.
+model EntryKeyframe {
+  id       String @id @default(cuid())
+  entryId  String
+  entry    Entry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  position Int
+  bytes    Bytes
+
+  @@unique([entryId, position])
+}
+
+enum HigherSide {
+  LEFT
+  RIGHT
+}
+
+/// A pairwise duel with a known answer once the pros agree.
+model CalibrationDuel {
+  id           String             @id @default(cuid())
+  leftEntryId  String
+  rightEntryId String
+  leftEntry    Entry              @relation("CalLeft", fields: [leftEntryId], references: [id], onDelete: Cascade)
+  rightEntry   Entry              @relation("CalRight", fields: [rightEntryId], references: [id], onDelete: Cascade)
+  /// Which clip goes higher. Null until the key locks.
+  higher       HigherSide?
+  createdAt    DateTime           @default(now())
+  votes        CalibrationVote[]
+  answers      CalibrationAnswer[]
+
+  @@unique([leftEntryId, rightEntryId])
+}
+
+model CalibrationVote {
+  id        String          @id @default(cuid())
+  duelId    String
+  duel      CalibrationDuel @relation(fields: [duelId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  higher    HigherSide
+  createdAt DateTime        @default(now())
+
+  @@unique([duelId, userId])
+}
+
+model CalibrationAnswer {
+  id        String          @id @default(cuid())
+  duelId    String
+  duel      CalibrationDuel @relation(fields: [duelId], references: [id], onDelete: Cascade)
+  userId    String?
+  guestKey  String?
+  higher    HigherSide
+  correct   Boolean
+  createdAt DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([guestKey])
+}
+
+/// One row per judge per São Paulo day. Streaks are counted from these days.
+model EyeDay {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day              DateTime @db.Date
+  duels            Int      @default(0)
+  calibrations     Int      @default(0)
+  calibrationHits  Int      @default(0)
+
+  @@unique([userId, day])
 }

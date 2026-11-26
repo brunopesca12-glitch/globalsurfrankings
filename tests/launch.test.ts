@@ -46,11 +46,11 @@ describe("world board link", () => {
 
 describe("pool fee and prize columns", () => {
   it("is free unless the env fee is a positive number of cents", () => {
-    expect(poolFeeCents({ GSR_POOL_FEE_CENTS: undefined })).toBe(0);
-    expect(poolFeeCents({ GSR_POOL_FEE_CENTS: "off" })).toBe(0);
-    expect(poolFeeCents({ GSR_POOL_FEE_CENTS: "2000" })).toBe(2000);
-    expect(prizeMoneyPublished({ GSR_PRIZE_MONEY: undefined })).toBe(false);
-    expect(prizeMoneyPublished({ GSR_PRIZE_MONEY: "on" })).toBe(true);
+    expect(poolFeeCents({ ...process.env, GSR_POOL_FEE_CENTS: undefined })).toBe(0);
+    expect(poolFeeCents({ ...process.env, GSR_POOL_FEE_CENTS: "off" })).toBe(0);
+    expect(poolFeeCents({ ...process.env, GSR_POOL_FEE_CENTS: "2000" })).toBe(2000);
+    expect(prizeMoneyPublished({ ...process.env, GSR_PRIZE_MONEY: undefined })).toBe(false);
+    expect(prizeMoneyPublished({ ...process.env, GSR_PRIZE_MONEY: "on" })).toBe(true);
     expect(MONEY_BLANK).toBe("—");
   });
 });

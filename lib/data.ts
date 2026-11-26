@@ -73,7 +73,7 @@ export function pointsForAthlete(
 export async function getSeasonRankings() {
   const entries = await prisma.entry.findMany({
     where: {
-      season: { vintage: SEASON_2027.vintage },
+      season: { vintage: SEASON_2027.vintage, countsForRanking: true },
       status: { in: ["SUBMITTED", "PLACED"] },
       theme: { slug: { in: [...SEASON_SLUGS] } },
     },
@@ -120,7 +120,7 @@ export async function getHomeRankings() {
   const week = isoWeek(new Date());
   const wavesThisWeek = await prisma.entry.count({
     where: {
-      season: { vintage: SEASON_2027.vintage },
+      season: { vintage: SEASON_2027.vintage, countsForRanking: true },
       isoYear: week.isoYear,
       isoWeek: week.isoWeek,
     },
@@ -156,7 +156,7 @@ const CURRENT_ENTRY = {
 
 export async function listVideos() {
   return prisma.entry.findMany({
-    where: { season: { vintage: SEASON_2027.vintage }, ...CURRENT_ENTRY },
+    where: { status: "PLACED", season: { vintage: SEASON_2027.vintage, countsForRanking: true }, ...CURRENT_ENTRY },
     include: { athlete: true, theme: true, placement: true },
     orderBy: { createdAt: "desc" },
   });
@@ -179,7 +179,7 @@ export async function collegeVerdictMap(entryIds: string[]) {
 
 export async function getVideo(id: string) {
   return prisma.entry.findFirst({
-    where: { id, ...CURRENT_ENTRY },
+    where: { id, status: "PLACED", ...CURRENT_ENTRY },
     include: { athlete: true, theme: true, placement: true },
   });
 }
