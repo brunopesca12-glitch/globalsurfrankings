@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import { decideEntry, ENTRY_REJECTION, parseVideoUrl } from "@/lib/entry-rules";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { isoWeek } from "@/lib/iso-week";
+import { TERMS_REQUIRED, termsBoxChecked, termsStamp } from "@/lib/legal";
 import { attestationGiven, decideSubmission } from "@/lib/submission-check";
 import { dutyIsCurrent } from "@/lib/tribunal";
 import { FrameSampleError, sampleFrames } from "@/lib/video-frames";
@@ -101,6 +102,8 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
   if (!attestationGiven(formData.get("unpublished"))) {
     return { error: "Tick the box to confirm this wave has never been posted on any social network or platform." };
   }
+  if (!termsBoxChecked(formData.get("terms"))) return { error: TERMS_REQUIRED };
+  const accepted = termsStamp();
 
   const environment = formData.get("environment") === "POOL" ? "POOL" : "OCEAN";
   const spot = String(formData.get("spot") ?? "").trim().slice(0, 80);
@@ -195,6 +198,8 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
             reviewStatus: checked.reviewStatus,
             modalityCheck: checked.modalityCheck,
             modalityNote: checked.modalityNote,
+            termsAcceptedAt: accepted.termsAcceptedAt,
+            termsVersion: accepted.termsVersion,
           },
         });
         if (intake.readable && !intake.sourceUrl) {
@@ -206,6 +211,10 @@ export async function submitEntry(_prev: EntryState, formData: FormData): Promis
             data: { videoUrl: `/media/entries/${created.id}` },
           });
         }
+        await tx.user.update({
+          where: { id: athlete.userId },
+          data: { termsAcceptedAt: accepted.termsAcceptedAt, termsVersion: accepted.termsVersion },
+        });
         return null;
       },
       { timeout: 20_000 },

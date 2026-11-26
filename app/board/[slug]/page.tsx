@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { CategoryCode, Sex } from "@prisma/client";
+import { readBoardDivision } from "@/lib/board-link";
+import { MONEY_BLANK } from "@/lib/prize";
 import { themeBySlug } from "@/lib/catalogue";
 import { CATEGORY_CODES, CATEGORY_LABEL } from "@/lib/category";
 import { getEditionBoard } from "@/lib/data";
@@ -10,14 +11,7 @@ import { environmentLabel, formatDate, formatPoints, sexLabel, verificationLabel
 
 export const metadata: Metadata = { title: "Board" };
 
-function parseCategory(value: string | undefined, allowed: readonly CategoryCode[]): CategoryCode {
-  if (value && allowed.includes(value as CategoryCode)) return value as CategoryCode;
-  return allowed[0] ?? "OPEN";
-}
-
-function parseSex(value: string | undefined): Sex {
-  return value === "W" ? "W" : "M";
-}
+export const dynamic = "force-dynamic";
 
 export default async function BoardPage({
   params,
@@ -31,8 +25,9 @@ export default async function BoardPage({
   const catalogue = themeBySlug(slug);
   if (!catalogue) notFound();
 
-  const category = parseCategory(query.category, catalogue.categories);
-  const sex = parseSex(query.sex);
+  const division = readBoardDivision(query.category, query.sex);
+  const category = division.category;
+  const sex = division.sex;
   const board = await getEditionBoard(slug, category, sex);
 
   return (
@@ -76,6 +71,14 @@ export default async function BoardPage({
             N = {board.placedAthletes} athletes placed · {CATEGORY_LABEL[category]} · {sexLabel(sex)}. Points use S ={" "}
             {board.entrants} waves entered, base × √(S/100), until the season closes. Monday results publish the places.
           </p>
+          {board.placed.length === 0 && board.pending.length === 0 ? (
+            <p className="mt-8 border border-line bg-white px-4 py-6 text-sm text-ink/60">
+              No place yet.{" "}
+              <Link href="/enter" className="text-ocean">
+                Enter a wave
+              </Link>
+            </p>
+          ) : board.placed.length > 0 ? (
           <div className="mt-4 overflow-x-auto border border-line bg-white">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/60">
@@ -83,21 +86,12 @@ export default async function BoardPage({
                   <th className="px-3 py-2">Place</th>
                   <th className="px-3 py-2">Athlete</th>
                   <th className="px-3 py-2">Points</th>
+                  <th className="px-3 py-2">Prize</th>
                   <th className="px-3 py-2">Wave</th>
                 </tr>
               </thead>
               <tbody>
-                {board.placed.length === 0 ? (
-                  <tr>
-                    <td className="px-3 py-6 text-ink/60" colSpan={4}>
-                      No placement published in this division.{" "}
-                      <Link href="/enter" className="text-ocean">
-                        Enter a wave
-                      </Link>
-                    </td>
-                  </tr>
-                ) : (
-                  board.placed.map((row) => (
+                {board.placed.map((row) => (
                     <tr key={row.entryId} className="border-b border-line last:border-b-0">
                       <td className="px-3 py-3 font-serif text-2xl">{row.place}</td>
                       <td className="px-3 py-3">
@@ -111,6 +105,7 @@ export default async function BoardPage({
                         <CollegeVerdictLine verdicts={row.verdicts} finalPlace={row.place} />
                       </td>
                       <td className="px-3 py-3">{formatPoints(row.points)}</td>
+                      <td className="px-3 py-3">{MONEY_BLANK}</td>
                       <td className="px-3 py-3">
                         <span className="block">{environmentLabel(row.environment)}</span>
                         <span className="text-ink/60">{row.spot}</span>
@@ -119,19 +114,19 @@ export default async function BoardPage({
                         </Link>
                       </td>
                     </tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
           </div>
+          ) : null}
           {board.pending.length > 0 ? (
             <div className="mt-8">
-              <h2 className="font-serif text-2xl">Waiting for Monday</h2>
+              <h2 className="font-serif text-2xl">No place yet</h2>
               <ul className="mt-3 space-y-2 text-sm">
                 {board.pending.map((entry) => (
                   <li key={entry.id} className="border border-line bg-white px-3 py-2">
                     {entry.athlete.displayName} · {environmentLabel(entry.environment)}
-                    {entry.spot ? ` · ${entry.spot}` : ""} · no place yet ·{" "}
+                    {entry.spot ? ` · ${entry.spot}` : ""} ·{" "}
                     <Link href={`/videos/${entry.id}`} className="text-ocean">
                       Watch
                     </Link>

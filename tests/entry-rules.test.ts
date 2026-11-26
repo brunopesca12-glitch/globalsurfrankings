@@ -67,7 +67,7 @@ describe("entry gate", () => {
     expect(decideEntry({ ...base, dutyCurrent: false })).toEqual({ ok: false, code: "DUTY" });
   });
 
-  it("allows one free ocean wave per ISO week and charges the pool toll", () => {
+  it("allows one free ocean wave per ISO week and leaves the pool free until the fee is set", () => {
     expect(decideEntry(base)).toEqual({ ok: true, tollCents: 0 });
     expect(
       decideEntry({
@@ -81,6 +81,13 @@ describe("entry gate", () => {
         environment: "POOL",
         existingOceanWeeks: [{ isoYear: 2026, isoWeek: 39 }],
       }),
+    ).toEqual({ ok: true, tollCents: 0 });
+    expect(
+      decideEntry({
+        ...base,
+        environment: "POOL",
+        poolTollCents: 2_000,
+      }),
     ).toEqual({ ok: true, tollCents: 2_000 });
   });
 
@@ -88,7 +95,11 @@ describe("entry gate", () => {
     expect(decideEntry({ ...base, theme: small, category: "JUNIOR" as "OPEN" })).toEqual({ ok: false, code: "CATEGORY" });
     expect(decideEntry({ ...base, theme: air, environment: "POOL" })).toEqual({ ok: false, code: "ENVIRONMENT" });
     expect(decideEntry({ ...base, theme: pool, environment: "OCEAN" })).toEqual({ ok: false, code: "ENVIRONMENT" });
-    expect(decideEntry({ ...base, theme: pool, environment: "POOL" })).toEqual({ ok: true, tollCents: 2_000 });
+    expect(decideEntry({ ...base, theme: pool, environment: "POOL" })).toEqual({ ok: true, tollCents: 0 });
+    expect(decideEntry({ ...base, theme: pool, environment: "POOL", poolTollCents: 2_000 })).toEqual({
+      ok: true,
+      tollCents: 2_000,
+    });
     expect(decideEntry({ ...base, today: "2028-03-01" })).toEqual({ ok: false, code: "THEME_CLOSED" });
     expect(decideEntry({ ...base, videoUrl: "nota-video" })).toEqual({ ok: false, code: "VIDEO" });
     expect(themeIsOpen("2027-09-30", "2027-09-30")).toBe(true);

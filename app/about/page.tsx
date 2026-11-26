@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FUTURE_THEMES, SEASON_2027, THEMES } from "@/lib/catalogue";
 import { auth } from "@/lib/auth";
-import { EDITIONS, FOUNDING, POOL_TOLL_CENTS } from "@/lib/constitution";
-import { formatDate, formatUsdAmount } from "@/lib/format";
+import { EDITIONS } from "@/lib/constitution";
+import { formatDate } from "@/lib/format";
+import { MONEY_BLANK } from "@/lib/prize";
 
 export const metadata: Metadata = { title: "About" };
 
@@ -42,9 +43,9 @@ export default async function AboutPage() {
       <section className="border-b border-line">
         <div className="mx-auto grid max-w-6xl md:grid-cols-3">
           {[
-            ["US$ 0", "Ocean entry. No membership, no banked waves. Wave-pool entries pay a US$ 20 verification toll."],
-            [formatUsdAmount(FOUNDING.seasonCompetitorUsd), "To surfers: season tables, a weekly race paid every Monday, and the world champions' fund."],
-            [formatUsdAmount(FOUNDING.seasonJudgeUsd), `To the surfer-judges. The pool toll, US$ ${POOL_TOLL_CENTS / 100}, goes whole to the judges too.`],
+            ["Free", "Ocean and pool entry. No membership, no banked waves. Athletes do not pay."],
+            ["Points", "Season points and ranking status are the prize. Your ten best results decide the season."],
+            [MONEY_BLANK, "Season prize money and career earnings stay on the profile and stay blank until a sponsor is affixed."],
           ].map(([title, body]) => (
             <div key={title} className="border-line px-5 py-10 md:border-r md:last:border-r-0">
               <p className="font-serif text-5xl text-ocean">{title}</p>
@@ -58,7 +59,7 @@ export default async function AboutPage() {
         <div>
           <h2 className="font-serif text-4xl">A title is not a beach on a day.</h2>
           <p className="mt-4 leading-relaxed text-ink/80">
-            At GSR, a title is a tournament: one dimension of surfing, with its own world board and its own purse, open
+            At GSR, a title is a tournament: one dimension of surfing, with its own world board and its own points, open
             every week from {formatDate(SEASON_2027.startsOn)} to {formatDate(SEASON_2027.endsOn)}. Your ten best
             results decide the season. The wave may have been ridden
             anywhere. What is measured is not who won the heat. It is who rode the best wave of the year.
@@ -71,7 +72,7 @@ export default async function AboutPage() {
         <blockquote className="border-l-2 border-gold pl-6">
           <p className="font-serif text-3xl leading-snug">&ldquo;A wave does not receive a score. It receives a place.&rdquo;</p>
           <p className="mt-4 text-sm text-ink/70">
-            Judges place each wave into their own list. Monday takes the median and pays in US dollars (stablecoin). Points follow the
+            Judges place each wave into their own list. Monday takes the median. Points follow the
             curve 100 / 60 / 45 / 35 / 28 / 22, base × √(S/100).
           </p>
         </blockquote>
@@ -104,16 +105,14 @@ export default async function AboutPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <h2 className="font-serif text-4xl">The purse is on the door.</h2>
+        <h2 className="font-serif text-4xl">Points first.</h2>
         <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
-          Every dollar on the door goes to surfers and judges: US${" "}
-          {FOUNDING.seasonCompetitorUsd.toLocaleString("en-US")} to surfers and US${" "}
-          {FOUNDING.seasonJudgeUsd.toLocaleString("en-US")} to judges, escrowed publicly before the season opens. The
-          surfers&apos; purse splits 53% season tables, 36% weekly race and 11% world champions&apos; fund. This site only mirrors and
-          orients that escrow. No money moves through the platform.
+          Every athlete has season points, season prize money, and career earnings. Season points are live. Prize
+          money and career earnings stay on the page and read {MONEY_BLANK} until a sponsor is affixed. There is no
+          cash prize and no escrow to collect.
         </p>
-        <Link href="/escrow" className="mt-6 inline-block border border-ocean px-4 py-2 text-ocean">
-          Open the escrow
+        <Link href="/ranking" className="mt-6 inline-block border border-ocean px-4 py-2 text-ocean">
+          See the rankings
         </Link>
       </section>
 

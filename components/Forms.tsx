@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { login, register, type FormState } from "@/app/actions/auth";
+import { requestPasswordReset, resetPassword } from "@/app/actions/password";
 import { submitEntry, type EntryState } from "@/app/actions/entry";
 import { updateProfile, type ProfileState } from "@/app/actions/profile";
 import { parseVideoUrl } from "@/lib/entry-rules";
@@ -47,6 +48,11 @@ export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
         Password
         <input className={field} name="password" type="password" autoComplete="current-password" required />
       </label>
+      <p className="text-sm">
+        <Link href="/forgot-password" className="text-ocean">
+          Forgot password
+        </Link>
+      </p>
       <button className={button} type="submit" disabled={pending || locked}>
         {pending || locked ? "Signing in…" : "Sign in"}
       </button>
@@ -97,7 +103,10 @@ export function RegisterForm() {
       </div>
       <fieldset className="space-y-3 border border-line px-3 py-3">
         <legend className="px-1 text-sm">US dollar (stablecoin) wallet</legend>
-        <p className="text-xs text-ink/60">Public address only. Never paste a seed phrase or a private key.</p>
+        <p className="text-xs text-ink/60">
+          Public address only. Never paste a seed phrase or a private key. Prize money is not paid while that column is
+          blank.
+        </p>
         <label className="block text-sm">
           Network
           <select className={field} name="walletNetwork" defaultValue="ethereum">
@@ -117,6 +126,20 @@ export function RegisterForm() {
           I agree to the{" "}
           <Link href="/rules" className="text-ocean">
             competition rules
+          </Link>
+          .
+        </span>
+      </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input className="mt-1" type="checkbox" name="terms" required />
+        <span>
+          I agree to the{" "}
+          <Link href="/terms" className="text-ocean">
+            Terms of Use
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="text-ocean">
+            Privacy Policy
           </Link>
           .
         </span>
@@ -176,7 +199,10 @@ export function ProfileForm({
       </label>
       <fieldset className="space-y-3 border border-line px-3 py-3">
         <legend className="px-1 text-sm">US dollar (stablecoin) wallet</legend>
-        <p className="text-xs text-ink/60">Payouts go here. Public address only. Never paste a seed phrase or a private key.</p>
+        <p className="text-xs text-ink/60">
+          Public address only. Never paste a seed phrase or a private key. Prize money is not paid while that column is
+          blank.
+        </p>
         <label className="block text-sm">
           Network
           <select className={field} name="walletNetwork" defaultValue={walletNetwork || "ethereum"}>
@@ -212,11 +238,13 @@ export function EntryForm({
   themes,
   pendingBallots,
   oceanUsed,
+  poolChoiceLabel,
   blobUpload = false,
 }: {
   themes: ThemeOption[];
   pendingBallots: number;
   oceanUsed: boolean;
+  poolChoiceLabel: string;
   /** When set, large files go straight to storage instead of through the server. */
   blobUpload?: boolean;
 }) {
@@ -228,6 +256,7 @@ export function EntryForm({
   const [videoUrl, setVideoUrl] = useState("");
   const [spot, setSpot] = useState("");
   const [unpublished, setUnpublished] = useState(false);
+  const [terms, setTerms] = useState(false);
   const [, startTransition] = useTransition();
   const busy = pending || uploading;
 
@@ -269,18 +298,17 @@ export function EntryForm({
   return (
     <form action={action} className="space-y-4" onSubmit={handleSubmit}>
       <ErrorNote message={localError ?? state.error} />
-      {pendingBallots > 0 ? (
-        <p className="border border-stamp/40 bg-white px-3 py-2 text-sm">
+      {localError || state.error ? null : pendingBallots > 0 ? (
+        <p className="border border-line bg-white px-3 py-2 text-sm">
           {dutyStatusLine(pendingBallots)}{" "}
           <Link href="/judge" className="text-ocean">
             Open the queue
           </Link>
         </p>
       ) : null}
-      {oceanUsed ? (
+      {localError || state.error ? null : oceanUsed ? (
         <p className="border border-line bg-white px-3 py-2 text-sm">
-          This ISO week&apos;s ocean wave is already in. A pool wave can still enter. The published US$ 20 toll goes to
-          the judges. Nothing is charged here.
+          This ISO week&apos;s ocean wave is already in. A pool wave can still enter.
         </p>
       ) : null}
       <label className="block text-sm">
@@ -317,7 +345,7 @@ export function EntryForm({
             checked={environment === "POOL"}
             onChange={() => setEnvironment("POOL")}
           />
-          Pool · US$ 20, not charged here
+          {poolChoiceLabel}
         </label>
       </fieldset>
       <label className="block text-sm">
@@ -370,8 +398,64 @@ export function EntryForm({
         />
         <span>This wave has never been posted on any social network or platform.</span>
       </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          className="mt-1"
+          type="checkbox"
+          name="terms"
+          required
+          checked={terms}
+          onChange={(event) => setTerms(event.target.checked)}
+        />
+        <span>
+          I agree to the{" "}
+          <Link href="/terms" className="text-ocean">
+            Terms
+          </Link>
+          .
+        </span>
+      </label>
       <button className={button} type="submit" disabled={busy || themes.length === 0}>
         {busy ? "Checking the video…" : "Enter wave"}
+      </button>
+    </form>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [state, action, pending] = useActionState(requestPasswordReset, { error: null, notice: null });
+  return (
+    <form action={action} className="space-y-4">
+      <ErrorNote message={state.error} />
+      {state.notice ? <p className="border border-line bg-white px-3 py-2 text-sm">{state.notice}</p> : null}
+      <label className="block text-sm">
+        Email
+        <input className={field} name="email" type="email" autoComplete="email" required />
+      </label>
+      <button className={button} type="submit" disabled={pending}>
+        {pending ? "Sending…" : "Send reset link"}
+      </button>
+    </form>
+  );
+}
+
+export function ResetPasswordForm({ token }: { token: string }) {
+  const [state, action, pending] = useActionState(resetPassword, { error: null, notice: null });
+  return (
+    <form action={action} className="space-y-4">
+      <ErrorNote message={state.error} />
+      {state.notice ? <p className="border border-line bg-white px-3 py-2 text-sm">{state.notice}</p> : null}
+      <input type="hidden" name="token" value={token} />
+      <label className="block text-sm">
+        New password
+        <input className={field} name="password" type="password" autoComplete="new-password" minLength={8} required />
+      </label>
+      <label className="block text-sm">
+        Confirm password
+        <input className={field} name="confirm" type="password" autoComplete="new-password" minLength={8} required />
+      </label>
+      <button className={button} type="submit" disabled={pending}>
+        {pending ? "Saving…" : "Save password"}
       </button>
     </form>
   );

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { isoWeek } from "@/lib/iso-week";
 import { loadJudgeContext } from "@/lib/judge-context";
 import { editionLine } from "@/lib/panel";
+import { JUDGEABLE_ENTRY_STATUSES } from "@/lib/judgeable";
 import { canJudgeEntry, editionKey, forbiddenForAthlete, resolveCollege } from "@/lib/tribunal";
 
 const TARGET = 6;
@@ -59,7 +60,7 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
       userId: user.id,
       status: "OPEN",
       entry: {
-        status: "SUBMITTED",
+        status: { in: [...JUDGEABLE_ENTRY_STATUSES] },
         category: { in: ["OPEN", "MASTERS_40"] },
         theme: { slug: { in: [...SEASON_SLUGS] } },
       },
@@ -101,7 +102,7 @@ export async function openFreshComparison(email: string): Promise<FreshBallotRes
   const entries = await prisma.entry.findMany({
     where: {
       seasonId: ctx.seasonId,
-      status: { in: ["SUBMITTED", "PLACED"] },
+      status: { in: [...JUDGEABLE_ENTRY_STATUSES] },
       category: { in: ["OPEN", "MASTERS_40"] },
       theme: { slug: { in: [...SEASON_SLUGS] } },
     },

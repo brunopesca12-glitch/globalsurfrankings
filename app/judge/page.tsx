@@ -6,6 +6,7 @@ import { eligibilityFor } from "@/lib/eligibility";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { loadJudgeContext } from "@/lib/judge-context";
 import { prisma } from "@/lib/db";
+import { panelHeading } from "@/lib/panel";
 import { mondayCountdown } from "@/lib/season-clock";
 
 export const metadata: Metadata = { title: "Judge" };
@@ -49,7 +50,9 @@ export default async function JudgeHomePage() {
 
   return (
     <div className="mx-auto max-w-xl px-5 py-12">
-      <p className="text-xs uppercase tracking-[0.22em] text-gold">Your panel: {queue.panel}</p>
+      <p className="text-xs uppercase tracking-[0.22em] text-gold">
+        {panelHeading(queue.panel, queue.destination?.edition ?? null)}
+      </p>
       <h1 className="mt-3 font-serif text-5xl leading-tight">
         {queue.destination
           ? `You're judging: ${queue.destination.event} · ${queue.destination.edition}`

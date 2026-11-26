@@ -4,8 +4,9 @@ import { ProfileForm } from "@/components/Forms";
 import { auth } from "@/lib/auth";
 import { SEASON_2027 } from "@/lib/catalogue";
 import { CATEGORY_LABEL, categoryFor, formatDateOnly, parseDateOnly } from "@/lib/category";
-import { getAthleteByUser } from "@/lib/data";
-import { formatDate, sexLabel, verificationLabel } from "@/lib/format";
+import { getAthleteByUser, getSeasonRankings, pointsForAthlete } from "@/lib/data";
+import { formatDate, formatPoints, sexLabel, verificationLabel } from "@/lib/format";
+import { MONEY_BLANK } from "@/lib/prize";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { dutyStatusLine } from "@/lib/tribunal";
 
@@ -28,6 +29,7 @@ export default async function ProfilePage() {
   const asOf = parseDateOnly(SEASON_2027.ageAsOf)!;
   const category = categoryFor(athlete.birthDate, asOf);
   const queue = await ensureWeeklyQueue(session.user.id);
+  const points = pointsForAthlete(await getSeasonRankings(), athlete.id);
 
   return (
     <div className="mx-auto max-w-xl px-5 py-12">
@@ -36,6 +38,18 @@ export default async function ProfilePage() {
       <p className="mt-3 text-sm text-ink/70">
         {CATEGORY_LABEL[category]} · {sexLabel(athlete.sex)} · born {formatDate(formatDateOnly(athlete.birthDate))}
       </p>
+      <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
+        {[
+          ["Season points", formatPoints(points)],
+          ["Season prize money", MONEY_BLANK],
+          ["Career earnings", MONEY_BLANK],
+        ].map(([label, value]) => (
+          <div key={label} className="border border-line bg-white px-3 py-3">
+            <dt className="text-xs uppercase tracking-wider text-ink/55">{label}</dt>
+            <dd className="mt-1 font-serif text-2xl">{value}</dd>
+          </div>
+        ))}
+      </dl>
       <p className="mt-3 text-sm">{dutyStatusLine(queue.pending)}</p>
       <p className="mt-2 text-sm text-ink/60">
         Sex and date of birth stay fixed after signup. In the real version, both are checked against a document.

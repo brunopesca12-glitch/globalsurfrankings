@@ -1,4 +1,5 @@
-import { OCEAN_ENTRY_TOLL_CENTS, OCEAN_WAVES_PER_ISO_WEEK, POOL_TOLL_CENTS } from "@/lib/constitution";
+import { OCEAN_ENTRY_TOLL_CENTS, OCEAN_WAVES_PER_ISO_WEEK } from "@/lib/constitution";
+import { poolFeeCents } from "@/lib/pool-fee";
 import type { CategoryCode } from "@/lib/category";
 import { themeAllowsCategory, type ThemeDefinition } from "@/lib/catalogue";
 
@@ -46,6 +47,8 @@ export function decideEntry(input: {
   isoWeek: number;
   today: string;
   videoUrl: string;
+  /** Overrides the env pool fee. Tests pass this. Production reads GSR_POOL_FEE_CENTS. */
+  poolTollCents?: number;
 }): EntryDecision {
   if (!input.dutyCurrent) return { ok: false, code: "DUTY" };
   if (!themeAllowsCategory(input.theme, input.category)) {
@@ -61,9 +64,10 @@ export function decideEntry(input: {
   ) {
     return { ok: false, code: "QUOTA" };
   }
+  const poolToll = input.poolTollCents ?? poolFeeCents();
   return {
     ok: true,
-    tollCents: input.environment === "POOL" ? POOL_TOLL_CENTS : OCEAN_ENTRY_TOLL_CENTS,
+    tollCents: input.environment === "POOL" ? poolToll : OCEAN_ENTRY_TOLL_CENTS,
   };
 }
 
