@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eligibilityFor } from "@/lib/eligibility";
 import { demoPair } from "@/lib/demo-clips";
-import { circuitClock, daysUntilMonday, judgingStreak, purseMirror } from "@/lib/season-clock";
+import { circuitClock, daysUntilMonday, judgingStreak, mondayCountdown, purseMirror } from "@/lib/season-clock";
 import { resolveCollege } from "@/lib/tribunal";
 
 const open = {
@@ -58,6 +58,9 @@ describe("season clock", () => {
     expect(purseMirror({ college: "RANKED", today: "2026-10-19", startsOn: "2027-03-01" }).tone).toBe("none");
     expect(purseMirror({ college: "RANKED", today: "2027-04-01", startsOn: "2027-03-01" }).tone).toBe("pending");
     expect(purseMirror({ college: "PUBLIC", today: "2027-04-01", startsOn: "2027-03-01" }).tone).toBe("unpaid");
+    expect(mondayCountdown(new Date("2026-10-19T10:00:00.000Z"))).toContain("publishes today");
+    expect(mondayCountdown(new Date("2026-10-19T23:00:00.000Z"))).toContain("published today");
+    expect(mondayCountdown(new Date("2026-10-18T15:00:00.000Z"))).toContain("tomorrow");
   });
 });
 

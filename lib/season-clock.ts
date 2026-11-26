@@ -58,11 +58,34 @@ export function daysUntilMonday(now: Date): number {
   return day === 1 ? 0 : (8 - day) % 7;
 }
 
+const VERDICT_ZONE = "America/Sao_Paulo";
+const VERDICT_HOUR = 9;
+
+function saoPauloClock(now: Date): { weekday: number; hour: number } {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: VERDICT_ZONE,
+    weekday: "short",
+    hour: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(now).map((part) => [part.type, part.value]));
+  const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.weekday.slice(0, 3));
+  return { weekday, hour: Number(parts.hour) };
+}
+
+/** Verdict copy in America/Sao_Paulo. After Monday 09:00 the sentence is past tense. */
 export function mondayCountdown(now: Date): string {
-  const days = daysUntilMonday(now);
-  if (days === 0) return "Monday's verdict publishes today.";
-  if (days === 1) return "Monday's verdict publishes tomorrow.";
-  return `Monday's verdict publishes in ${days} days.`;
+  const clock = saoPauloClock(now);
+  const at = "at 09:00 (São Paulo time)";
+  if (clock.weekday === 1 && clock.hour < VERDICT_HOUR) {
+    return `Monday's verdict publishes today ${at}.`;
+  }
+  if (clock.weekday === 1) {
+    return `Monday's verdict published today ${at}.`;
+  }
+  const days = (8 - clock.weekday) % 7;
+  if (days === 1) return `Monday's verdict publishes tomorrow ${at}.`;
+  return `Monday's verdict publishes in ${days} days, ${at}.`;
 }
 
 export type PurseMirror = {
@@ -71,8 +94,7 @@ export type PurseMirror = {
 };
 
 /**
- * Before the season opens there is no escrowed purse. Paid colleges then see a
- * pending mirror. This site never pays it.
+ * Prize money is not published. The mirror stays blank of amounts.
  */
 export function purseMirror(input: {
   college: "CHAMBER" | "RANKED" | "ATHLETES" | "UPPER" | "PUBLIC" | null;
@@ -82,18 +104,18 @@ export function purseMirror(input: {
   if (input.today < input.startsOn || !input.college) {
     return {
       tone: "none",
-      text: "Founding season, no purse yet. Monday's payment orders publish from the rules.",
+      text: "Founding season. Prize money is not published. Rankings are season points.",
     };
   }
   if (input.college === "CHAMBER" || input.college === "RANKED") {
     return {
       tone: "pending",
-      text: "Champions and the pro tour share the judges' fund. This site publishes the order. It does not pay it.",
+      text: "Champions and the pro tour. Prize money for judges is not published. Rankings are season points.",
     };
   }
   return {
     tone: "unpaid",
-      text: "This panel is unpaid. The judges' fund goes to Champions and the pro tour. Your record is how close you sat to Monday.",
+      text: "Your record is how close you sat to Monday. Prize money is not published.",
   };
 }
 

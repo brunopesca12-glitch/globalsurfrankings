@@ -39,7 +39,7 @@ Open http://localhost:3000. Landing, the video gallery (`/videos`), the calendar
 
 ## Production (Vercel)
 
-The production build script is `prisma generate && prisma migrate deploy && next build`. `postinstall` also runs `prisma generate`. Each Vercel deploy applies committed migrations before `next build`. `DATABASE_URL` must already be set in the Vercel Production environment (Neon). It is not stored in this repo.
+The production build script is `prisma generate && node scripts/migrate-if-safe.mjs && next build`. `postinstall` also runs `prisma generate`. A Production deploy (`VERCEL_ENV=production`) applies committed migrations to `DATABASE_URL` before `next build`. A Preview deploy does not migrate `DATABASE_URL`. It migrates only when `PREVIEW_DATABASE_URL` is set and different from `DATABASE_URL`. `DATABASE_URL` must already be set in the Vercel Production environment (Neon). It is not stored in this repo. The Preview environment needs its own `DATABASE_URL` (a separate Neon branch). Sharing the production URL with Preview lets preview code read and write production even when migrate is skipped.
 
 Seed does not run on deploy. `npm run db:seed` deletes users, entries, and the season, then loads the 2027 demo, so it must be run once against the empty production database and not again after real signups.
 
@@ -87,6 +87,10 @@ The password for every demo account, including joao.vasques@gsr.surf and desk@gs
 
 Set `SITE_GATE_USER` and `SITE_GATE_PASSWORD` on Vercel to require HTTP Basic Auth before any page (the user defaults to `gsr`). Remove `SITE_GATE_PASSWORD` to disable the gate. The password is not stored in this repo. Athlete sign-in still happens after the gate.
 
+Password reset uses Resend (`RESEND_API_KEY`, from `GSR <no-reply@gsr.surf>`). If the key is missing, the forgot-password page says so and does not crash. Add the domain in Resend and publish the DKIM, SPF, and DMARC records it shows.
+
+Demo cleanup is `npm run db:remove-demo`. It refuses to run without `--dry-run` or `--apply`. Tube/barrel and Big Surf demo rows are kept. Take a backup before `--apply`. Do not point it at a database you have not backed up.
+
 ## Submission checks
 
 An entry stores a required attestation that the wave has never been posted on any social network or platform. The file is hashed (SHA-256) and sampled frames get a perceptual hash, so an exact copy or a re-saved, trimmed, or cropped copy of a wave already in GSR is refused. Frames are also sent to a vision model, which checks the clip against the chosen title. A clear miss is refused. An unsure read, a link we cannot open (YouTube, Vimeo), or a missing vision key is accepted and marked pending review at `/my-waves` and `/admin/review`. Signed-in surfers and judges can report that a wave was already published. The desk clears it or removes it there. There is no automatic social-network search.
@@ -97,14 +101,14 @@ A direct key is used first: `OPENAI_API_KEY`, `GEMINI_API_KEY` (or `GOOGLE_GENER
 
 Season vintage 2027, Founding Season, 1 Mar 2027 → 29 Feb 2028, champions crowned March 2028. Seven titles: Best Tube, Best Aerial, Biggest Paddle-In Wave (big wave), Best Small-Wave Performance, Frontside, Backside, Wave Pool. Four divisions per title: Open and Masters 40+, men's and women's (28 weekly champions). Junior and Masters 50+ are retired; the enum values stay in the database so older rows still read.
 
-One filled board: Best Barrel, Open, Men, places 1–8. A few other entries sit unplaced, including one pool entry with a recorded US$ 20 toll that is not collected.
+One filled board: Best Tube (the barrel board), Open, Men, places 1–8. A few other entries sit unplaced. Pool entry is free unless `GSR_POOL_FEE_CENTS` is set.
 
 ## Rules encoded here
 
 Constitutional constants live in `lib/constitution.ts`.
 
 - Ocean entry is free. One ocean wave per ISO week, no banking. Pool submissions are not part of that quota.
-- Pool toll is US$ 20 and passes whole to the judges. The app stores the toll in cents and does not collect it.
+- Pool toll is off (`GSR_POOL_FEE_CENTS` unset or 0). Set that variable to a positive number of cents to record a toll again. The app stores the toll in cents and does not collect it. Ocean entry stays free.
 - The founding sponsorship is US$ 5,000,000, split 78 / 6 / 16: US$ 3,900,000 competitors' prize money, US$ 300,000 judges (half Chamber, half Ranked), US$ 800,000 platform. The prize money splits 53% season tables (US$ 2,067,000), 36% weekly race (US$ 1,404,000, about US$ 27,000 every Monday over 52 weeks) and 11% world champions' fund (US$ 429,000), equally across the seven titles. The site mirrors the escrow and does not move the money.
 - Division shares: pro-rata to each division's field; until a field exists the four divisions are weighted equally (25% each).
 - Paid places are the top 20% of an edition (`floor(0.2 × S)`, at least the winner). On a large field the podium six take 80% of the table on the curve 35 / 20 / 14 / 12 / 10 / 9, which is 28 / 16 / 11.2 / 9.6 / 8 / 7.2% of the table. Places 7 through the cutoff split the other 20% equally, and none is paid more than sixth; a short tail returns the excess to the podium. Six or fewer paid places receive the whole table on that curve. The purse page shows this law. The white paper rounds a few of those cents to the dollar. The printed champion campaign in Annex B.2 is shown beside the law, labeled as printed.

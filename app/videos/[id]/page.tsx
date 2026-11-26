@@ -9,6 +9,7 @@ import { themeBySlug } from "@/lib/catalogue";
 import { CATEGORY_LABEL } from "@/lib/category";
 import { collegeVerdictMap, getVideo } from "@/lib/data";
 import { environmentLabel, ordinal, verificationLabel } from "@/lib/format";
+import { worldBoardHref } from "@/lib/board-link";
 import { submissionStatus } from "@/lib/submission-check";
 
 export const metadata: Metadata = { title: "Watch" };
@@ -55,10 +56,7 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
         <span className="mx-2 text-ink/40">·</span>
         {verificationLabel(video.athlete.verification)}
         <span className="mx-2 text-ink/40">·</span>
-        <Link
-          href={`/board/${video.theme.slug}?category=${video.category}&sex=${video.sex}`}
-          className="text-ocean"
-        >
+        <Link href={worldBoardHref(video.theme.slug, video.category, video.sex)} className="text-ocean">
           World board
         </Link>
       </p>

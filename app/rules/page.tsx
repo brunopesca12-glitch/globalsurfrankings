@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { FUTURE_THEMES, SEASON_2027, THEMES } from "@/lib/catalogue";
-import { FOUNDING } from "@/lib/constitution";
-import { formatDate, formatUsdAmount } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { MONEY_BLANK } from "@/lib/prize";
 
 export const metadata: Metadata = { title: "Rules" };
 
@@ -12,10 +11,9 @@ export default function RulesPage() {
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Protocol</p>
       <h1 className="mt-2 font-serif text-5xl">The rules execute themselves.</h1>
       <p className="mt-4 text-lg leading-relaxed text-ink/80">
-        GSR runs the competition and publishes the payment orders. The rules are public. Every Monday the prior
-        week&apos;s file is published. At the end of the season the annual file is published. No one at the desk types
-        an amount. Surfers enter waves. Judges place them. A separate bot, outside this site, sends US dollars (stablecoin) on the
-        blockchain to the wallet on the profile.
+        GSR runs the competition in public. Surfers enter waves. Judges place them. Monday publishes the places.
+        The prize is season points and ranking status. Prize-money columns stay on the athlete and read {MONEY_BLANK}{" "}
+        until a sponsor is affixed. No cash prize is offered.
       </p>
 
       <section className="mt-12">
@@ -44,12 +42,13 @@ export default function RulesPage() {
           belongs in Frontside Lines, a backside line belongs in Backside Lines, an aerial needs an aerial, a tube
           needs a tube, a big paddle-in wave has to be a big paddle-in, and a small-wave performance stays small. The
           site watches frames from the file. A clear miss is refused. An unsure read is accepted and marked for the
-          desk. Anyone signed in can report a wave that was already published.
+          desk. Anyone signed in can report a wave that was already published. Uploads must be original, unpublished,
+          current-season footage. Reposting an old or already published wave leads to a ban.
         </p>
       </section>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">Place, then pay</h2>
+        <h2 className="font-serif text-3xl">Place, then points</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
           A wave does not get a score. A judge drops it into their own list, best at #1. Three sealed places from a
           panel make that panel&apos;s place: the middle one. The wave&apos;s place is the middle of the panels that
@@ -61,43 +60,23 @@ export default function RulesPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">The split</h2>
+        <h2 className="font-serif text-3xl">Points</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
-          {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} goes to surfers and {formatUsdAmount(FOUNDING.seasonJudgeUsd)}{" "}
-          to judges, escrowed publicly before the season. The surfers&apos; purse splits 53% into the season tables, 36%
-          into the weekly race and 11% into the world champions&apos; fund, equally across the seven titles and
-          pro-rata to each division&apos;s field. The judges&apos; fund is shared by
-          the Champions panel and the pro tour panel.
-        </p>
-        <p className="mt-3 leading-relaxed text-ink/80">
-          A place maps to an amount by the published curve. The top fifth of a board is paid. On a large field the
-          first six places take 80% of that edition&apos;s table, on 35 / 20 / 14 / 12 / 10 / 9. Places after sixth
-          share the rest equally, and none is paid more than sixth. Event points use 100 / 60 / 45 / 35 / 28 / 22 on
-          the podium, then 12% through the top fifth, then 4% to every other entrant. The winner&apos;s base is 100 ×
-          √(S/100).
+          Event points use 100 / 60 / 45 / 35 / 28 / 22 on the podium, then 12% through the top fifth, then 4% to every
+          other entrant. The winner&apos;s base is 100 × √(S/100). A division ranking is the sum of those points. Your
+          ten best results decide the season.
         </p>
       </section>
 
       <section className="mt-12">
-        <h2 className="font-serif text-3xl">When the money moves</h2>
+        <h2 className="font-serif text-3xl">Prize money</h2>
         <p className="mt-3 leading-relaxed text-ink/80">
-          This site does not send money. It publishes a payment order: the period, the event and board, the place, the
-          wallet and network, the US dollar (stablecoin) amount, the split, the rule, and a status. The same orders are listed on the
-          escrow page and at /api/payment-orders, one file per week and one for the season. Each file has a content
-          hash anyone can recompute.
+          Season prize money and career earnings are shown for every athlete. With no sponsor affixed they read{" "}
+          {MONEY_BLANK}. That blank is not a promise and not a balance. Entry is free. A pool verification toll can be
+          switched on later; it is off. Nothing on this site is a cash prize.
         </p>
         <p className="mt-3 leading-relaxed text-ink/80">
-          Every Monday&apos;s file covers the prior week: weekly race money for that week&apos;s places, and the
-          judges&apos; share for Champions and pro tour ballots sealed that week. The season file covers the season
-          tables and the world champions&apos; fund, and it is meant to be paid at season close. The only destination
-          is the US dollar (stablecoin) address on the profile — Ethereum, Solana, or another stablecoin network. A profile without one keeps
-          that order waiting. The bot that pays is not in this codebase. Until a contract address is public, the escrow
-          page has no transaction hashes.
-        </p>
-        <p className="mt-3">
-          <Link href="/escrow" className="text-ocean">
-            See the escrow
-          </Link>
+          A public wallet address can be saved for a later season. It is not paid while prize money is unpublished.
         </p>
       </section>
 

@@ -9,8 +9,6 @@ const links = [
   { href: "/calendar", label: "Calendar" },
   { href: "/ranking", label: "Rankings" },
   { href: "/hashboards", label: "Hashboards" },
-  { href: "/escrow", label: "Escrow" },
-  { href: "/purse", label: "Purse" },
   { href: "/about", label: "About" },
 ];
 

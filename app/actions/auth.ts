@@ -9,6 +9,7 @@ import { safeCallback } from "@/lib/auth-redirect";
 import { parseDateOnly } from "@/lib/category";
 import { prisma } from "@/lib/db";
 import { signIn } from "@/lib/auth";
+import { TERMS_REQUIRED, termsBoxChecked, termsStamp } from "@/lib/legal";
 import { slugify } from "@/lib/slug";
 import { parseWallet } from "@/lib/wallet";
 
@@ -103,6 +104,8 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
   if (formData.get("rules") !== "on") {
     return { error: "Tick the box to agree to the competition rules." };
   }
+  if (!termsBoxChecked(formData.get("terms"))) return { error: TERMS_REQUIRED };
+  const accepted = termsStamp();
 
   const email = parsed.data.email.toLowerCase();
   const taken = await prisma.user.findUnique({ where: { email } });
@@ -121,6 +124,8 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
       name: parsed.data.displayName,
       passwordHash,
       role: "ATHLETE",
+      termsAcceptedAt: accepted.termsAcceptedAt,
+      termsVersion: accepted.termsVersion,
       athlete: {
         create: {
           displayName: parsed.data.displayName,

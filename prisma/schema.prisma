@@ -66,10 +66,15 @@ model User {
   judgeOnboardedAt DateTime?
   /// Opt in to appear by name on the college judge list.
   judgeNamePublic  Boolean   @default(false)
+  /// When this account accepted the Terms of Use.
+  termsAcceptedAt  DateTime?
+  /// Version of the terms they accepted. See lib/legal.ts.
+  termsVersion     String?
   athlete          Athlete?
   seats            CollegeSeat[]
   ballots          Ballot[]
   publicationFlags PublicationFlag[]
+  passwordResets   PasswordResetToken[]
 }
 
 model Athlete {
@@ -158,6 +163,10 @@ model Entry {
   reviewStatus        ReviewStatus     @default(CLEAR)
   modalityCheck       ModalityCheck?
   modalityNote        String           @default("")
+  /// When the athlete agreed to the Terms of Use for this upload.
+  termsAcceptedAt     DateTime?
+  /// Version of the terms accepted for this upload.
+  termsVersion        String?
   createdAt   DateTime     @default(now())
   placement   Placement?
   ballots     Ballot[]
@@ -303,6 +312,19 @@ model JudgeInvite {
   acceptedById String?
 
   @@index([email])
+}
+
+/** Single-use password reset. The raw token is emailed; only its hash is stored. */
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model VerdictRun {

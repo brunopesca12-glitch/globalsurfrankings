@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { parseDateOnly } from "@/lib/category";
 import { prisma } from "@/lib/db";
 import { signIn } from "@/lib/auth";
+import { termsBoxChecked, termsStamp } from "@/lib/legal";
 import { slugify } from "@/lib/slug";
 import { COLLEGE_SEAT_LABEL, isManualCollege } from "@/lib/tribunal";
 import type { College } from "@/lib/median";
@@ -107,6 +108,8 @@ export async function registerFromInvite(formData: FormData) {
   if (invite.email && invite.email !== email) redirect(`/invite/${token}?error=1`);
   if (sex !== "M" && sex !== "W") redirect(`/invite/${token}?error=1`);
   if (!parseDateOnly(birthDate)) redirect(`/invite/${token}?error=1`);
+  if (!termsBoxChecked(formData.get("terms"))) redirect(`/invite/${token}?error=terms`);
+  const accepted = termsStamp();
   const taken = await prisma.user.findUnique({ where: { email } });
   if (taken) redirect(`/invite/${token}?error=exists`);
 
@@ -120,6 +123,8 @@ export async function registerFromInvite(formData: FormData) {
       name: displayName,
       passwordHash,
       role: "ATHLETE",
+      termsAcceptedAt: accepted.termsAcceptedAt,
+      termsVersion: accepted.termsVersion,
       athlete: {
         create: {
           displayName,

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EDITIONS } from "@/lib/constitution";
 import { getSeasonRankings } from "@/lib/data";
 import { formatPoints, verificationLabel } from "@/lib/format";
+import { MONEY_BLANK } from "@/lib/prize";
 
 export const metadata: Metadata = { title: "Rankings" };
 
@@ -14,9 +15,10 @@ export default async function RankingPage() {
       <p className="text-xs uppercase tracking-[0.22em] text-gold">Four world rankings per title</p>
       <h1 className="mt-2 font-serif text-5xl">Season championship</h1>
       <p className="mt-4 max-w-2xl text-ink/80">
-        A division ranking is the sum of title points. Each title pays the curve 100 / 60 / 45 / 35 / 28 / 22 percent of the
-        base, and the winner&apos;s base is 100 × √(S/100). N is the number of athletes already placed in the edition. Points
-        stay provisional until the season closes.
+        A division ranking is the sum of title points. Each title uses the curve 100 / 60 / 45 / 35 / 28 / 22 percent of
+        the base, and the winner&apos;s base is 100 × √(S/100). N is the number of athletes already placed in the edition.
+        Points stay provisional until the season closes. Season prize money and career earnings stay blank until a
+        sponsor is affixed.
       </p>
       <div className="mt-10 space-y-10">
         {EDITIONS.map((edition) => {
@@ -43,7 +45,12 @@ export default async function RankingPage() {
                           {row.city ? ` · ${row.city}` : ""} · {row.results} {row.results === 1 ? "result" : "results"}
                         </span>
                       </span>
-                      <span>{formatPoints(row.points)}</span>
+                      <span className="shrink-0 text-right">
+                        <span className="block">{formatPoints(row.points)}</span>
+                        <span className="block text-xs uppercase tracking-wider text-ink/45">
+                          Prize {MONEY_BLANK} · Career {MONEY_BLANK}
+                        </span>
+                      </span>
                     </li>
                   ))}
                 </ol>

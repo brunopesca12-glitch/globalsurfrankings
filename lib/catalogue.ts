@@ -95,7 +95,7 @@ export const THEMES: readonly ThemeDefinition[] = [
     oceanOnly: false,
     poolOnly: true,
     proposedDate: false,
-    note: "Wave pools only. US$ 20 verification toll, passed whole to the judging fund.",
+    note: "Wave pools only.",
   },
 ];
 

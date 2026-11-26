@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && node scripts/migrate-if-safe.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
@@ -13,6 +13,7 @@
     "db:demo-judges": "tsx prisma/demo-judges.ts",
     "db:demo-experience": "tsx prisma/demo-experience.ts",
     "db:reset": "prisma migrate reset --force",
+    "db:remove-demo": "tsx scripts/remove-demo-records.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

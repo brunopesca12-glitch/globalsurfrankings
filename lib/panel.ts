@@ -23,3 +23,10 @@ export function editionLine(category: string, sex: string): string {
 export function judgingLine(event: string, category: string, sex: string): string {
   return `You're judging: ${event} · ${editionLine(category, sex)}`;
 }
+
+/** Panel line names the division being judged, not only the college. */
+export function panelHeading(panel: string | null, edition: string | null): string {
+  if (!panel) return "Your panel";
+  if (edition) return `Your panel: ${panel} · ${edition}`;
+  return `Your panel: ${panel}`;
+}

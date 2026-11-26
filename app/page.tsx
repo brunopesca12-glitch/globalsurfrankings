@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { SEASON_2027, THEMES } from "@/lib/catalogue";
-import { EDITIONS, FOUNDING } from "@/lib/constitution";
+import { EDITIONS } from "@/lib/constitution";
 import { getHomeRankings, type RankingRow } from "@/lib/data";
-import { formatDate, formatPoints, formatUsdAmount } from "@/lib/format";
+import { formatDate, formatPoints } from "@/lib/format";
+import { MONEY_BLANK } from "@/lib/prize";
 import { circuitClock } from "@/lib/season-clock";
 
 export default async function HomePage() {
@@ -65,15 +66,14 @@ export default async function HomePage() {
 
       <section className="mt-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="font-serif text-4xl">Purses on the door</h2>
-          <Link href="/purse" className="text-sm text-ocean">
-            Full purse
+          <h2 className="font-serif text-4xl">Seven titles</h2>
+          <Link href="/ranking" className="text-sm text-ocean">
+            Season points
           </Link>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/75">
-          Every dollar here goes to surfers and judges: {formatUsdAmount(FOUNDING.seasonCompetitorUsd)} to surfers
-          and {formatUsdAmount(FOUNDING.seasonJudgeUsd)} to judges, escrowed publicly before the season opens and
-          split equally across seven titles. This list mirrors that account. No money moves through the platform.
+          The ranking is season points. Prize money stays on the table and stays blank until a sponsor is affixed.
+          Nothing here is a cash prize.
         </p>
         <div className="mt-6 overflow-x-auto border border-line bg-white">
           <table className="w-full text-left text-sm">
@@ -85,7 +85,7 @@ export default async function HomePage() {
               </tr>
             </thead>
             <tbody>
-              {THEMES.map((theme, index) => (
+              {THEMES.map((theme) => (
                 <tr key={theme.slug} className="border-b border-line last:border-b-0">
                   <td className="px-3 py-2">
                     <Link href={`/board/${theme.slug}`} className="hover:text-ocean">
@@ -93,15 +93,14 @@ export default async function HomePage() {
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-ink/70">{formatDate(theme.finaleOn)}</td>
-                  <td className="px-3 py-2">{formatUsdAmount(FOUNDING.titleShares[index] ?? 0)}</td>
+                  <td className="px-3 py-2">{MONEY_BLANK}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <p className="mt-3 text-sm text-ink/60">
-          Seven titles, four divisions, 28 weekly champions. About {formatUsdAmount(FOUNDING.weeklyPerMondayUsd)} in
-          weekly checks every Monday of the Founding Season.
+          Seven titles, four divisions, 28 weekly champions. Your ten best results decide the season.
         </p>
       </section>
     </div>

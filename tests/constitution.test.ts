@@ -14,7 +14,7 @@ import {
 } from "@/lib/constitution";
 
 describe("constitutional rails", () => {
-  it("charges nothing for the ocean and US$ 20 for the pool", () => {
+  it("keeps ocean entry free and records the pool toll only when it is switched on", () => {
     expect(OCEAN_ENTRY_TOLL_CENTS).toBe(0);
     expect(POOL_TOLL_CENTS).toBe(2_000);
   });

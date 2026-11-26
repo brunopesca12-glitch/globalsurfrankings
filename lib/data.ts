@@ -58,6 +58,18 @@ export type RankingRow = {
   results: number;
 };
 
+export function pointsForAthlete(
+  editions: Map<string, Map<string, RankingRow>>,
+  athleteId: string,
+): number {
+  let total = 0;
+  for (const bucket of editions.values()) {
+    const row = bucket.get(athleteId);
+    if (row) total += row.points;
+  }
+  return Math.round(total * 100) / 100;
+}
+
 export async function getSeasonRankings() {
   const entries = await prisma.entry.findMany({
     where: {

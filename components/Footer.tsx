@@ -15,6 +15,12 @@ export function Footer() {
           <Link href="/rules" className="hover:text-ocean">
             Rules
           </Link>
+          <Link href="/terms" className="hover:text-ocean">
+            Terms
+          </Link>
+          <Link href="/privacy" className="hover:text-ocean">
+            Privacy
+          </Link>
         </p>
         <p>GlobalSurfRankings.com</p>
       </div>

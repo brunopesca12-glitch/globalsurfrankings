@@ -44,6 +44,9 @@ export default async function InvitePage({
         <p className="mt-4 text-sm text-stamp">That email already has an account. Sign in, then open this link again.</p>
       ) : null}
       {query.error === "1" ? <p className="mt-4 text-sm text-stamp">The invite could not be accepted.</p> : null}
+      {query.error === "terms" ? (
+        <p className="mt-4 text-sm text-stamp">Tick the box to agree to the Terms of Use.</p>
+      ) : null}
 
       {session?.user?.role === "ADMIN" ? (
         <p className="mt-8 leading-relaxed text-ink/80">
@@ -85,6 +88,16 @@ export default async function InvitePage({
               <input className={field} name="birthDate" type="date" required />
             </label>
           </div>
+          <label className="flex items-start gap-2 text-sm">
+            <input className="mt-1" type="checkbox" name="terms" required />
+            <span>
+              I agree to the{" "}
+              <Link href="/terms" className="text-ocean">
+                Terms of Use
+              </Link>
+              .
+            </span>
+          </label>
           <button className="min-h-12 w-full bg-ocean px-4 py-3 text-paper" type="submit">
             Create account and join
           </button>

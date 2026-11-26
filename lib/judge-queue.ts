@@ -12,6 +12,7 @@ import { eligibilityFor } from "@/lib/eligibility";
 import { editionLine, panelName } from "@/lib/panel";
 import { judgingStreak } from "@/lib/season-clock";
 import { stackAfterInsert } from "@/lib/stack";
+import { canSubmitOpenBallot, isJudgeableEntryStatus, visibleOpenBallots } from "@/lib/judgeable";
 import {
   canJudgeEntry,
   drawComparable,
@@ -256,7 +257,7 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
       where: {
         userId,
         status: "OPEN",
-        entry: { status: "SUBMITTED" },
+        entry: { status: { in: ["SUBMITTED", "PLACED"] } },
         NOT: { AND: [{ isoYear }, { isoWeek: isoWeekNumber }] },
       },
       include: {
@@ -277,10 +278,16 @@ async function readJudgeSession(userId: string, isoYear: number, isoWeekNumber: 
     }),
   ]);
 
-  const open = [
-    ...earlierOpen,
-    ...weekBallots.filter((ballot) => ballot.status === "OPEN" && ballot.entry.status === "SUBMITTED"),
-  ].filter((ballot) => isCurrentModality(ballot.entry.theme.slug, ballot.entry.category));
+  const asView = <T extends { status: string; entry: { status: string; theme: { slug: string }; category: string } }>(
+    rows: T[],
+  ) =>
+    rows.map((ballot) => ({
+      ballot,
+      status: ballot.status,
+      entryStatus: ballot.entry.status,
+      current: isCurrentModality(ballot.entry.theme.slug, ballot.entry.category),
+    }));
+  const open = visibleOpenBallots(asView(weekBallots), asView(earlierOpen));
   const sealed = weekBallots.filter((ballot) => ballot.status === "SEALED").length;
   const pairs = sealedFinal
     .filter((ballot) => ballot.place != null && ballot.entry.placement)
@@ -344,7 +351,9 @@ export async function applyBallotComparison(
         where: { id: ballotId, userId },
         include: { entry: { select: { status: true } } },
       });
-      if (!ballot || ballot.status !== "OPEN" || ballot.entry.status !== "SUBMITTED") return "rejected";
+      if (!ballot || !canSubmitOpenBallot({ status: ballot.status, entryStatus: ballot.entry.status })) {
+        return "rejected";
+      }
       const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
       if (probe.kind !== "probe") return "rejected";
       const probeEntryId = ballot.boardEntryIds[probe.index];
@@ -391,7 +400,9 @@ export async function sealFinishedBallot(userId: string, ballotId: string): Prom
         where: { id: ballotId, userId },
         include: { entry: { select: { status: true } } },
       });
-      if (!ballot || ballot.status !== "OPEN" || ballot.entry.status !== "SUBMITTED") return "rejected";
+      if (!ballot || !canSubmitOpenBallot({ status: ballot.status, entryStatus: ballot.entry.status })) {
+        return "rejected";
+      }
       const probe = probeInsertion({ lo: ballot.lo, hi: ballot.hi });
       if (probe.kind !== "done") return "rejected";
       const updated = await tx.ballot.updateMany({
@@ -444,7 +455,9 @@ export async function placeOnStack(
         where: { id: ballotId, userId, status: "OPEN" },
         include: { entry: { select: { themeId: true, category: true, sex: true, status: true } } },
       });
-      if (!ballot || ballot.entry.status !== "SUBMITTED") return "rejected";
+      if (!ballot || !canSubmitOpenBallot({ status: ballot.status, entryStatus: ballot.entry.status })) {
+        return "rejected";
+      }
       const sealed = await tx.ballot.findMany({
         where: {
           userId,
@@ -490,7 +503,7 @@ export async function undoStackPlacement(userId: string, ballotId: string): Prom
         where: { id: ballotId, userId, status: "SEALED" },
         include: { entry: { select: { themeId: true, category: true, sex: true, status: true } } },
       });
-      if (!ballot || ballot.entry.status !== "SUBMITTED") return "rejected";
+      if (!ballot || !isJudgeableEntryStatus(ballot.entry.status)) return "rejected";
       const sealed = await tx.ballot.findMany({
         where: {
           userId,
@@ -555,10 +568,12 @@ async function ballotStillAllowed(userId: string, ballotId: string): Promise<boo
     where: { id: ballotId, userId, status: "OPEN" },
     include: { entry: { select: { athleteId: true, category: true, sex: true, status: true } } },
   });
-  if (!ballot || ballot.entry.status !== "SUBMITTED") {
-    if (ballot) await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
+  if (!ballot) return false;
+  if (!isJudgeableEntryStatus(ballot.entry.status)) {
+    await prisma.ballot.delete({ where: { id: ballot.id } }).catch(() => undefined);
     return false;
   }
+  if (!canSubmitOpenBallot({ status: ballot.status, entryStatus: ballot.entry.status })) return false;
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { seats: true, athlete: { select: { id: true } } },

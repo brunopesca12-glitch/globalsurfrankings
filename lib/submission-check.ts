@@ -32,7 +32,7 @@ const SAMPLE_NOTE =
   "We could not sample frames from this video, so a person will check that it is original and in the right title. It is in.";
 const NO_VISION_NOTE =
   "The automatic title check is not set up yet. Your wave is in, and the desk will review it.";
-const VISION_FAILED_NOTE = "The title check did not finish. Your wave is in, and the desk will review it.";
+const VISION_FAILED_NOTE = "Pending review. The desk will check that this wave fits the title.";
 
 /**
  * Originality, the unpublished attestation, and the title reading.
@@ -132,9 +132,11 @@ export function submissionStatus(entry: {
   contentSha256: string | null;
 }): { label: string; note: string } {
   if (entry.reviewStatus === "PENDING_REVIEW") {
+    const raw = entry.modalityNote.trim();
+    const stale = raw.length === 0 || /title check did not finish/i.test(raw);
     return {
       label: "Pending review",
-      note: entry.modalityNote || "The desk will look at this wave.",
+      note: stale ? "Pending review. The desk will check that this wave fits the title." : raw,
     };
   }
   if (entry.modalityCheck == null && entry.contentSha256 == null) {

@@ -6,6 +6,7 @@ import { eligibilityFor } from "@/lib/eligibility";
 import { ensureWeeklyQueue } from "@/lib/judge-queue";
 import { loadJudgeContext } from "@/lib/judge-context";
 import { prisma } from "@/lib/db";
+import { panelHeading } from "@/lib/panel";
 
 export const metadata: Metadata = { title: "Place the wave" };
 
@@ -33,7 +34,9 @@ export default async function WelcomePage() {
 
   return (
     <div className="mx-auto max-w-xl px-5 py-14">
-      <p className="text-xs uppercase tracking-[0.22em] text-gold">Your panel: {queue.panel}</p>
+      <p className="text-xs uppercase tracking-[0.22em] text-gold">
+        {panelHeading(queue.panel, queue.destination?.edition ?? null)}
+      </p>
       <h1 className="mt-3 font-serif text-5xl leading-none">Rank the waves.</h1>
       <p className="mt-4 text-lg leading-relaxed text-ink/80">
         {queue.destination

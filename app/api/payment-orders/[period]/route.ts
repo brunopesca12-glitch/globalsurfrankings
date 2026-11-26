@@ -1,6 +1,7 @@
 import { publicationResponse } from "@/app/api/payment-orders/respond";
 import { loadPublication } from "@/lib/payment-publish";
 import { buildDemoSample, fileByPeriod } from "@/lib/payment-orders";
+import { prizeMoneyPublished } from "@/lib/prize";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,13 @@ const PERIOD = /^\d{4}-W\d{2}$|^\d{4}-season$/;
 
 export async function GET(request: Request, context: { params: Promise<{ period: string }> }) {
   const { period } = await context.params;
+  if (!prizeMoneyPublished()) {
+    return Response.json({
+      published: false,
+      note: "Prize money is not published. Rankings are season points. No amounts are listed.",
+      orders: [],
+    });
+  }
   if (period === "demo") {
     const demo = buildDemoSample();
     return publicationResponse(request, demo, demo.contentHash);
